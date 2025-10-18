@@ -41,15 +41,15 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
 
-            // if ($e instanceof AuthenticationException) {
-            //     if ($request->expectsJson() || $request->is('api/*')) {
-            //         return response()->json([
-            //             'status' => Response::HTTP_UNAUTHORIZED,
-            //             'message' => $e->getMessage() ?? 'Unauthenticated'
-            //         ], Response::HTTP_UNAUTHORIZED);
-            //     }
-            //     return redirect()->guest(route('filament.admin.auth.login'));
-            // }
+            if ($e instanceof AuthenticationException) {
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'status' => Response::HTTP_UNAUTHORIZED,
+                        'message' => $e->getMessage() ?? 'Unauthenticated'
+                    ], Response::HTTP_UNAUTHORIZED);
+                }
+                return redirect()->guest(route('filament.admin.auth.login'));
+            }
 
             if ($e instanceof ModelNotFoundException) {
                 $model = strtolower(class_basename($e->getModel()));
