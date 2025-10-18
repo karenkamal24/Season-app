@@ -3,7 +3,6 @@
 namespace App\Traits;
 
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 trait SendMailTrait
@@ -14,14 +13,14 @@ trait SendMailTrait
 
         try {
             $mail->isSMTP();
-            $mail->Host       = env('MAIL_HOST', 'smtp.gmail.com');
+            $mail->Host       = config('mail.mailers.smtp.host');
             $mail->SMTPAuth   = true;
-            $mail->Username   = env('MAIL_USERNAME');
-            $mail->Password   = env('MAIL_PASSWORD');
+            $mail->Username   = config('mail.mailers.smtp.username');
+            $mail->Password   = config('mail.mailers.smtp.password');
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = env('MAIL_PORT', 465);
+            $mail->Port       = config('mail.mailers.smtp.port');
 
-            $mail->setFrom(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME', 'Season App'));
+            $mail->setFrom(config('mail.from.address'), config('mail.from.name'));
             $mail->addAddress($receiver);
             $mail->CharSet = 'UTF-8';
 
