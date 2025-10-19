@@ -41,6 +41,7 @@ class User extends Authenticatable implements FilamentUser
         'notification_token',
         'birth_date',
         'gender',
+        'is_vendor'
     ];
 
     protected $hidden = [
@@ -48,6 +49,7 @@ class User extends Authenticatable implements FilamentUser
         'remember_token',
         'last_otp',
         'last_otp_expire',
+
     ];
 
     protected $casts = [
@@ -58,6 +60,7 @@ class User extends Authenticatable implements FilamentUser
         'coins' => 'integer',
         'trips' => 'integer',
         'last_otp_expire' => 'datetime',
+        'is_vendor' => 'boolean'
     ];
 
     public function canAccessPanel(Panel $panel): bool
@@ -66,4 +69,8 @@ class User extends Authenticatable implements FilamentUser
     }
 
 
+    public function vendor_services()
+    {
+        return $this->hasMany(\App\Models\VendorService::class, 'user_id');
+    }
 }

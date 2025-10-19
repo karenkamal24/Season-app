@@ -17,20 +17,21 @@ use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->append(\App\Http\Middleware\SetLocaleFromHeader::class);
     })
-->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule) {
-    $schedule->command('users:delete-unverified')->everyTenMinutes();
-})
+
+    ->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule) {
+        $schedule->command('users:delete-unverified')->everyTenMinutes();
+    })
 
 
- ->withExceptions(function (Exceptions $exceptions) {
+    ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Throwable $e, Request $request) {
             if ($e instanceof ValidationException) {
                 return response()->json([
@@ -121,4 +122,3 @@ return Application::configure(basePath: dirname(__DIR__))
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         });
     })->create();
-

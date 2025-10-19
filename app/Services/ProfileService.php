@@ -24,4 +24,5 @@ public function updateProfile($request)
 
     return $user->refresh();
 }
+
 }

@@ -7,6 +7,8 @@ use App\Services\ProfileService;
 use App\Http\Resources\Auth\ProfileResource;
 use App\Utils\ApiResponse;
 use App\Http\Requests\Auth\UpdateProfileRequest;
+use App\Http\Requests\VendorService\StoreVendorServiceRequest;
+use App\Http\Resources\VendorService\VendorServiceResource;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProfileController extends Controller
