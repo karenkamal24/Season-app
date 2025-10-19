@@ -38,7 +38,9 @@ class User extends Authenticatable implements FilamentUser
         'coins',
         'trips',
         'has_interests',
-        'notification_token'
+        'notification_token',
+        'birth_date',
+        'gender',
     ];
 
     protected $hidden = [
@@ -58,9 +60,10 @@ class User extends Authenticatable implements FilamentUser
         'last_otp_expire' => 'datetime',
     ];
 
-public function canAccessPanel(Panel $panel): bool
-{
-    return $this->role === 'admin' && !$this->is_blocked;
-}
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->role === 'admin' && !$this->is_blocked;
+    }
+
 
 }
