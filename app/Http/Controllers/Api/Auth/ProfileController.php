@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\ProfileService;
 use App\Http\Resources\Auth\ProfileResource;
 use App\Utils\ApiResponse;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Requests\VendorService\StoreVendorServiceRequest;
 use App\Http\Resources\VendorService\VendorServiceResource;
@@ -20,13 +21,13 @@ class ProfileController extends Controller
         $this->profileService = $profileService;
     }
 
-    public function show()
+ public function show()
     {
-        $user = $this->profileService->getProfile();
+        $user = Auth::user();
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Profile data retrieved successfully.',
+            'Profile retrieved successfully.',
             new ProfileResource($user)
         );
     }
