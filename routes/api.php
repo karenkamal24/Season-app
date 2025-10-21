@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\Auth\VendorServiceController;
-
+use App\Http\Controllers\Api\Location\CountryController;
+use App\Http\Controllers\Api\Location\CityController;
+use App\Http\Controllers\Api\Emergency\EmergencyController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -47,4 +49,13 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 //service types
 Route::get('service-types', [VendorServiceController::class, 'indexServiceType']);
+//emergency
+Route::get('/emergency', [EmergencyController::class, 'show']);
 
+
+Route::prefix('Location')->group(function () {
+    Route::get('/countries', [CountryController::class, 'index']);
+    Route::get('/countries/{id}', [CountryController::class, 'show']);
+    Route::get('/cities', [CityController::class, 'index']);
+    Route::get('/cities/{id}', [CityController::class, 'show']);
+});
