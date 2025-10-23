@@ -8,9 +8,8 @@ use App\Http\Resources\Auth\ProfileResource;
 use App\Utils\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Auth\UpdateProfileRequest;
-use App\Http\Requests\VendorService\StoreVendorServiceRequest;
-use App\Http\Resources\VendorService\VendorServiceResource;
 use Symfony\Component\HttpFoundation\Response;
+use App\Helpers\LangHelper;
 
 class ProfileController extends Controller
 {
@@ -21,13 +20,13 @@ class ProfileController extends Controller
         $this->profileService = $profileService;
     }
 
- public function show()
+    public function show()
     {
         $user = Auth::user();
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Profile retrieved successfully.',
+            LangHelper::msg('profile_retrieved'),
             new ProfileResource($user)
         );
     }
@@ -38,7 +37,7 @@ class ProfileController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Profile updated successfully.',
+            LangHelper::msg('profile_updated'),
             new ProfileResource($user)
         );
     }

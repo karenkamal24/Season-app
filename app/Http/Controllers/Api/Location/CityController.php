@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Utils\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Request;
+use App\Helpers\LangHelper;
 
 class CityController extends Controller
 {
@@ -18,7 +19,7 @@ class CityController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Cities fetched successfully.',
+            LangHelper::msg('cities_fetched'),
             CityResource::collection($cities)->additional(['lang' => $lang])
         );
     }
@@ -29,12 +30,12 @@ class CityController extends Controller
         $city = City::with('country')->find($id);
 
         if (!$city) {
-            return ApiResponse::send(Response::HTTP_NOT_FOUND, 'City not found.');
+            return ApiResponse::send(Response::HTTP_NOT_FOUND, LangHelper::msg('city_not_found'));
         }
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'City fetched successfully.',
+            LangHelper::msg('city_fetched'),
             (new CityResource($city))->additional(['lang' => $lang])
         );
     }

@@ -8,6 +8,7 @@ use App\Services\EmergencyService;
 use App\Utils\ApiResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Helpers\LangHelper;
 
 class EmergencyController extends Controller
 {
@@ -22,7 +23,7 @@ class EmergencyController extends Controller
         if (!$countryCode) {
             return ApiResponse::send(
                 Response::HTTP_BAD_REQUEST,
-                'Missing Accept-Country header'
+                LangHelper::msg('emergency_missing_header')
             );
         }
 
@@ -31,13 +32,13 @@ class EmergencyController extends Controller
         if (!$emergency) {
             return ApiResponse::send(
                 Response::HTTP_NOT_FOUND,
-                'Emergency numbers not found for this country'
+                LangHelper::msg('emergency_not_found')
             );
         }
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Emergency numbers fetched successfully.',
+            LangHelper::msg('emergency_fetched'),
             new EmergencyResource($emergency)
         );
     }

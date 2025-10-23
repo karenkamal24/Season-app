@@ -92,28 +92,22 @@ class UserInfolist
                                         default => 'gray',
                                     }),
 
-                                IconEntry::make('is_blocked')
-                                    ->label('Blocked')
-                                    ->boolean()
-                                    ->trueIcon('heroicon-o-x-circle')
-                                    ->falseIcon('heroicon-o-check-circle')
-                                    ->trueColor('danger')
-                                    ->falseColor('success'),
+                                    TextEntry::make('is_blocked')
+                                    ->label('stuts')
+                                    ->formatStateUsing(fn($state) => $state ? 'Inactive ' : 'Active ')
+                                    ->color(fn($state) => $state ? 'danger' : 'success'),
 
-                                IconEntry::make('is_vendor')
-                                    ->label('Vendor Account')
-                                    ->boolean(),
 
-                                TextEntry::make('email_verified_at')
-                                    ->label('Email Verified')
-                                    ->dateTime()
-                                    ->placeholder('Not verified')
-                                    ->badge()
-                                    ->color(fn($state) => $state ? 'success' : 'warning'),
 
-                                IconEntry::make('has_interests')
-                                    ->label('Has Interests')
-                                    ->boolean(),
+                                    TextEntry::make('is_vendor')
+                                    ->label('Account type ')
+                                    ->formatStateUsing(fn($state) => $state ? 'vendor ' : 'user ')
+                                    ->color(fn($state) => $state ? 'danger' : 'success'),
+
+
+                                // IconEntry::make('has_interests')
+                                //     ->label('Has Interests')
+                                //     ->boolean(),
                             ]),
                     ])
                     ->columnSpanFull(),
@@ -200,24 +194,7 @@ class UserInfolist
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Security & Verification')
-                    ->schema([
-                        Grid::make(2)
-                            ->schema([
-                                TextEntry::make('last_otp')
-                                    ->label('Last OTP Code')
-                                    ->placeholder('-')
-                                    ->badge()
-                                    ->color('warning'),
 
-                                TextEntry::make('last_otp_expire')
-                                    ->label('OTP Expiration')
-                                    ->dateTime()
-                                    ->placeholder('-'),
-                            ]),
-                    ])
-                    ->collapsed()
-                    ->columnSpanFull(),
 
                 Section::make('Timestamps')
                     ->schema([

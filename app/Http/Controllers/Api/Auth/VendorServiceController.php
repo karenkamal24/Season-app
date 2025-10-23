@@ -12,6 +12,7 @@ use App\Utils\ApiResponse;
 use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Helpers\LangHelper;
 
 class VendorServiceController extends Controller
 {
@@ -28,11 +29,10 @@ class VendorServiceController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Vendor services retrieved successfully.',
+            LangHelper::msg('vendor_services_retrieved'),
             VendorServiceListResource::collection($vendorServices)
         );
     }
-
 
     public function show($id)
     {
@@ -40,7 +40,7 @@ class VendorServiceController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Vendor service details retrieved successfully.',
+            LangHelper::msg('vendor_service_details'),
             new VendorServiceResource($vendorService)
         );
     }
@@ -51,7 +51,7 @@ class VendorServiceController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_CREATED,
-            'Vendor service created successfully and is pending admin approval.',
+            LangHelper::msg('vendor_service_created'),
             new VendorServiceResource($vendorService)
         );
     }
@@ -62,7 +62,7 @@ class VendorServiceController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Vendor service updated successfully.',
+            LangHelper::msg('vendor_service_updated'),
             new VendorServiceResource($vendorService)
         );
     }
@@ -73,13 +73,15 @@ class VendorServiceController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Vendor service disabled successfully.'
+            LangHelper::msg('vendor_service_disabled')
         );
     }
+
     public function indexServiceType(Request $request)
     {
         $lang = $request->header('Accept-Language', 'ar');
         $types = ServiceType::where('is_active', true)->get();
+
         $data = $types->map(function ($type) use ($lang) {
             return [
                 'id' => $type->id,
@@ -90,7 +92,7 @@ class VendorServiceController extends Controller
 
         return ApiResponse::send(
             Response::HTTP_OK,
-            'Service types retrieved successfully.',
+            LangHelper::msg('service_types_retrieved'),
             $data
         );
     }

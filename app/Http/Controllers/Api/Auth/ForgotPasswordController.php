@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\ResendOtpRequest;
 use App\Services\ForgotPasswordService;
 use App\Utils\ApiResponse;
+use App\Helpers\LangHelper;
 use Exception;
 
 class ForgotPasswordController extends Controller
@@ -19,7 +20,7 @@ class ForgotPasswordController extends Controller
     {
         try {
             $this->forgotPasswordService->sendOtp($request->email);
-            return ApiResponse::success('OTP sent to your email.');
+            return ApiResponse::success(LangHelper::msg('forgot_otp_sent'));
         } catch (Exception $e) {
             return ApiResponse::badRequest($e->getMessage());
         }
@@ -29,7 +30,7 @@ class ForgotPasswordController extends Controller
     {
         try {
             $this->forgotPasswordService->verifyOtp($request->email, $request->otp);
-            return ApiResponse::success('OTP verified successfully.');
+            return ApiResponse::success(LangHelper::msg('forgot_otp_verified'));
         } catch (Exception $e) {
             return ApiResponse::badRequest($e->getMessage());
         }
@@ -39,7 +40,7 @@ class ForgotPasswordController extends Controller
     {
         try {
             $this->forgotPasswordService->resetPassword($request->email, $request->password);
-            return ApiResponse::success('Password reset successfully.');
+            return ApiResponse::success(LangHelper::msg('password_reset'));
         } catch (Exception $e) {
             return ApiResponse::badRequest($e->getMessage());
         }
@@ -49,10 +50,9 @@ class ForgotPasswordController extends Controller
     {
         try {
             $this->forgotPasswordService->resendOtp($request->email);
-            return ApiResponse::success('A new OTP has been sent to your email.');
+            return ApiResponse::success(LangHelper::msg('forgot_otp_resent'));
         } catch (Exception $e) {
             return ApiResponse::badRequest($e->getMessage());
         }
     }
-    
 }

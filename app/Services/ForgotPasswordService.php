@@ -3,37 +3,31 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Services\OtpService;
 use Illuminate\Support\Facades\Hash;
+use App\Helpers\LangHelper;
 use Exception;
 
 class ForgotPasswordService
 {
     public function __construct(protected OtpService $otpService) {}
 
-    /**
-     * Send OTP to user's email
-     */
     public function sendOtp(string $email): void
     {
         $user = User::where('email', strtolower(trim($email)))->first();
 
         if (!$user) {
-            throw new Exception('Email not found.');
+            throw new Exception(LangHelper::msg('email_not_found'));
         }
 
         $this->otpService->sendOtp($user, 'password_reset');
     }
 
-    /**
-     * Verify OTP for password reset
-     */
     public function verifyOtp(string $email, string $otp): bool
     {
         $user = User::where('email', strtolower(trim($email)))->first();
 
         if (!$user) {
-            throw new Exception('Email not found.');
+            throw new Exception(LangHelper::msg('email_not_found'));
         }
 
         $this->otpService->verify($user, $otp);
@@ -41,19 +35,16 @@ class ForgotPasswordService
         return true;
     }
 
-    /**
-     * Reset password after verifying OTP
-     */
     public function resetPassword(string $email, string $newPassword): void
     {
         $user = User::where('email', strtolower(trim($email)))->first();
 
         if (!$user) {
-            throw new Exception('Email not found.');
+            throw new Exception(LangHelper::msg('email_not_found'));
         }
 
         if (!$user->last_otp || !$user->last_otp_expire) {
-            throw new Exception('OTP not verified yet.');
+            throw new Exception(LangHelper::msg('otp_not_verified_yet'));
         }
 
         $user->update([
@@ -63,15 +54,12 @@ class ForgotPasswordService
         ]);
     }
 
-    /**
-     * Resend OTP
-     */
     public function resendOtp(string $email): void
     {
         $user = User::where('email', strtolower(trim($email)))->first();
 
         if (!$user) {
-            throw new Exception('Email not found.');
+            throw new Exception(LangHelper::msg('email_not_found'));
         }
 
         $this->otpService->sendOtp($user, 'password_reset');

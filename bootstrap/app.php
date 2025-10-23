@@ -34,12 +34,33 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Throwable $e, Request $request) {
             if ($e instanceof ValidationException) {
+                $errors = $e->errors();
+                $firstError = collect($errors)->flatten()->first();
+
+
+                if (app()->getLocale() === 'ar') {
+                    $translations = [
+                        'The email has already been taken.' => 'البريد الإلكتروني مستخدم بالفعل.',
+                        'The email field is required.' => 'حقل البريد الإلكتروني مطلوب.',
+                        'The password field is required.' => 'حقل كلمة المرور مطلوب.',
+                        'The name field is required.' => 'حقل الاسم مطلوب.',
+                        'The phone field is required.' => 'حقل رقم الهاتف مطلوب.',
+                        'The selected email is invalid.' => 'البريد الإلكتروني غير صالح.',
+                        'The selected password is invalid.' => 'كلمة المرور غير صالحة.',
+                    ];
+
+                    $firstError = $translations[$firstError] ?? $firstError;
+                }
+
                 return response()->json([
-                    'status' => Response::HTTP_BAD_REQUEST,
-                    'message' => 'Validation Error',
-                    'errors' => $e->errors()
+                    'status'  => Response::HTTP_BAD_REQUEST,
+                    'message' => $firstError ?? (app()->getLocale() === 'ar' ? 'خطأ في التحقق من البيانات.' : 'Validation Error'),
+                    'meta'    => null,
+                    'data'    => []
                 ], Response::HTTP_BAD_REQUEST);
             }
+
+
 
 
             if ($e instanceof AuthenticationException) {

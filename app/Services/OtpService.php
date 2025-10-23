@@ -7,11 +7,12 @@ use App\Jobs\SendOtpEmailJob;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Helpers\LangHelper;
+use Exception;
 
 class OtpService
 {
-    protected int $otpTtl = 10; 
-
+    protected int $otpTtl = 10;
 
     public function sendOtp(User $user, string $purpose = 'verification'): void
     {
@@ -24,30 +25,29 @@ class OtpService
         ]);
 
         $subject = match ($purpose) {
-            'password_reset' => 'Your password reset code',
-            default => 'Your verification code',
+            'password_reset' => LangHelper::msg('forgot_otp_sent'),
+            default => LangHelper::msg('otp_sent'),
         };
 
-        $body = "Your {$purpose} OTP is <b>{$otp}</b>. It will expire in {$this->otpTtl} minutes.";
+        $body = LangHelper::msg('otp_sent') . "<br><b>{$otp}</b> — expires in {$this->otpTtl} minutes.";
 
         SendOtpEmailJob::dispatch($user->email, $subject, $body);
 
         Log::info("{$purpose} OTP {$otp} sent to {$user->email}");
     }
 
-
     public function verify(User $user, string $otp): bool
     {
         if (!$user->last_otp || !$user->last_otp_expire) {
-            throw new \Exception('OTP not generated.');
+            throw new Exception(LangHelper::msg('otp_not_generated'));
         }
 
         if (Carbon::now()->gt(Carbon::parse($user->last_otp_expire))) {
-            throw new \Exception('OTP expired.');
+            throw new Exception(LangHelper::msg('otp_expired'));
         }
 
         if (!Hash::check($otp, $user->last_otp)) {
-            throw new \Exception('Invalid OTP.');
+            throw new Exception(LangHelper::msg('otp_invalid'));
         }
 
         return true;
