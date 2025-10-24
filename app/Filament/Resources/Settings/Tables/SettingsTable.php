@@ -21,7 +21,7 @@ class SettingsTable
                 //     ->sortable()
                 //     ->searchable(),
                 TextColumn::make('name.ar')
-                    ->label('الاسم (عربي)')
+                    ->label('الاسم')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('value')

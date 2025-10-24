@@ -19,8 +19,9 @@ class CitiesTable
                 // TextColumn::make('name_en')
                 //     ->searchable(),
                 TextColumn::make('name_ar')
+                    ->label('الاسم')
                     ->searchable(),
-                 TextColumn::make('country.name_ar')
+                TextColumn::make('country.name_ar')
                     ->label('Country')
                     ->sortable()
                     ->searchable()

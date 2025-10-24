@@ -13,7 +13,7 @@ class ServiceTypeForm
         return $schema
             ->components([
                 TextInput::make('name_ar')
-                    ->label('الاسم (عربي)')
+                    ->label('الاسم ')
                     ->required(),
                 // TextInput::make('name_en')
                 //     ->label('Name (English)')

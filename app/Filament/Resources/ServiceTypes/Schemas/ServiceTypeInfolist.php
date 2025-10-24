@@ -13,7 +13,7 @@ class ServiceTypeInfolist
         return $schema
             ->components([
                 TextEntry::make('name_ar')
-                ->label('الاسم (عربي)'),
+                ->label('الاسم'),
                 // TextEntry::make('name_en')
                 // ->label('Name (English)'),
                 IconEntry::make('is_active')
