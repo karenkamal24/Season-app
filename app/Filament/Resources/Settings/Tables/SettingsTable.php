@@ -28,7 +28,6 @@ class SettingsTable
                     ->label('Value')
                     ->numeric()
                     ->sortable(),
-
                 TextColumn::make('max')
                     ->label('Max')
                     ->numeric()
