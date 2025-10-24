@@ -14,8 +14,8 @@ class ServiceTypeInfolist
             ->components([
                 TextEntry::make('name_ar')
                 ->label('الاسم (عربي)'),
-                TextEntry::make('name_en')
-                ->label('Name (English)'),
+                // TextEntry::make('name_en')
+                // ->label('Name (English)'),
                 IconEntry::make('is_active')
                     ->boolean(),
                 TextEntry::make('created_at')

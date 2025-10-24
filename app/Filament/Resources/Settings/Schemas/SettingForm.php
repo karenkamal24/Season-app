@@ -14,10 +14,10 @@ class SettingForm
             ->components([
 
                 FusedGroup::make([
-                    TextInput::make('name.en')
-                        ->label('Name (English)')
-                        ->placeholder('Enter English name')
-                        ->required(),
+                    // TextInput::make('name.en')
+                    //     ->label('Name (English)')
+                    //     ->placeholder('Enter English name')
+                    //     ->required(),
 
                     TextInput::make('name.ar')
                         ->label('Name (Arabic)')

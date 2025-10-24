@@ -24,9 +24,9 @@ class SettingResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;
 
-protected static ?string $navigationLabel = 'Coins';
+protected static ?string $navigationLabel = 'points';
 
-protected static ?string $pluralModelLabel = 'Coins';
+protected static ?string $pluralModelLabel = 'points';
 protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
 

@@ -12,11 +12,11 @@ class SettingInfolist
         return $schema
             ->components([
 
-                TextEntry::make('name.en')
-                    ->label('Name (English)')
-                    ->placeholder('-'),
+                // TextEntry::make('name.en')
+                //     ->label('Name (English)')
+                //     ->placeholder('-'),
 
-             
+
                 TextEntry::make('name.ar')
                     ->label('الاسم (عربي)')
                     ->placeholder('-'),
