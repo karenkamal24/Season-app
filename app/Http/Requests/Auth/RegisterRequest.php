@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\LangHelper;
 
 class RegisterRequest extends FormRequest
 {
@@ -25,23 +26,23 @@ class RegisterRequest extends FormRequest
                 'regex:/[a-z]/','regex:/[A-Z]/','regex:/[0-9]/','regex:/[@$!%*?&]/'
             ],
             'notification_token' => ['nullable', 'string', 'max:500'],
-
-
         ];
     }
 
     public function messages(): array
     {
         return [
-            'first_name.required' => 'First name is required.',
-            'last_name.required'  => 'Last name is required.',
-            'first_name.regex'    => 'First name must contain only letters.',
-            'last_name.regex'     => 'Last name must contain only letters.',
-            'phone.phone'         => 'Please enter a valid international phone number.',
-            'phone.regex'         => 'Phone number must start with + and include country code.',
-            'phone.unique'        => 'This phone number is already registered.',
-            'password.regex'      => 'Password must include uppercase, lowercase, number, and special character.',
-            'password.confirmed'  => 'Password confirmation does not match.',
+            'first_name.required' => LangHelper::msg('first_name_required'),
+            'last_name.required'  => LangHelper::msg('last_name_required'),
+            'first_name.regex'    => LangHelper::msg('first_name_regex'),
+            'last_name.regex'     => LangHelper::msg('last_name_regex'),
+
+            'phone.phone'         => LangHelper::msg('phone_invalid'),
+            'phone.regex'         => LangHelper::msg('phone_regex'),
+            'phone.unique'        => LangHelper::msg('phone_unique'),
+
+            'password.regex'      => LangHelper::msg('password_regex_invalid'),
+            'password.confirmed'  => LangHelper::msg('password_confirm_mismatch'),
         ];
     }
 }

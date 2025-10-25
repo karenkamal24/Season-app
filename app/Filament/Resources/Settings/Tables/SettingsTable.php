@@ -16,10 +16,10 @@ class SettingsTable
     {
         return $table
             ->columns([
-                // TextColumn::make('name.en')
-                //     ->label('Name (English)')
-                //     ->sortable()
-                //     ->searchable(),
+                TextColumn::make('name.en')
+                    ->label('Name (English)')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('name.ar')
                     ->label('الاسم')
                     ->sortable()

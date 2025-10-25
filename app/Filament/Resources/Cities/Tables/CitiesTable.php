@@ -16,16 +16,17 @@ class CitiesTable
     {
         return $table
             ->columns([
-                // TextColumn::make('name_en')
-                //     ->searchable(),
+                TextColumn::make('name_en')
+                    ->label('English name')
+                    ->searchable(),
                 TextColumn::make('name_ar')
-                    ->label('الاسم')
+                    ->label(     ' الاسم (بالعربي)')
                     ->searchable(),
                 TextColumn::make('country.name_ar')
                     ->label('Country')
                     ->sortable()
                     ->searchable()
-                    // ->description(fn($record) => $record->country?->name_en)
+                    ->description(fn($record) => $record->country?->name_en)
                     ->badge()
                     ->color('info'),
                 TextColumn::make('created_at')

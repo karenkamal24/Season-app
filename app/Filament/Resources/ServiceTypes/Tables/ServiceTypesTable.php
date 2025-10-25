@@ -20,9 +20,9 @@ class ServiceTypesTable
                 TextColumn::make('name_ar')
                     ->label('الاسم (عربي)')
                     ->searchable(),
-                // TextColumn::make('name_en')
-                //     ->label('Name (English)')
-                //     ->searchable(),
+                TextColumn::make('name_en')
+                    ->label('Name (English)')
+                    ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')

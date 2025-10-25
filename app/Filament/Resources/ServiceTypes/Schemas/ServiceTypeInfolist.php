@@ -13,9 +13,9 @@ class ServiceTypeInfolist
         return $schema
             ->components([
                 TextEntry::make('name_ar')
-                ->label('الاسم'),
-                // TextEntry::make('name_en')
-                // ->label('Name (English)'),
+                ->label('الاسم(عربي)'),
+                TextEntry::make('name_en')
+                ->label('Name (English)'),
                 IconEntry::make('is_active')
                     ->boolean(),
                 TextEntry::make('created_at')

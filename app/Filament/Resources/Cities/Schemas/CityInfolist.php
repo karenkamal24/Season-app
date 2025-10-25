@@ -25,13 +25,13 @@ class CityInfolist
                                     ->columnSpanFull(),
 
                                 TextEntry::make('name_ar')
-                                    ->label('Arabic Name')
+                                    ->label('الاسم بالعربي')
                                     ->placeholder('-')
                                     ->weight('bold'),
 
-                                // TextEntry::make('name_en')
-                                //     ->label('English Name')
-                                //     ->placeholder('-'),
+                                TextEntry::make('name_en')
+                                    ->label('English Name')
+                                    ->placeholder('-'),
                             ]),
                     ])
                     ->columnSpanFull(),

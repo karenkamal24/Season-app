@@ -29,13 +29,13 @@ class CityForm
                                     ->columnSpanFull(),
 
                                 TextInput::make('name_ar')
-                                    ->label('Arabic Name')
+                                    ->label('الاسم بالعربي')
                                     ->required()
                                     ->maxLength(255),
 
-                                // TextInput::make('name_en')
-                                //     ->label('English Name')
-                                //     ->maxLength(255),
+                                TextInput::make('name_en')
+                                    ->label('English Name')
+                                    ->maxLength(255),
                             ]),
                     ])
                     ->columnSpanFull(),

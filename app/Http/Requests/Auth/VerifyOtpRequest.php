@@ -3,10 +3,14 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\LangHelper;
 
 class VerifyOtpRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -19,11 +23,11 @@ class VerifyOtpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email is required.',
-            'email.email' => 'Please enter a valid email address.',
-            'email.exists' => 'Email not found.',
-            'otp.required' => 'OTP is required.',
-            'otp.digits' => 'OTP must be exactly 4 digits.',
+            'email.required' => LangHelper::msg('email_required'),
+            'email.email'    => LangHelper::msg('email_invalid'),
+            'email.exists'   => LangHelper::msg('email_not_found'),
+            'otp.required'   => LangHelper::msg('otp_required'),
+            'otp.digits'     => LangHelper::msg('otp_digits'),
         ];
     }
 }

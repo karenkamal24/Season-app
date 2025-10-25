@@ -18,13 +18,13 @@ class CountryInfolist
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('name_ar')
-                                    ->label('Arabic Name')
+                                    ->label('الاسم بالعربي')
                                     ->placeholder('-')
                                     ->weight('bold'),
 
-                                // TextEntry::make('name_en')
-                                //     ->label('English Name')
-                                //     ->placeholder('-'),
+                                TextEntry::make('name_en')
+                                    ->label('English Name')
+                                    ->placeholder('-'),
 
                                 TextEntry::make('code')
                                     ->label('Country Code')

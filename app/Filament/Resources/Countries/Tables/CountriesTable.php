@@ -16,10 +16,11 @@ class CountriesTable
     {
         return $table
             ->columns([
-                // TextColumn::make('name_en')
-                //     ->searchable(),
+                TextColumn::make('name_en')
+                    ->label(' English name')
+                    ->searchable(),
                 TextColumn::make('name_ar')
-                    ->label('name')
+                    ->label('الاسم (بالعربي)')
                     ->searchable(),
                 TextColumn::make('code')
                     ->searchable(),

@@ -13,11 +13,11 @@ class ServiceTypeForm
         return $schema
             ->components([
                 TextInput::make('name_ar')
-                    ->label('الاسم ')
+                    ->label('الاسم (عربي) ')
                     ->required(),
-                // TextInput::make('name_en')
-                //     ->label('Name (English)')
-                //     ->required(),
+                TextInput::make('name_en')
+                    ->label('Name (English)')
+                    ->required(),
                 Toggle::make('is_active')
                     ->required(),
             ]);

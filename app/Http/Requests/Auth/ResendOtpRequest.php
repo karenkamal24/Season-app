@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\LangHelper;
 
 class ResendOtpRequest extends FormRequest
 {
@@ -21,9 +22,9 @@ class ResendOtpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email is required.',
-            'email.email' => 'Invalid email format.',
-            'email.exists' => 'This email is not registered.',
+            'email.required' => LangHelper::msg('email_required'),
+            'email.email'    => LangHelper::msg('email_invalid'),
+            'email.exists'   => LangHelper::msg('email_not_found'),
         ];
     }
 }
