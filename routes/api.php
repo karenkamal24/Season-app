@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Auth\VendorServiceController;
 use App\Http\Controllers\Api\Location\CountryController;
 use App\Http\Controllers\Api\Location\CityController;
 use App\Http\Controllers\Api\Emergency\EmergencyController;
+use App\Http\Controllers\Api\QR\UserQrController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -59,3 +60,7 @@ Route::prefix('Location')->group(function () {
     Route::get('/cities', [CityController::class, 'index']);
     Route::get('/cities/{id}', [CityController::class, 'show']);
 });
+
+
+Route::get('/user/qr', [UserQrController::class, 'generate'])->middleware('auth:sanctum');
+

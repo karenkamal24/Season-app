@@ -10,7 +10,7 @@ class LangHelper
 
         $messages = [
 
-          
+
             'otp_sent' => [
                 'en' => 'OTP sent successfully to your email.',
                 'ar' => 'تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح.'
@@ -239,6 +239,32 @@ class LangHelper
                 'en' => 'Last name must contain only letters.',
                 'ar' => 'يجب أن يحتوي اسم العائلة على أحرف فقط.'
             ],
+            'user_id_required' => [
+                'en' => 'User ID is required.',
+                'ar' => 'مُعرّف المستخدم مطلوب.'
+            ],
+            'user_id_integer' => [
+                'en' => 'User ID must be an integer.',
+                'ar' => 'يجب أن يكون مُعرّف المستخدم رقمًا صحيحًا.'
+            ],
+            'user_id_not_found' => [
+                'en' => 'User not found.',
+                'ar' => 'لم يتم العثور على المستخدم.'
+            ],
+            'validation_failed' => [
+                'en' => 'Validation failed.',
+                'ar' => 'فشل التحقق من البيانات.'
+            ],
+
+            'qr_generated_successfully' => [
+                'en' => 'QR code generated successfully.',
+                'ar' => 'تم إنشاء رمز الاستجابة السريعة (QR) بنجاح.'
+            ],
+            'qr_generation_failed' => [
+                'en' => 'Failed to generate QR code.',
+                'ar' => 'فشل إنشاء رمز الاستجابة السريعة (QR).'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;
