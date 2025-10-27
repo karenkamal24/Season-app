@@ -25,7 +25,7 @@ class RegisterRequest extends FormRequest
                 'required','string','min:8','confirmed',
                 'regex:/[a-z]/','regex:/[A-Z]/','regex:/[0-9]/','regex:/[@$!%*?&]/'
             ],
-            'notification_token' => ['nullable', 'string', 'max:500'],
+            'fcm_token' => ['nullable', 'string', 'max:500'],
         ];
     }
 

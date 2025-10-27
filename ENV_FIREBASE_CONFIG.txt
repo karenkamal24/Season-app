@@ -1,0 +1,13 @@
+# ==========================================
+# FIREBASE CONFIGURATION FOR .env FILE
+# ==========================================
+# Copy these lines to your .env file:
+
+FIREBASE_CREDENTIALS=firebase/season-9ede3-firebase-adminsdk-fbsvc-c1b9e2f2e7.json
+FIREBASE_PROJECT_ID=season-9ede3
+
+# ==========================================
+# After adding to .env, run this command:
+# php artisan config:cache
+# ==========================================
+

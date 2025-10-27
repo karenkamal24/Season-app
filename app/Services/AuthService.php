@@ -116,8 +116,8 @@ class AuthService
             throw new Exception($this->msg('not_verified'));
         }
 
-        if (!empty($credentials['notification_token'])) {
-            $user->update(['notification_token' => $credentials['notification_token']]);
+        if (!empty($credentials['fcm_token'])) {
+            $user->update(['fcm_token' => $credentials['fcm_token']]);
         }
 
         $token = $user->createToken('API TOKEN')->plainTextToken;

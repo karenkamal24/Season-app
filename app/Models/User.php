@@ -39,6 +39,7 @@ class User extends Authenticatable implements FilamentUser
         'trips',
         'has_interests',
         'notification_token',
+        'fcm_token',
         'birth_date',
         'gender',
         'is_vendor'
@@ -49,7 +50,7 @@ class User extends Authenticatable implements FilamentUser
         'remember_token',
         'last_otp',
         'last_otp_expire',
-
+        'fcm_token',
     ];
 
     protected $casts = [

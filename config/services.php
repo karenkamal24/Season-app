@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'firebase' => [
+    'credentials' => env('FIREBASE_CREDENTIALS', 'firebase/season-9ede3-firebase-adminsdk-fbsvc-c1b9e2f2e7.json'),
+    'project_id' => env('FIREBASE_PROJECT_ID', 'season-9ede3'),
+],
+
 
 ];
