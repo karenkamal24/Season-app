@@ -44,13 +44,23 @@ class GroupMember extends Model
     }
 
     /**
-     * Latest location
+     * All locations for this member in this group
      */
-    public function latestLocation()
+    public function locations()
     {
-        return $this->hasOne(GroupLocation::class, 'user_id', 'user_id')
-            ->whereColumn('group_locations.group_id', 'group_members.group_id')
-            ->latest('group_locations.updated_at');
+        return $this->hasMany(GroupLocation::class, 'user_id', 'user_id')
+            ->where('group_id', $this->group_id);
+    }
+
+    /**
+     * Get latest location (accessor method, not relationship)
+     */
+    public function getLatestLocationAttribute()
+    {
+        return GroupLocation::where('group_id', $this->group_id)
+            ->where('user_id', $this->user_id)
+            ->latest('updated_at')
+            ->first();
     }
 }
 

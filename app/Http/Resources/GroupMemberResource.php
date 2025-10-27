@@ -39,7 +39,10 @@ class GroupMemberResource extends JsonResource
             'out_of_range_count' => $this->out_of_range_count,
             'joined_at' => $this->joined_at?->toIso8601String(),
             'last_location_update' => $this->last_location_update?->toIso8601String(),
-            'latest_location' => new GroupLocationResource($this->whenLoaded('latestLocation')),
+            'latest_location' => $this->when(
+                $this->relationLoaded('locations') && $this->locations->isNotEmpty(),
+                fn() => new GroupLocationResource($this->locations->first())
+            ),
         ];
     }
 }

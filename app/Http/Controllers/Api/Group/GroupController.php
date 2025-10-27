@@ -91,8 +91,16 @@ class GroupController extends Controller
 
             $group = Group::with([
                 'owner',
-                'groupMembers' => function($query) {
-                    $query->where('status', 'active')->with(['user', 'latestLocation']);
+                'groupMembers' => function($query) use ($id) {
+                    $query->where('status', 'active')
+                        ->with([
+                            'user',
+                            'locations' => function($locQuery) use ($id) {
+                                $locQuery->where('group_id', $id)
+                                    ->latest('updated_at')
+                                    ->limit(1);
+                            }
+                        ]);
                 },
                 'activeSosAlerts.user'
             ])
