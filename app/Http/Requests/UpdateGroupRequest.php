@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\LangHelper;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateGroupRequest extends FormRequest
@@ -24,11 +25,11 @@ class UpdateGroupRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'اسم المجموعة مطلوب',
-            'name.max' => 'اسم المجموعة يجب أن لا يتجاوز 255 حرف',
-            'description.max' => 'الوصف يجب أن لا يتجاوز 1000 حرف',
-            'safety_radius.min' => 'نطاق الأمان يجب أن يكون 50 متر على الأقل',
-            'safety_radius.max' => 'نطاق الأمان يجب أن لا يتجاوز 5000 متر',
+            'name.required' => LangHelper::msg('group_name_required'),
+            'name.max' => LangHelper::msg('group_name_max'),
+            'description.max' => LangHelper::msg('group_description_max'),
+            'safety_radius.min' => LangHelper::msg('group_safety_radius_min'),
+            'safety_radius.max' => LangHelper::msg('group_safety_radius_max'),
         ];
     }
 }

@@ -16,6 +16,7 @@ use App\Models\Group;
 use App\Models\GroupMember;
 use App\Services\GroupService;
 use App\Utils\ApiResponse;
+use App\Helpers\LangHelper;
 use Illuminate\Http\Request;
 
 class GroupController extends Controller
@@ -54,9 +55,9 @@ class GroupController extends Controller
             ])
             ->get();
 
-            return ApiResponse::success('تم جلب المجموعات بنجاح', GroupResource::collection($groups));
+            return ApiResponse::success(LangHelper::msg('groups_fetched'), GroupResource::collection($groups));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل جلب المجموعات: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('groups_fetch_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -75,9 +76,9 @@ class GroupController extends Controller
                 }
             ]);
 
-            return ApiResponse::created('تم إنشاء المجموعة بنجاح', new GroupResource($group));
+            return ApiResponse::created(LangHelper::msg('group_created'), new GroupResource($group));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل إنشاء المجموعة: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_create_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -119,12 +120,12 @@ class GroupController extends Controller
                 ->exists();
 
             if (!$isMember) {
-                return ApiResponse::forbidden('ليس لديك صلاحية لعرض هذه المجموعة');
+                return ApiResponse::forbidden(LangHelper::msg('group_no_permission'));
             }
 
-            return ApiResponse::success('تم جلب بيانات المجموعة بنجاح', new GroupResource($group));
+            return ApiResponse::success(LangHelper::msg('group_fetched'), new GroupResource($group));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل جلب بيانات المجموعة: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_fetch_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -148,9 +149,9 @@ class GroupController extends Controller
                 }
             ]);
 
-            return ApiResponse::success('تم تحديث المجموعة بنجاح', new GroupResource($group));
+            return ApiResponse::success(LangHelper::msg('group_updated'), new GroupResource($group));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل تحديث المجموعة: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_update_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -168,9 +169,9 @@ class GroupController extends Controller
 
             $group->delete();
 
-            return ApiResponse::success('تم حذف المجموعة بنجاح');
+            return ApiResponse::success(LangHelper::msg('group_deleted'));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل حذف المجموعة: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_delete_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -192,9 +193,9 @@ class GroupController extends Controller
                 }
             ]);
 
-            return ApiResponse::success('تم الانضمام للمجموعة بنجاح', new GroupResource($group));
+            return ApiResponse::success(LangHelper::msg('group_joined'), new GroupResource($group));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل الانضمام للمجموعة: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_join_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -206,9 +207,9 @@ class GroupController extends Controller
         try {
             $this->groupService->leaveGroup($id, $request->user()->id);
 
-            return ApiResponse::success('تم مغادرة المجموعة بنجاح');
+            return ApiResponse::success(LangHelper::msg('group_left'));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل مغادرة المجموعة: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_leave_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -220,9 +221,9 @@ class GroupController extends Controller
         try {
             $this->groupService->removeMember($groupId, $request->user()->id, $userId);
 
-            return ApiResponse::success('تم إزالة العضو من المجموعة بنجاح');
+            return ApiResponse::success(LangHelper::msg('group_member_removed'));
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل إزالة العضو: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_member_remove_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -240,11 +241,11 @@ class GroupController extends Controller
             );
 
             return ApiResponse::success(
-                'تم تحديث الموقع بنجاح',
+                LangHelper::msg('location_updated'),
                 new GroupLocationResource($location)
             );
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل تحديث الموقع: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('location_update_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -265,7 +266,7 @@ class GroupController extends Controller
                 ->exists();
 
             if (!$isMember) {
-                return ApiResponse::forbidden('ليس لديك صلاحية لعرض أعضاء هذه المجموعة');
+                return ApiResponse::forbidden(LangHelper::msg('group_members_no_permission'));
             }
 
             $members = GroupMember::where('group_id', $id)
@@ -274,11 +275,11 @@ class GroupController extends Controller
                 ->get();
 
             return ApiResponse::success(
-                'تم جلب أعضاء المجموعة بنجاح',
+                LangHelper::msg('group_members_fetched'),
                 GroupMemberResource::collection($members)
             );
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل جلب أعضاء المجموعة: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('group_members_fetch_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -299,11 +300,11 @@ class GroupController extends Controller
             $alert->load('user');
 
             return ApiResponse::success(
-                'تم إرسال إشارة SOS بنجاح',
+                LangHelper::msg('sos_sent'),
                 new GroupSosAlertResource($alert)
             );
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل إرسال إشارة SOS: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('sos_send_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -324,7 +325,7 @@ class GroupController extends Controller
                 ->exists();
 
             if (!$isMember) {
-                return ApiResponse::forbidden('ليس لديك صلاحية');
+                return ApiResponse::forbidden(LangHelper::msg('sos_no_permission'));
             }
 
             $alert = $group->sosAlerts()->findOrFail($alertId);
@@ -334,11 +335,11 @@ class GroupController extends Controller
             ]);
 
             return ApiResponse::success(
-                'تم إغلاق إشارة SOS',
+                LangHelper::msg('sos_resolved'),
                 new GroupSosAlertResource($alert)
             );
         } catch (\Exception $e) {
-            return ApiResponse::error('فشل إغلاق إشارة SOS: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('sos_resolve_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -358,7 +359,7 @@ class GroupController extends Controller
                 ])
                 ->firstOrFail();
 
-            return ApiResponse::success('تم جلب معلومات الدعوة بنجاح', [
+            return ApiResponse::success(LangHelper::msg('group_invite_fetched'), [
                 'id' => $group->id,
                 'name' => $group->name,
                 'description' => $group->description,
@@ -367,7 +368,7 @@ class GroupController extends Controller
                 'invite_code' => $group->invite_code,
             ]);
         } catch (\Exception $e) {
-            return ApiResponse::error('كود الدعوة غير صحيح');
+            return ApiResponse::error(LangHelper::msg('group_invite_invalid'));
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\LangHelper;
 use Illuminate\Foundation\Http\FormRequest;
 
 class JoinGroupRequest extends FormRequest
@@ -21,8 +22,8 @@ class JoinGroupRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'invite_code.required' => 'كود الدعوة مطلوب',
-            'invite_code.exists' => 'كود الدعوة غير صحيح',
+            'invite_code.required' => LangHelper::msg('group_invite_code_required'),
+            'invite_code.exists' => LangHelper::msg('group_invite_invalid'),
         ];
     }
 }

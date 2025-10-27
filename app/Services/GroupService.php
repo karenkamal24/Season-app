@@ -7,6 +7,7 @@ use App\Models\GroupMember;
 use App\Models\GroupLocation;
 use App\Models\GroupSosAlert;
 use App\Models\User;
+use App\Helpers\LangHelper;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -89,7 +90,7 @@ class GroupService
 
         if ($existing) {
             if ($existing->status === 'active') {
-                throw new \Exception('You are already a member of this group');
+                throw new \Exception(LangHelper::msg('group_already_member'));
             }
             // Rejoin if previously left
             $existing->update(['status' => 'active', 'joined_at' => now()]);
@@ -306,7 +307,7 @@ class GroupService
             ->firstOrFail();
 
         if ($member->role === 'owner') {
-            throw new \Exception('Owner cannot leave the group. Please delete the group or transfer ownership first.');
+            throw new \Exception(LangHelper::msg('group_owner_cannot_leave'));
         }
 
         $member->update(['status' => 'left']);
@@ -329,7 +330,7 @@ class GroupService
             ->firstOrFail();
 
         if ($member->role === 'owner') {
-            throw new \Exception('Cannot remove the group owner');
+            throw new \Exception(LangHelper::msg('group_cannot_remove_owner'));
         }
 
         $member->update(['status' => 'removed']);

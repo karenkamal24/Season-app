@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\LangHelper;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateLocationRequest extends FormRequest
@@ -22,10 +23,10 @@ class UpdateLocationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'latitude.required' => 'خط العرض مطلوب',
-            'latitude.between' => 'خط العرض يجب أن يكون بين -90 و 90',
-            'longitude.required' => 'خط الطول مطلوب',
-            'longitude.between' => 'خط الطول يجب أن يكون بين -180 و 180',
+            'latitude.required' => LangHelper::msg('latitude_required'),
+            'latitude.between' => LangHelper::msg('latitude_invalid'),
+            'longitude.required' => LangHelper::msg('longitude_required'),
+            'longitude.between' => LangHelper::msg('longitude_invalid'),
         ];
     }
 }

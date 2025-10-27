@@ -265,6 +265,206 @@ class LangHelper
                 'ar' => 'فشل إنشاء رمز الاستجابة السريعة (QR).'
             ],
 
+            // Groups System Messages
+            'groups_fetched' => [
+                'en' => 'Groups retrieved successfully.',
+                'ar' => 'تم جلب المجموعات بنجاح.'
+            ],
+            'groups_fetch_failed' => [
+                'en' => 'Failed to retrieve groups.',
+                'ar' => 'فشل جلب المجموعات.'
+            ],
+            'group_created' => [
+                'en' => 'Group created successfully.',
+                'ar' => 'تم إنشاء المجموعة بنجاح.'
+            ],
+            'group_create_failed' => [
+                'en' => 'Failed to create group.',
+                'ar' => 'فشل إنشاء المجموعة.'
+            ],
+            'group_fetched' => [
+                'en' => 'Group details retrieved successfully.',
+                'ar' => 'تم جلب بيانات المجموعة بنجاح.'
+            ],
+            'group_fetch_failed' => [
+                'en' => 'Failed to retrieve group details.',
+                'ar' => 'فشل جلب بيانات المجموعة.'
+            ],
+            'group_updated' => [
+                'en' => 'Group updated successfully.',
+                'ar' => 'تم تحديث المجموعة بنجاح.'
+            ],
+            'group_update_failed' => [
+                'en' => 'Failed to update group.',
+                'ar' => 'فشل تحديث المجموعة.'
+            ],
+            'group_deleted' => [
+                'en' => 'Group deleted successfully.',
+                'ar' => 'تم حذف المجموعة بنجاح.'
+            ],
+            'group_delete_failed' => [
+                'en' => 'Failed to delete group.',
+                'ar' => 'فشل حذف المجموعة.'
+            ],
+            'group_not_found' => [
+                'en' => 'Group not found.',
+                'ar' => 'المجموعة غير موجودة.'
+            ],
+            'group_not_member' => [
+                'en' => 'You are not a member of this group.',
+                'ar' => 'أنت لست عضواً في هذه المجموعة.'
+            ],
+            'group_no_permission' => [
+                'en' => 'You do not have permission to access this group.',
+                'ar' => 'ليس لديك صلاحية لعرض هذه المجموعة.'
+            ],
+            'group_only_owner' => [
+                'en' => 'Only the group owner can perform this action.',
+                'ar' => 'يمكن لمالك المجموعة فقط القيام بهذا الإجراء.'
+            ],
+
+            // Group Members
+            'group_joined' => [
+                'en' => 'You have successfully joined the group.',
+                'ar' => 'تم الانضمام للمجموعة بنجاح.'
+            ],
+            'group_join_failed' => [
+                'en' => 'Failed to join group.',
+                'ar' => 'فشل الانضمام للمجموعة.'
+            ],
+            'group_already_member' => [
+                'en' => 'You are already a member of this group.',
+                'ar' => 'أنت عضو في هذه المجموعة بالفعل.'
+            ],
+            'group_left' => [
+                'en' => 'You have successfully left the group.',
+                'ar' => 'تم مغادرة المجموعة بنجاح.'
+            ],
+            'group_leave_failed' => [
+                'en' => 'Failed to leave group.',
+                'ar' => 'فشل مغادرة المجموعة.'
+            ],
+            'group_owner_cannot_leave' => [
+                'en' => 'Owner cannot leave the group. Please delete the group or transfer ownership first.',
+                'ar' => 'لا يمكن للمالك مغادرة المجموعة. يرجى حذف المجموعة أو نقل الملكية أولاً.'
+            ],
+            'group_member_removed' => [
+                'en' => 'Member removed from group successfully.',
+                'ar' => 'تم إزالة العضو من المجموعة بنجاح.'
+            ],
+            'group_member_remove_failed' => [
+                'en' => 'Failed to remove member from group.',
+                'ar' => 'فشل إزالة العضو.'
+            ],
+            'group_cannot_remove_owner' => [
+                'en' => 'Cannot remove the group owner.',
+                'ar' => 'لا يمكن إزالة مالك المجموعة.'
+            ],
+            'group_members_fetched' => [
+                'en' => 'Group members retrieved successfully.',
+                'ar' => 'تم جلب أعضاء المجموعة بنجاح.'
+            ],
+            'group_members_fetch_failed' => [
+                'en' => 'Failed to retrieve group members.',
+                'ar' => 'فشل جلب أعضاء المجموعة.'
+            ],
+            'group_members_no_permission' => [
+                'en' => 'You do not have permission to view group members.',
+                'ar' => 'ليس لديك صلاحية لعرض أعضاء هذه المجموعة.'
+            ],
+
+            // Invite Codes
+            'group_invite_fetched' => [
+                'en' => 'Invite details retrieved successfully.',
+                'ar' => 'تم جلب معلومات الدعوة بنجاح.'
+            ],
+            'group_invite_invalid' => [
+                'en' => 'Invalid or expired invite code.',
+                'ar' => 'كود الدعوة غير صحيح أو منتهي الصلاحية.'
+            ],
+            'group_invite_code_required' => [
+                'en' => 'Invite code is required.',
+                'ar' => 'كود الدعوة مطلوب.'
+            ],
+
+            // Location Tracking
+            'location_updated' => [
+                'en' => 'Location updated successfully.',
+                'ar' => 'تم تحديث الموقع بنجاح.'
+            ],
+            'location_update_failed' => [
+                'en' => 'Failed to update location.',
+                'ar' => 'فشل تحديث الموقع.'
+            ],
+            'latitude_required' => [
+                'en' => 'Latitude is required.',
+                'ar' => 'خط العرض مطلوب.'
+            ],
+            'latitude_invalid' => [
+                'en' => 'Latitude must be between -90 and 90.',
+                'ar' => 'خط العرض يجب أن يكون بين -90 و 90.'
+            ],
+            'longitude_required' => [
+                'en' => 'Longitude is required.',
+                'ar' => 'خط الطول مطلوب.'
+            ],
+            'longitude_invalid' => [
+                'en' => 'Longitude must be between -180 and 180.',
+                'ar' => 'خط الطول يجب أن يكون بين -180 و 180.'
+            ],
+
+            // SOS Alerts
+            'sos_sent' => [
+                'en' => 'SOS alert sent successfully.',
+                'ar' => 'تم إرسال إشارة SOS بنجاح.'
+            ],
+            'sos_send_failed' => [
+                'en' => 'Failed to send SOS alert.',
+                'ar' => 'فشل إرسال إشارة SOS.'
+            ],
+            'sos_resolved' => [
+                'en' => 'SOS alert resolved successfully.',
+                'ar' => 'تم إغلاق إشارة SOS.'
+            ],
+            'sos_resolve_failed' => [
+                'en' => 'Failed to resolve SOS alert.',
+                'ar' => 'فشل إغلاق إشارة SOS.'
+            ],
+            'sos_not_found' => [
+                'en' => 'SOS alert not found.',
+                'ar' => 'إشارة SOS غير موجودة.'
+            ],
+            'sos_no_permission' => [
+                'en' => 'You do not have permission to resolve this SOS alert.',
+                'ar' => 'ليس لديك صلاحية.'
+            ],
+            'sos_message_max' => [
+                'en' => 'SOS message must not exceed 500 characters.',
+                'ar' => 'رسالة SOS يجب أن لا تتجاوز 500 حرف.'
+            ],
+
+            // Group Validation
+            'group_name_required' => [
+                'en' => 'Group name is required.',
+                'ar' => 'اسم المجموعة مطلوب.'
+            ],
+            'group_name_max' => [
+                'en' => 'Group name must not exceed 255 characters.',
+                'ar' => 'اسم المجموعة يجب أن لا يتجاوز 255 حرف.'
+            ],
+            'group_description_max' => [
+                'en' => 'Group description must not exceed 1000 characters.',
+                'ar' => 'وصف المجموعة يجب أن لا يتجاوز 1000 حرف.'
+            ],
+            'group_safety_radius_min' => [
+                'en' => 'Safety radius must be at least 50 meters.',
+                'ar' => 'نطاق الأمان يجب أن يكون 50 متر على الأقل.'
+            ],
+            'group_safety_radius_max' => [
+                'en' => 'Safety radius must not exceed 5000 meters.',
+                'ar' => 'نطاق الأمان يجب أن لا يتجاوز 5000 متر.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;
