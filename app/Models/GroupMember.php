@@ -49,8 +49,8 @@ class GroupMember extends Model
     public function latestLocation()
     {
         return $this->hasOne(GroupLocation::class, 'user_id', 'user_id')
-            ->where('group_id', $this->group_id)
-            ->latest('updated_at');
+            ->whereColumn('group_locations.group_id', 'group_members.group_id')
+            ->latest('group_locations.updated_at');
     }
 }
 

@@ -41,8 +41,8 @@ class GroupController extends Controller
             })
             ->with([
                 'owner',
-                'members' => function($query) {
-                    $query->where('group_members.status', 'active');
+                'groupMembers' => function($query) {
+                    $query->where('status', 'active')->with('user');
                 },
                 'activeSosAlerts.user'
             ])
@@ -68,7 +68,12 @@ class GroupController extends Controller
         try {
             $group = $this->groupService->createGroup($request->validated(), $request->user()->id);
 
-            $group->load(['owner', 'activeMembers']);
+            $group->load([
+                'owner',
+                'groupMembers' => function($query) {
+                    $query->where('status', 'active')->with('user');
+                }
+            ]);
 
             return ApiResponse::created('تم إنشاء المجموعة بنجاح', new GroupResource($group));
         } catch (\Exception $e) {
@@ -86,7 +91,9 @@ class GroupController extends Controller
 
             $group = Group::with([
                 'owner',
-                'activeMembers.latestLocation',
+                'groupMembers' => function($query) {
+                    $query->where('status', 'active')->with(['user', 'latestLocation']);
+                },
                 'activeSosAlerts.user'
             ])
             ->withCount([
@@ -126,7 +133,12 @@ class GroupController extends Controller
                 ->firstOrFail();
 
             $group->update($request->validated());
-            $group->load(['owner', 'activeMembers']);
+            $group->load([
+                'owner',
+                'groupMembers' => function($query) {
+                    $query->where('status', 'active')->with('user');
+                }
+            ]);
 
             return ApiResponse::success('تم تحديث المجموعة بنجاح', new GroupResource($group));
         } catch (\Exception $e) {
@@ -165,7 +177,12 @@ class GroupController extends Controller
                 $request->user()->id
             );
 
-            $group->load(['owner', 'activeMembers']);
+            $group->load([
+                'owner',
+                'groupMembers' => function($query) {
+                    $query->where('status', 'active')->with('user');
+                }
+            ]);
 
             return ApiResponse::success('تم الانضمام للمجموعة بنجاح', new GroupResource($group));
         } catch (\Exception $e) {

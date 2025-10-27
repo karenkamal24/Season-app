@@ -1,0 +1,547 @@
+{
+	"info": {
+		"_postman_id": "season-groups-api",
+		"name": "Season App - Groups API (عدم الضياع)",
+		"description": "نظام إدارة المجموعات مع تتبع المواقع وإشارات SOS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "user1_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user2_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "group_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "invite_code",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "alert_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Register User 1 (Owner)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"أحمد محمد\",\n  \"email\": \"ahmed@test.com\",\n  \"password\": \"12345678\",\n  \"password_confirmation\": \"12345678\",\n  \"phone\": \"966501234567\",\n  \"country_id\": 1,\n  \"city_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Verify OTP User 1",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"ahmed@test.com\",\n  \"otp\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-otp",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "verify-otp"]
+						}
+					}
+				},
+				{
+					"name": "Register User 2 (Member)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"سارة أحمد\",\n  \"email\": \"sara@test.com\",\n  \"password\": \"12345678\",\n  \"password_confirmation\": \"12345678\",\n  \"phone\": \"966509876543\",\n  \"country_id\": 1,\n  \"city_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Verify OTP User 2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"sara@test.com\",\n  \"otp\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-otp",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "verify-otp"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Groups - CRUD",
+			"item": [
+				{
+					"name": "Get All My Groups",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups",
+							"host": ["{{base_url}}"],
+							"path": ["groups"]
+						}
+					}
+				},
+				{
+					"name": "Create New Group",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"رحلة دبي - العائلة\",\n  \"description\": \"مجموعة العائلة رحلة دبي 2025\",\n  \"safety_radius\": 100,\n  \"notifications_enabled\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups",
+							"host": ["{{base_url}}"],
+							"path": ["groups"]
+						}
+					}
+				},
+				{
+					"name": "Get Group Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Group (Owner Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"رحلة دبي - العائلة (محدثة)\",\n  \"description\": \"مجموعة العائلة رحلة دبي 2025 - الإصدار المحدث\",\n  \"safety_radius\": 200\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Group (Owner Only)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Join & Members",
+			"item": [
+				{
+					"name": "Get Invite Details (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/groups/invite/{{invite_code}}",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "invite", "{{invite_code}}"]
+						}
+					}
+				},
+				{
+					"name": "Join Group",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user2_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invite_code\": \"{{invite_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/join",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "join"]
+						}
+					}
+				},
+				{
+					"name": "Get Group Members",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/members",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "members"]
+						}
+					}
+				},
+				{
+					"name": "Leave Group",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user2_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/leave",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "leave"]
+						}
+					}
+				},
+				{
+					"name": "Remove Member (Owner Only)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/members/2",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "members", "2"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Location Tracking",
+			"item": [
+				{
+					"name": "Update Location - User 1 (Center)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 25.2048,\n  \"longitude\": 55.2708\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/location",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "location"]
+						}
+					}
+				},
+				{
+					"name": "Update Location - User 2 (Within Range)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user2_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 25.2050,\n  \"longitude\": 55.2710\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/location",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "location"]
+						}
+					}
+				},
+				{
+					"name": "Update Location - User 2 (OUT OF RANGE)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user2_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 25.2150,\n  \"longitude\": 55.2800\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/location",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "location"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. SOS Alerts",
+			"item": [
+				{
+					"name": "Send SOS Alert",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user2_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 25.2150,\n  \"longitude\": 55.2800,\n  \"message\": \"أحتاج المساعدة فوراً! ضعت الطريق\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/sos",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "sos"]
+						}
+					}
+				},
+				{
+					"name": "Resolve SOS Alert",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/sos/{{alert_id}}/resolve",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "sos", "{{alert_id}}", "resolve"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Test Scenarios",
+			"item": [
+				{
+					"name": "Scenario 1: Create & View Group",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups",
+							"host": ["{{base_url}}"],
+							"path": ["groups"]
+						}
+					}
+				},
+				{
+					"name": "Scenario 2: Member Joins",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user2_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invite_code\": \"{{invite_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/join",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "join"]
+						}
+					}
+				},
+				{
+					"name": "Scenario 3: View Group with Members",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Scenario 4: Emergency - Send SOS",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user2_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 25.2150,\n  \"longitude\": 55.2800,\n  \"message\": \"طوارئ! أحتاج المساعدة الآن\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/groups/{{group_id}}/sos",
+							"host": ["{{base_url}}"],
+							"path": ["groups", "{{group_id}}", "sos"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
+
