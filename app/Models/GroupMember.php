@@ -18,6 +18,7 @@ class GroupMember extends Model
         'out_of_range_count',
         'joined_at',
         'last_location_update',
+        'last_notification_sent_at',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class GroupMember extends Model
         'out_of_range_count' => 'integer',
         'joined_at' => 'datetime',
         'last_location_update' => 'datetime',
+        'last_notification_sent_at' => 'datetime',
     ];
 
     /**

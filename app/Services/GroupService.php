@@ -147,16 +147,39 @@ class GroupService
 
         // Update member status
         $wasOutOfRange = !$member->is_within_radius;
-        $member->update([
+        $updateData = [
             'is_within_radius' => $isWithinRadius,
             'out_of_range_count' => !$isWithinRadius ? $member->out_of_range_count + 1 : $member->out_of_range_count,
             'last_location_update' => now(),
-        ]);
+        ];
 
-        // Send notification if member went out of range
-        if ($isWithinRadius === false && $wasOutOfRange === false && $group->notifications_enabled) {
-            $this->sendOutOfRangeNotification($group, $member->user);
+        // Handle notifications based on status
+        if (!$isWithinRadius && $group->notifications_enabled) {
+            // Member is OUT OF RANGE
+            $shouldSendNotification = false;
+            
+            // Check if we should send notification (first time or 2 minutes passed)
+            if ($member->last_notification_sent_at === null) {
+                // First time out of range
+                $shouldSendNotification = true;
+            } else {
+                // Check if 2 minutes have passed since last notification
+                $minutesSinceLastNotification = now()->diffInMinutes($member->last_notification_sent_at);
+                if ($minutesSinceLastNotification >= 2) {
+                    $shouldSendNotification = true;
+                }
+            }
+            
+            if ($shouldSendNotification) {
+                $this->sendOutOfRangeNotification($group, $member->user, $distance);
+                $updateData['last_notification_sent_at'] = now();
+            }
+        } else if ($isWithinRadius && $member->last_notification_sent_at !== null) {
+            // Member is BACK IN RANGE - stop notifications
+            $updateData['last_notification_sent_at'] = null;
         }
+
+        $member->update($updateData);
 
         return $location;
     }
@@ -208,7 +231,7 @@ class GroupService
     /**
      * Send out of range notification
      */
-    protected function sendOutOfRangeNotification($group, $user)
+    protected function sendOutOfRangeNotification($group, $user, $distance)
     {
 
         $members = GroupMember::where('group_id', $group->id)
@@ -225,12 +248,14 @@ class GroupService
                     $firebaseService->sendToDevice(
                         $member->user->fcm_token,
                         'تنبيه: عضو خارج النطاق',
-                        "{$user->name} تجاوز المسافة المحددة ({$group->safety_radius}متر)",
+                        "{$user->name} خارج النطاق - المسافة: {$distance}متر (النطاق الآمن: {$group->safety_radius}متر)",
                         [
                             'type' => 'out_of_range',
                             'group_id' => (string) $group->id,
                             'user_id' => (string) $user->id,
                             'user_name' => $user->name,
+                            'distance' => (string) $distance,
+                            'safety_radius' => (string) $group->safety_radius,
                         ]
                     );
                 } catch (\Exception $e) {
