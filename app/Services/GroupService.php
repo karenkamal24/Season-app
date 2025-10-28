@@ -157,7 +157,7 @@ class GroupService
         if (!$isWithinRadius && $group->notifications_enabled) {
             // Member is OUT OF RANGE
             $shouldSendNotification = false;
-            
+
             // Check if we should send notification (first time or 2 minutes passed)
             if ($member->last_notification_sent_at === null) {
                 // First time out of range
@@ -169,7 +169,7 @@ class GroupService
                     $shouldSendNotification = true;
                 }
             }
-            
+
             if ($shouldSendNotification) {
                 $this->sendOutOfRangeNotification($group, $member->user, $distance);
                 $updateData['last_notification_sent_at'] = now();
