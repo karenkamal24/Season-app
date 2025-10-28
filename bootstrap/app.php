@@ -24,7 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\SetLocaleFromHeader::class);
-        $middleware->append(\App\Http\Middleware\UpdateUserLastActive::class);
+
+        // Add UpdateUserLastActive to API middleware group
+        $middleware->api(append: [
+            \App\Http\Middleware\UpdateUserLastActive::class,
+        ]);
     })
 
     ->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule) {
