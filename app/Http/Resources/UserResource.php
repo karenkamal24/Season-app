@@ -17,7 +17,10 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'avatar' => $this->avatar,
             'photo_url' => $this->photo_url ? asset('storage/' . $this->photo_url) : null,
-
+            'is_online' => $this->is_online,
+            'status' => $this->status,
+            'last_seen' => $this->last_seen,
+            'last_active_at' => $this->last_active_at?->toIso8601String(),
         ];
     }
 }

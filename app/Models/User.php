@@ -42,7 +42,8 @@ class User extends Authenticatable implements FilamentUser
         'fcm_token',
         'birth_date',
         'gender',
-        'is_vendor'
+        'is_vendor',
+        'last_active_at',
     ];
 
     protected $hidden = [
@@ -61,7 +62,8 @@ class User extends Authenticatable implements FilamentUser
         'coins' => 'integer',
         'trips' => 'integer',
         'last_otp_expire' => 'datetime',
-        'is_vendor' => 'boolean'
+        'is_vendor' => 'boolean',
+        'last_active_at' => 'datetime',
     ];
 
     public function canAccessPanel(Panel $panel): bool
@@ -73,5 +75,53 @@ class User extends Authenticatable implements FilamentUser
     public function vendor_services()
     {
         return $this->hasMany(\App\Models\VendorService::class, 'user_id');
+    }
+
+    /**
+     * Check if user is online (active within last 5 minutes)
+     */
+    public function getIsOnlineAttribute(): bool
+    {
+        if (!$this->last_active_at) {
+            return false;
+        }
+
+        return $this->last_active_at->diffInMinutes(now()) < 5;
+    }
+
+    /**
+     * Get user status (online/offline)
+     */
+    public function getStatusAttribute(): string
+    {
+        return $this->is_online ? 'online' : 'offline';
+    }
+
+    /**
+     * Get last seen text
+     */
+    public function getLastSeenAttribute(): ?string
+    {
+        if (!$this->last_active_at) {
+            return null;
+        }
+
+        if ($this->is_online) {
+            return 'متصل الآن';
+        }
+
+        $minutes = $this->last_active_at->diffInMinutes(now());
+        
+        if ($minutes < 60) {
+            return "نشط منذ {$minutes} دقيقة";
+        }
+
+        $hours = $this->last_active_at->diffInHours(now());
+        if ($hours < 24) {
+            return "نشط منذ {$hours} ساعة";
+        }
+
+        $days = $this->last_active_at->diffInDays(now());
+        return "نشط منذ {$days} يوم";
     }
 }
