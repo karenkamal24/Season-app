@@ -92,36 +92,56 @@ class User extends Authenticatable implements FilamentUser
     /**
      * Get user status (online/offline)
      */
-    public function getStatusAttribute(): string
-    {
-        return $this->is_online ? 'online' : 'offline';
+
+public function getStatusAttribute()
+{
+    $locale = app()->getLocale();
+
+    if ($this->is_online) {
+        return $locale === 'ar' ? 'متصل' : 'online';
     }
+
+    return $locale === 'ar' ? 'غير متصل' : 'offline';
+}
+
 
     /**
      * Get last seen text
      */
-    public function getLastSeenAttribute(): ?string
-    {
-        if (!$this->last_active_at) {
-            return null;
-        }
-
-        if ($this->is_online) {
-            return 'متصل الآن';
-        }
-
-        $minutes = (int) $this->last_active_at->diffInMinutes(now());
-
-        if ($minutes < 60) {
-            return "نشط منذ {$minutes} دقيقة";
-        }
-
-        $hours = (int) $this->last_active_at->diffInHours(now());
-        if ($hours < 24) {
-            return "نشط منذ {$hours} ساعة";
-        }
-
-        $days = (int) $this->last_active_at->diffInDays(now());
-        return "نشط منذ {$days} يوم";
+ /**
+ * Get last seen text (localized)
+ */
+public function getLastSeenAttribute(): ?string
+{
+    if (!$this->last_active_at) {
+        return null;
     }
+
+    $locale = app()->getLocale();
+
+    if ($this->is_online) {
+        return $locale === 'ar' ? 'متصل الآن' : 'Online now';
+    }
+
+    $minutes = (int) $this->last_active_at->diffInMinutes(now());
+
+    if ($minutes < 60) {
+        return $locale === 'ar'
+            ? "نشط منذ {$minutes} دقيقة"
+            : "Active {$minutes} minute(s) ago";
+    }
+
+    $hours = (int) $this->last_active_at->diffInHours(now());
+    if ($hours < 24) {
+        return $locale === 'ar'
+            ? "نشط منذ {$hours} ساعة"
+            : "Active {$hours} hour(s) ago";
+    }
+
+    $days = (int) $this->last_active_at->diffInDays(now());
+    return $locale === 'ar'
+        ? "نشط منذ {$days} يوم"
+        : "Active {$days} day(s) ago";
+}
+
 }
