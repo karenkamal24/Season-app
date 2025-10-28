@@ -21,13 +21,13 @@ class UpdateUserLastActive
         if ($request->user()) {
             // Use cache to prevent updating on every request (update once per minute)
             $cacheKey = 'user_last_active_' . $request->user()->id;
-            
+
             if (!Cache::has($cacheKey)) {
                 // Update without firing events for better performance
                 DB::table('users')
                     ->where('id', $request->user()->id)
                     ->update(['last_active_at' => now()]);
-                
+
                 // Cache for 60 seconds to prevent too many updates
                 Cache::put($cacheKey, true, 60);
             }
