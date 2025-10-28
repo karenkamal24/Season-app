@@ -110,18 +110,18 @@ class User extends Authenticatable implements FilamentUser
             return 'متصل الآن';
         }
 
-        $minutes = $this->last_active_at->diffInMinutes(now());
+        $minutes = (int) $this->last_active_at->diffInMinutes(now());
 
         if ($minutes < 60) {
             return "نشط منذ {$minutes} دقيقة";
         }
 
-        $hours = $this->last_active_at->diffInHours(now());
+        $hours = (int) $this->last_active_at->diffInHours(now());
         if ($hours < 24) {
             return "نشط منذ {$hours} ساعة";
         }
 
-        $days = $this->last_active_at->diffInDays(now());
+        $days = (int) $this->last_active_at->diffInDays(now());
         return "نشط منذ {$days} يوم";
     }
 }
