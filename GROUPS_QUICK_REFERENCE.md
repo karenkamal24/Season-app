@@ -116,7 +116,8 @@ POST /api/groups/1/sos
 ✅ **تتبع المواقع** - Real-time location tracking  
 ✅ **إشعارات تلقائية** - عند الخروج من النطاق  
 ✅ **إشارات SOS** - للطوارئ مع إشعار فوري  
-✅ **حساب المسافات** - Haversine Formula  
+✅ **حساب المسافات** - Haversine Formula من موقع المالك  
+✅ **مركز المجموعة** - مالك المجموعة (Owner) هو المركز دائماً  
 ✅ **QR Code** - يتم إنشاؤه تلقائياً  
 ✅ **Firebase Integration** - إشعارات push  
 

@@ -119,7 +119,7 @@ class GroupService
             ->where('status', 'active')
             ->firstOrFail();
 
-        // Calculate distance from group center (using first member's location as center)
+        // Calculate distance from group center (owner's location)
         $centerLocation = $this->getGroupCenter($groupId);
 
         if ($centerLocation) {
@@ -162,29 +162,25 @@ class GroupService
     }
 
     /**
-     * Get group center point (average of all active member locations)
+     * Get group center point (owner's location)
      */
     protected function getGroupCenter($groupId)
     {
-        $latestLocations = GroupLocation::where('group_id', $groupId)
-            ->whereIn('id', function($query) use ($groupId) {
-                $query->selectRaw('MAX(id)')
-                    ->from('group_locations')
-                    ->where('group_id', $groupId)
-                    ->groupBy('user_id');
-            })
-            ->get();
+        $group = Group::findOrFail($groupId);
 
-        if ($latestLocations->isEmpty()) {
+        // Get the owner's latest location
+        $ownerLocation = GroupLocation::where('group_id', $groupId)
+            ->where('user_id', $group->owner_id)
+            ->latest('updated_at')
+            ->first();
+
+        if (!$ownerLocation) {
             return null;
         }
 
-        $avgLat = $latestLocations->avg('latitude');
-        $avgLng = $latestLocations->avg('longitude');
-
         return [
-            'latitude' => $avgLat,
-            'longitude' => $avgLng,
+            'latitude' => $ownerLocation->latitude,
+            'longitude' => $ownerLocation->longitude,
         ];
     }
 
@@ -214,7 +210,7 @@ class GroupService
      */
     protected function sendOutOfRangeNotification($group, $user)
     {
-        // Get all other active members
+
         $members = GroupMember::where('group_id', $group->id)
             ->where('user_id', '!=', $user->id)
             ->where('status', 'active')
