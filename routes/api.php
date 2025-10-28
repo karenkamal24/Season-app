@@ -13,9 +13,9 @@ use App\Http\Controllers\Api\QR\UserQrController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\Group\GroupController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 // Authentication
 Route::prefix('auth')
@@ -66,38 +66,26 @@ Route::prefix('Location')->group(function () {
 
 Route::get('/user/qr', [UserQrController::class, 'generate'])->middleware('auth:sanctum');
 
-// Firebase Cloud Messaging Notifications
+
 Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
     Route::post('/send-to-user', [NotificationController::class, 'sendToUser']);
     Route::post('/send-to-all', [NotificationController::class, 'sendToAll']);
     Route::post('/send-to-multiple', [NotificationController::class, 'sendToMultiple']);
 });
 
-// Groups System - خاصية عدم الضياع
 Route::middleware('auth:sanctum')->prefix('groups')->group(function () {
-    // Main CRUD
-    Route::get('/', [GroupController::class, 'index']);              // Get all user's groups
-    Route::post('/', [GroupController::class, 'store']);             // Create new group
-    Route::get('/{id}', [GroupController::class, 'show']);           // Get group details
-    Route::put('/{id}', [GroupController::class, 'update']);         // Update group
-    Route::delete('/{id}', [GroupController::class, 'destroy']);     // Delete group
-
-    // Join/Leave
-    Route::post('/join', [GroupController::class, 'join']);          // Join group by invite code
-    Route::post('/{id}/leave', [GroupController::class, 'leave']);   // Leave group
-
-    // Members Management
-    Route::get('/{id}/members', [GroupController::class, 'members']); // Get group members
-    Route::delete('/{groupId}/members/{userId}', [GroupController::class, 'removeMember']); // Remove member
-
-    // Location Tracking
-    Route::post('/{id}/location', [GroupController::class, 'updateLocation']); // Update member location
-
-    // SOS Alerts
-    Route::post('/{id}/sos', [GroupController::class, 'sendSos']);            // Send SOS alert
-    Route::post('/{groupId}/sos/{alertId}/resolve', [GroupController::class, 'resolveSos']); // Resolve SOS
+    Route::get('/', [GroupController::class, 'index']);
+    Route::post('/', [GroupController::class, 'store']);
+    Route::get('/{id}', [GroupController::class, 'show']);
+    Route::put('/{id}', [GroupController::class, 'update']);
+    Route::delete('/{id}', [GroupController::class, 'destroy']);
+    Route::post('/join', [GroupController::class, 'join']);
+    Route::post('/{id}/leave', [GroupController::class, 'leave']);
+    Route::get('/{id}/members', [GroupController::class, 'members']);
+    Route::delete('/{groupId}/members/{userId}', [GroupController::class, 'removeMember']);
+    Route::post('/{id}/location', [GroupController::class, 'updateLocation']);
+    Route::post('/{id}/sos', [GroupController::class, 'sendSos']);
+    Route::post('/{groupId}/sos/{alertId}/resolve', [GroupController::class, 'resolveSos']);
 });
-
-// Public endpoint for invite details (QR scan)
 Route::get('/groups/invite/{inviteCode}', [GroupController::class, 'inviteDetails']);
 

@@ -111,7 +111,7 @@ class User extends Authenticatable implements FilamentUser
         }
 
         $minutes = $this->last_active_at->diffInMinutes(now());
-        
+
         if ($minutes < 60) {
             return "نشط منذ {$minutes} دقيقة";
         }
