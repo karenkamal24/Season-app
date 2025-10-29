@@ -90,30 +90,27 @@ class GroupController extends Controller
         try {
             $user = $request->user();
 
+            // 🔹 تحميل الجروب بكل العلاقات المطلوبة
             $group = Group::with([
                 'owner',
-                'groupMembers' => function($query) use ($id) {
+                'groupMembers' => function ($query) {
                     $query->where('status', 'active')
                         ->with([
                             'user',
-                            'locations' => function($locQuery) use ($id) {
-                                $locQuery->where('group_id', $id)
-                                    ->latest('updated_at')
-                                    ->limit(1);
-                            }
+                            'latestLocation', // ← علاقة أحدث موقع
                         ]);
                 },
                 'activeSosAlerts.user'
             ])
             ->withCount([
-                'members as active_members_count' => function($query) {
+                'members as active_members_count' => function ($query) {
                     $query->where('status', 'active');
                 },
                 'outOfRangeMembers as out_of_range_count'
             ])
             ->findOrFail($id);
 
-            // Check if user is a member
+            // 🔹 التأكد أن المستخدم عضو فعّال في الجروب
             $isMember = $group->members()
                 ->where('user_id', $user->id)
                 ->where('status', 'active')
@@ -123,11 +120,19 @@ class GroupController extends Controller
                 return ApiResponse::forbidden(LangHelper::msg('group_no_permission'));
             }
 
-            return ApiResponse::success(LangHelper::msg('group_fetched'), new GroupResource($group));
+            // ✅ الآن كل عضو يحتوي على latest_location داخل GroupMemberResource
+            return ApiResponse::success(
+                LangHelper::msg('group_fetched'),
+                new GroupResource($group)
+            );
+
         } catch (\Exception $e) {
-            return ApiResponse::error(LangHelper::msg('group_fetch_failed') . ': ' . $e->getMessage());
+            return ApiResponse::error(
+                LangHelper::msg('group_fetch_failed') . ': ' . $e->getMessage()
+            );
         }
     }
+
 
     /**
      * Update group

@@ -9,9 +9,9 @@ class GroupMemberResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Check if this is from pivot (many-to-many) or direct model
         if ($this->resource instanceof \App\Models\User) {
-            // From pivot relationship
+            $latestLocation = $this->whenLoaded('latestLocation') ? $this->latestLocation : null;
+
             return [
                 'id' => $this->id,
                 'name' => $this->name,
@@ -28,22 +28,20 @@ class GroupMemberResource extends JsonResource
                 'out_of_range_count' => $this->pivot->out_of_range_count,
                 'joined_at' => $this->pivot->joined_at,
                 'last_location_update' => $this->pivot->last_location_update,
-                'latest_location' => $this->when(
-                    $this->relationLoaded('latestLocation') && $this->latestLocation,
-                    function() {
-                        $location = $this->latestLocation;
-                        return [
-                            'latitude' => $location->latitude,
-                            'longitude' => $location->longitude,
-                            'distance_from_center' => $location->distance_from_center,
-                        ];
-                    }
-                ),
+                'latest_location' => $latestLocation ? [
+                    'latitude' => $latestLocation->latitude,
+                    'longitude' => $latestLocation->longitude,
+                    'distance_from_center' => $latestLocation->distance_from_center ?? 0,
+                ] : null,
             ];
         }
-
-        // From GroupMember model directly
         $user = $this->relationLoaded('user') ? $this->user : null;
+        $location = null;
+        if ($this->relationLoaded('latestLocation') && $this->latestLocation) {
+            $location = $this->latestLocation;
+        } elseif ($this->relationLoaded('locations') && $this->locations->isNotEmpty()) {
+            $location = $this->locations->first();
+        }
 
         return [
             'id' => $user?->id ?? $this->user_id,
@@ -61,18 +59,11 @@ class GroupMemberResource extends JsonResource
             'out_of_range_count' => $this->out_of_range_count,
             'joined_at' => $this->joined_at?->toIso8601String(),
             'last_location_update' => $this->last_location_update?->toIso8601String(),
-            'latest_location' => $this->when(
-                $this->relationLoaded('locations') && $this->locations->isNotEmpty(),
-                function() {
-                    $location = $this->locations->first();
-                    return [
-                        'latitude' => $location->latitude,
-                        'longitude' => $location->longitude,
-                        'distance_from_center' => $location->distance_from_center,
-                    ];
-                }
-            ),
+            'latest_location' => $location ? [
+                'latitude' => $location->latitude,
+                'longitude' => $location->longitude,
+                'distance_from_center' => $location->distance_from_center ?? 0,
+            ] : null,
         ];
     }
 }
-
