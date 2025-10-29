@@ -508,7 +508,7 @@ curl -X POST "http://your-domain.com/api/vendor-services/15" \
 ```json
 {
   "status": 200,
-  "message": "تم تحديث الخدمة بنجاح",
+  "message": "تم تحديث خدمة البائع بنجاح وهي بانتظار موافقة الإدارة",
   "meta": null,
   "data": {
     "id": 15,
@@ -520,6 +520,7 @@ curl -X POST "http://your-domain.com/api/vendor-services/15" \
     "currency": "AED",
     "location": "دبي، الإمارات",
     "contact_phone": "+971501234567",
+    "status": "pending",
     "is_active": true,
     "images": [
       "http://your-domain.com/storage/vendor_services/new_image1.jpg"
@@ -528,6 +529,9 @@ curl -X POST "http://your-domain.com/api/vendor-services/15" \
   }
 }
 ```
+
+### Important Notes
+⚠️ **Status Change:** When updating an approved service, the status will automatically change to "pending" and require admin approval again. This ensures all changes are reviewed before going live.
 
 ### Error Responses
 
@@ -731,7 +735,7 @@ Permanently delete a vendor service from the database. **This action cannot be u
 
 ### Endpoint
 ```http
-DELETE /api/vendor-services/{id}/permanent
+DELETE /api/vendor-services/{id}/forceDelete
 ```
 
 ### Path Parameters
@@ -751,7 +755,7 @@ DELETE /api/vendor-services/{id}/permanent
 ### Example Request
 
 ```bash
-curl -X DELETE "http://your-domain.com/api/vendor-services/15/permanent" \
+curl -X DELETE "http://your-domain.com/api/vendor-services/15/forceDelete" \
   -H "Authorization: Bearer {token}" \
   -H "Accept-Language: ar"
 ```
@@ -811,8 +815,8 @@ curl -X DELETE "http://your-domain.com/api/vendor-services/15/permanent" \
 
 ### Difference Between Delete Methods
 
-| Feature | Disable (DELETE /{id}) | Permanent Delete (DELETE /{id}/permanent) |
-|---------|------------------------|------------------------------------------|
+| Feature | Disable (DELETE /{id}) | Permanent Delete (DELETE /{id}/forceDelete) |
+|---------|------------------------|---------------------------------------------|
 | Action | Changes status to "disabled" | Completely removes from database |
 | Reversible | ✅ Yes (can be re-enabled) | ❌ No (cannot be recovered) |
 | Images | Kept in storage | Deleted from storage |

@@ -120,8 +120,8 @@ class LangHelper
                 'ar' => 'تم إنشاء خدمة البائع بنجاح وهي بانتظار موافقة الإدارة.'
             ],
             'vendor_service_updated' => [
-                'en' => 'Vendor service updated successfully.',
-                'ar' => 'تم تحديث خدمة البائع بنجاح.'
+                'en' => 'Vendor service updated successfully and is pending admin approval.',
+                'ar' => 'تم تحديث خدمة البائع بنجاح وهي بانتظار موافقة الإدارة.'
             ],
             'vendor_service_disabled' => [
                 'en' => 'Vendor service disabled successfully.',

@@ -92,6 +92,11 @@ class VendorServiceService
             }
         }
 
+        // If service is approved and being edited, set status back to pending for admin review
+        if ($service->status === 'approved') {
+            $data['status'] = 'pending';
+        }
+
         $service->update($data);
 
         return $service;
