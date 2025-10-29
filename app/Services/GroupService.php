@@ -245,10 +245,22 @@ class GroupService
         foreach ($members as $member) {
             if ($member->user->fcm_token) {
                 try {
+                    // Get member's preferred language
+                    $memberLang = $member->user->preferred_language ?? 'ar';
+                    
+                    // Prepare notification content based on language
+                    $title = $memberLang === 'en' 
+                        ? 'Warning: Member Out of Range'
+                        : 'تنبيه: عضو خارج النطاق';
+                    
+                    $body = $memberLang === 'en'
+                        ? "{$user->name} is out of range - Distance: {$distance}m (Safe radius: {$group->safety_radius}m)"
+                        : "{$user->name} خارج النطاق - المسافة: {$distance}متر (النطاق الآمن: {$group->safety_radius}متر)";
+                    
                     $firebaseService->sendToDevice(
                         $member->user->fcm_token,
-                        'تنبيه: عضو خارج النطاق',
-                        "{$user->name} خارج النطاق - المسافة: {$distance}متر (النطاق الآمن: {$group->safety_radius}متر)",
+                        $title,
+                        $body,
                         [
                             'type' => 'out_of_range',
                             'group_id' => (string) $group->id,
@@ -256,6 +268,8 @@ class GroupService
                             'user_name' => $user->name,
                             'distance' => (string) $distance,
                             'safety_radius' => (string) $group->safety_radius,
+                            'group_name' => $group->name,
+                            'timestamp' => now()->toIso8601String(),
                         ]
                     );
                 } catch (\Exception $e) {
@@ -295,17 +309,34 @@ class GroupService
         foreach ($members as $member) {
             if ($member->user->fcm_token) {
                 try {
+                    // Get member's preferred language
+                    $memberLang = $member->user->preferred_language ?? 'ar';
+                    
+                    // Prepare notification content based on language
+                    $title = $memberLang === 'en' 
+                        ? '🚨 SOS Alert - Emergency'
+                        : '🚨 إشارة SOS - طوارئ';
+                    
+                    $body = $memberLang === 'en'
+                        ? "{$user->name} needs help! {$message}"
+                        : "{$user->name} يحتاج المساعدة! {$message}";
+                    
                     $firebaseService->sendToDevice(
                         $member->user->fcm_token,
-                        '🚨 إشارة SOS - طوارئ',
-                        "{$user->name} يحتاج المساعدة! {$message}",
+                        $title,
+                        $body,
                         [
                             'type' => 'sos_alert',
                             'group_id' => (string) $group->id,
+                            'group_name' => $group->name,
                             'alert_id' => (string) $alert->id,
                             'user_id' => (string) $user->id,
+                            'user_name' => $user->name,
                             'latitude' => (string) $latitude,
                             'longitude' => (string) $longitude,
+                            'message' => $message ?? ($memberLang === 'en' ? 'Emergency' : 'طوارئ'),
+                            'timestamp' => now()->toIso8601String(),
+                            'priority' => 'urgent',
                         ]
                     );
                 } catch (\Exception $e) {
