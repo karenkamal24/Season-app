@@ -48,6 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [VendorServiceController::class, 'store']);
         Route::put('/{id}', [VendorServiceController::class, 'update']);
         Route::delete('/{id}', [VendorServiceController::class, 'destroy']);
+        Route::post('/{id}/enable', [VendorServiceController::class, 'enable']);
+        Route::delete('/{id}/permanent', [VendorServiceController::class, 'forceDelete']);
     });
 });
 //service types

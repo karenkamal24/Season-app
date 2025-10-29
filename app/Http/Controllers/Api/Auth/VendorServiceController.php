@@ -77,6 +77,27 @@ class VendorServiceController extends Controller
         );
     }
 
+    public function enable($id)
+    {
+        $vendorService = $this->vendorServiceService->enable($id);
+
+        return ApiResponse::send(
+            Response::HTTP_OK,
+            LangHelper::msg('vendor_service_enabled'),
+            new VendorServiceResource($vendorService)
+        );
+    }
+
+    public function forceDelete($id)
+    {
+        $this->vendorServiceService->forceDelete($id);
+
+        return ApiResponse::send(
+            Response::HTTP_OK,
+            LangHelper::msg('vendor_service_deleted_permanently')
+        );
+    }
+
     public function indexServiceType(Request $request)
     {
         $lang = $request->header('Accept-Language', 'ar');

@@ -28,7 +28,9 @@ Accept-Language: en   // For English
 3. [Get Vendor Service Details](#3-get-vendor-service-details)
 4. [Create Vendor Service](#4-create-vendor-service)
 5. [Update Vendor Service](#5-update-vendor-service)
-6. [Delete Vendor Service](#6-delete-vendor-service)
+6. [Delete Vendor Service (Disable)](#6-delete-vendor-service-disable)
+7. [Enable Vendor Service](#7-enable-vendor-service)
+8. [Delete Vendor Service Permanently](#8-delete-vendor-service-permanently)
 
 ---
 
@@ -541,9 +543,9 @@ curl -X POST "http://your-domain.com/api/vendor-services/15" \
 
 ---
 
-## 6️⃣ Delete Vendor Service
+## 6️⃣ Delete Vendor Service (Disable)
 
-Delete (soft delete/disable) a vendor service.
+Disable a vendor service (soft delete). The service can be re-enabled later.
 
 ### Endpoint
 ```http
@@ -596,6 +598,228 @@ DELETE /api/vendor-services/{id}
   "data": []
 }
 ```
+
+---
+
+## 7️⃣ Enable Vendor Service
+
+Re-enable (restore) a disabled vendor service.
+
+### Endpoint
+```http
+POST /api/vendor-services/{id}/enable
+```
+
+### Path Parameters
+| Parameter | Type    | Required | Description           |
+|-----------|---------|----------|-----------------------|
+| id        | integer | Yes      | Vendor Service ID     |
+
+### Headers
+```json
+{
+  "Authorization": "Bearer {token}",
+  "Accept-Language": "ar",
+  "Accept": "application/json"
+}
+```
+
+### Example Request
+
+```bash
+curl -X POST "http://your-domain.com/api/vendor-services/15/enable" \
+  -H "Authorization: Bearer {token}" \
+  -H "Accept-Language: ar"
+```
+
+### Success Response (200 OK)
+
+```json
+{
+  "status": 200,
+  "message": "تم تفعيل خدمة البائع بنجاح وهي بانتظار موافقة الإدارة",
+  "meta": null,
+  "data": {
+    "id": 15,
+    "service_type_id": 1,
+    "service_type_name": "نقل وتوصيل",
+    "title": "خدمة توصيل سريع",
+    "description": "نوفر خدمة توصيل سريعة وموثوقة",
+    "price": 50.00,
+    "currency": "AED",
+    "location": "دبي، الإمارات",
+    "contact_phone": "+971501234567",
+    "is_active": true,
+    "status": "pending",
+    "images": [
+      "http://your-domain.com/storage/vendor_services/abc123.jpg"
+    ],
+    "updated_at": "2025-10-29T18:30:00Z"
+  }
+}
+```
+
+### Success Response (English)
+```json
+{
+  "status": 200,
+  "message": "Vendor service enabled successfully and is pending admin approval.",
+  "meta": null,
+  "data": {
+    "id": 15,
+    "service_type_id": 1,
+    "service_type_name": "Transportation & Delivery",
+    "title": "Fast Delivery Service",
+    "description": "We provide fast and reliable delivery",
+    "price": 50.00,
+    "currency": "AED",
+    "location": "Dubai, UAE",
+    "contact_phone": "+971501234567",
+    "is_active": true,
+    "status": "pending",
+    "images": [
+      "http://your-domain.com/storage/vendor_services/abc123.jpg"
+    ],
+    "updated_at": "2025-10-29T18:30:00Z"
+  }
+}
+```
+
+### Error Responses
+
+#### 403 Forbidden (Already Active)
+```json
+{
+  "status": 403,
+  "message": "هذه الخدمة مفعلة بالفعل",
+  "meta": null,
+  "data": []
+}
+```
+
+#### 403 Forbidden (Not Owner)
+```json
+{
+  "status": 403,
+  "message": "غير مصرح لك بتفعيل هذه الخدمة",
+  "meta": null,
+  "data": []
+}
+```
+
+#### 404 Not Found
+```json
+{
+  "status": 404,
+  "message": "الخدمة غير موجودة",
+  "meta": null,
+  "data": []
+}
+```
+
+### Notes
+- Only disabled services can be re-enabled
+- The service will return to "pending" status and require admin approval again
+- Only the service owner can enable/disable their own services
+- Use this endpoint after disabling a service if you want to reactivate it
+
+---
+
+## 8️⃣ Delete Vendor Service Permanently
+
+Permanently delete a vendor service from the database. **This action cannot be undone!**
+
+### Endpoint
+```http
+DELETE /api/vendor-services/{id}/permanent
+```
+
+### Path Parameters
+| Parameter | Type    | Required | Description           |
+|-----------|---------|----------|-----------------------|
+| id        | integer | Yes      | Vendor Service ID     |
+
+### Headers
+```json
+{
+  "Authorization": "Bearer {token}",
+  "Accept-Language": "ar",
+  "Accept": "application/json"
+}
+```
+
+### Example Request
+
+```bash
+curl -X DELETE "http://your-domain.com/api/vendor-services/15/permanent" \
+  -H "Authorization: Bearer {token}" \
+  -H "Accept-Language: ar"
+```
+
+### Success Response (200 OK)
+
+```json
+{
+  "status": 200,
+  "message": "تم حذف خدمة البائع نهائياً",
+  "meta": null,
+  "data": []
+}
+```
+
+### Success Response (English)
+```json
+{
+  "status": 200,
+  "message": "Vendor service deleted permanently.",
+  "meta": null,
+  "data": []
+}
+```
+
+### Error Responses
+
+#### 403 Forbidden (Not Owner)
+```json
+{
+  "status": 403,
+  "message": "غير مصرح لك بحذف هذه الخدمة",
+  "meta": null,
+  "data": []
+}
+```
+
+#### 404 Not Found
+```json
+{
+  "status": 404,
+  "message": "الخدمة غير موجودة",
+  "meta": null,
+  "data": []
+}
+```
+
+### Important Notes
+⚠️ **WARNING: This action is irreversible!**
+
+- The service will be **permanently deleted** from the database
+- All associated images will be deleted from storage
+- Commercial register document will be deleted from storage
+- The service **cannot be recovered** after deletion
+- Only the service owner can permanently delete their own services
+- Use this endpoint with caution
+
+### Difference Between Delete Methods
+
+| Feature | Disable (DELETE /{id}) | Permanent Delete (DELETE /{id}/permanent) |
+|---------|------------------------|------------------------------------------|
+| Action | Changes status to "disabled" | Completely removes from database |
+| Reversible | ✅ Yes (can be re-enabled) | ❌ No (cannot be recovered) |
+| Images | Kept in storage | Deleted from storage |
+| Data | Kept in database | Removed from database |
+| Use Case | Temporary deactivation | Final removal |
+
+**Recommendation:** Use disable (DELETE /{id}) for temporary deactivation. Only use permanent delete when you're absolutely sure you want to remove the service forever.
 
 ---
 

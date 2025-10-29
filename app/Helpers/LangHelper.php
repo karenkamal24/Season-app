@@ -127,6 +127,18 @@ class LangHelper
                 'en' => 'Vendor service disabled successfully.',
                 'ar' => 'تم تعطيل خدمة البائع بنجاح.'
             ],
+            'vendor_service_enabled' => [
+                'en' => 'Vendor service enabled successfully and is pending admin approval.',
+                'ar' => 'تم تفعيل خدمة البائع بنجاح وهي بانتظار موافقة الإدارة.'
+            ],
+            'vendor_service_already_active' => [
+                'en' => 'This service is already active.',
+                'ar' => 'هذه الخدمة مفعلة بالفعل.'
+            ],
+            'vendor_service_deleted_permanently' => [
+                'en' => 'Vendor service deleted permanently.',
+                'ar' => 'تم حذف خدمة البائع نهائياً.'
+            ],
             'vendor_service_not_found' => [
                 'en' => 'Vendor service not found.',
                 'ar' => 'لم يتم العثور على خدمة البائع.'

@@ -32,7 +32,7 @@ class GroupMemberResource extends JsonResource
 
         // From GroupMember model directly
         $user = $this->relationLoaded('user') ? $this->user : null;
-        
+
         // Get latest location from loaded locations
         $location = null;
         if ($this->relationLoaded('locations') && $this->locations->isNotEmpty()) {

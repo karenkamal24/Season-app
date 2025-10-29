@@ -35,7 +35,7 @@ class VendorServiceService
             }
         }
 
-      
+
         return VendorService::create([
             'user_id'             => $user->id,
             'service_type_id'     => $request->service_type_id,
@@ -110,5 +110,46 @@ class VendorServiceService
         } else {
             throw new HttpException(403, LangHelper::msg('vendor_service_cannot_delete'));
         }
+    }
+
+    public function enable($id): VendorService
+    {
+        $service = VendorService::where('user_id', Auth::id())->find($id);
+
+        if (!$service) {
+            throw new HttpException(404, LangHelper::msg('vendor_service_not_found'));
+        }
+
+        if ($service->status === 'disabled') {
+            $service->update(['status' => 'pending']);
+        } else {
+            throw new HttpException(403, LangHelper::msg('vendor_service_already_active'));
+        }
+
+        return $service->refresh();
+    }
+
+    public function forceDelete($id): void
+    {
+        $service = VendorService::where('user_id', Auth::id())->find($id);
+
+        if (!$service) {
+            throw new HttpException(404, LangHelper::msg('vendor_service_not_found'));
+        }
+
+        // Delete all images associated with this service
+        if (!empty($service->images)) {
+            foreach ($service->images as $image) {
+                \Storage::disk('public')->delete($image);
+            }
+        }
+
+        // Delete commercial register if exists
+        if ($service->commercial_register) {
+            \Storage::disk('public')->delete($service->commercial_register);
+        }
+
+        // Permanently delete the service
+        $service->delete();
     }
 }
