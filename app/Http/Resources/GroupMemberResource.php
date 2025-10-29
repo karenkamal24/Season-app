@@ -10,8 +10,6 @@ class GroupMemberResource extends JsonResource
     public function toArray(Request $request): array
     {
         if ($this->resource instanceof \App\Models\User) {
-            $latestLocation = $this->whenLoaded('latestLocation') ? $this->latestLocation : null;
-
             return [
                 'id' => $this->id,
                 'name' => $this->name,
@@ -28,18 +26,16 @@ class GroupMemberResource extends JsonResource
                 'out_of_range_count' => $this->pivot->out_of_range_count,
                 'joined_at' => $this->pivot->joined_at,
                 'last_location_update' => $this->pivot->last_location_update,
-                'latest_location' => $latestLocation ? [
-                    'latitude' => $latestLocation->latitude,
-                    'longitude' => $latestLocation->longitude,
-                    'distance_from_center' => $latestLocation->distance_from_center ?? 0,
-                ] : null,
+                'latest_location' => null,
             ];
         }
+
+        // From GroupMember model directly
         $user = $this->relationLoaded('user') ? $this->user : null;
+        
+        // Get latest location from loaded locations
         $location = null;
-        if ($this->relationLoaded('latestLocation') && $this->latestLocation) {
-            $location = $this->latestLocation;
-        } elseif ($this->relationLoaded('locations') && $this->locations->isNotEmpty()) {
+        if ($this->relationLoaded('locations') && $this->locations->isNotEmpty()) {
             $location = $this->locations->first();
         }
 
@@ -60,9 +56,9 @@ class GroupMemberResource extends JsonResource
             'joined_at' => $this->joined_at?->toIso8601String(),
             'last_location_update' => $this->last_location_update?->toIso8601String(),
             'latest_location' => $location ? [
-                'latitude' => $location->latitude,
-                'longitude' => $location->longitude,
-                'distance_from_center' => $location->distance_from_center ?? 0,
+                'latitude' => (float) $location->latitude,
+                'longitude' => (float) $location->longitude,
+                'distance_from_center' => (float) ($location->distance_from_center ?? 0),
             ] : null,
         ];
     }

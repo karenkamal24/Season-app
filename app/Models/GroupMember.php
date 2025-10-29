@@ -51,21 +51,9 @@ class GroupMember extends Model
     public function locations()
     {
         return $this->hasMany(GroupLocation::class, 'user_id', 'user_id')
-            ->where('group_id', $this->group_id);
+            ->latest('updated_at');
     }
 
-    /**
-     * Get latest location (accessor method, not relationship)
-     */
-/**
- * Latest location relationship (can be eager loaded)
- */
-public function latestLocation()
-{
-    return $this->hasOne(GroupLocation::class, 'user_id', 'user_id')
-        ->whereColumn('group_locations.group_id', 'group_members.group_id')
-        ->latestOfMany('updated_at'); // Laravel 9+ only
-}
 
 }
 

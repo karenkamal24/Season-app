@@ -95,10 +95,7 @@ class GroupController extends Controller
                 'owner',
                 'groupMembers' => function ($query) {
                     $query->where('status', 'active')
-                        ->with([
-                            'user',
-                            'latestLocation', // ← علاقة أحدث موقع
-                        ]);
+                        ->with('user');
                 },
                 'activeSosAlerts.user'
             ])
@@ -119,6 +116,13 @@ class GroupController extends Controller
             if (!$isMember) {
                 return ApiResponse::forbidden(LangHelper::msg('group_no_permission'));
             }
+
+            // 🔹 تحميل آخر موقع لكل عضو في المجموعة
+            $group->groupMembers->load(['locations' => function ($query) use ($id) {
+                $query->where('group_id', $id)
+                    ->latest('updated_at')
+                    ->limit(1);
+            }]);
 
             // ✅ الآن كل عضو يحتوي على latest_location داخل GroupMemberResource
             return ApiResponse::success(
@@ -276,7 +280,14 @@ class GroupController extends Controller
 
             $members = GroupMember::where('group_id', $id)
                 ->where('status', 'active')
-                ->with(['user', 'latestLocation'])
+                ->with([
+                    'user',
+                    'locations' => function ($query) use ($id) {
+                        $query->where('group_id', $id)
+                            ->latest('updated_at')
+                            ->limit(1);
+                    }
+                ])
                 ->get();
 
             return ApiResponse::success(
