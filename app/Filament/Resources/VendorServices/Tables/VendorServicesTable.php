@@ -12,6 +12,8 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Actions\Action;
+use App\Services\FirebaseService;
+use Filament\Notifications\Notification;
 
 class VendorServicesTable
 {
@@ -124,8 +126,78 @@ class VendorServicesTable
                                 ])
                                 ->required(),
                         ])
-                        ->action(function ($record, array $data): void {
-                            $record->update(['status' => $data['status']]);
+                        ->action(function ($record, array $data, FirebaseService $firebase): void {
+                            $oldStatus = $record->status;
+                            $newStatus = $data['status'];
+                            
+                            // Update the status
+                            $record->update(['status' => $newStatus]);
+                            
+                            // Send notification to vendor if status changed
+                            if ($oldStatus !== $newStatus && $record->user && $record->user->fcm_token) {
+                                $statusMessages = [
+                                    'approved' => [
+                                        'title' => '✅ خدمتك تمت الموافقة عليها!',
+                                        'body' => 'تم الموافقة على خدمة "' . $record->name . '" وهي الآن متاحة للعملاء',
+                                        'icon' => '✅',
+                                        'title_en' => '✅ Your Service Approved!',
+                                        'body_en' => 'Your service "' . $record->name . '" has been approved and is now live',
+                                    ],
+                                    'rejected' => [
+                                        'title' => '❌ تم رفض خدمتك',
+                                        'body' => 'للأسف، تم رفض خدمة "' . $record->name . '". يرجى مراجعة البيانات وإعادة التقديم',
+                                        'icon' => '❌',
+                                        'title_en' => '❌ Service Rejected',
+                                        'body_en' => 'Unfortunately, your service "' . $record->name . '" was rejected. Please review and resubmit',
+                                    ],
+                                    'pending' => [
+                                        'title' => '⏳ خدمتك قيد المراجعة',
+                                        'body' => 'خدمة "' . $record->name . '" الآن قيد المراجعة من قبل الإدارة',
+                                        'icon' => '⏳',
+                                        'title_en' => '⏳ Service Under Review',
+                                        'body_en' => 'Your service "' . $record->name . '" is now under admin review',
+                                    ],
+                                    'disabled' => [
+                                        'title' => '⏸️ تم تعطيل خدمتك',
+                                        'body' => 'تم تعطيل خدمة "' . $record->name . '" مؤقتاً',
+                                        'icon' => '⏸️',
+                                        'title_en' => '⏸️ Service Disabled',
+                                        'body_en' => 'Your service "' . $record->name . '" has been temporarily disabled',
+                                    ],
+                                ];
+                                
+                                $message = $statusMessages[$newStatus] ?? null;
+                                
+                                if ($message) {
+                                    try {
+                                        $firebase->sendToDevice(
+                                            $record->user->fcm_token,
+                                            $message['title'],
+                                            $message['body'],
+                                            [
+                                                'type' => 'vendor_service_status_change',
+                                                'service_id' => (string) $record->id,
+                                                'service_name' => $record->name,
+                                                'old_status' => $oldStatus,
+                                                'new_status' => $newStatus,
+                                                'icon' => $message['icon'],
+                                            ]
+                                        );
+                                        
+                                        Notification::make()
+                                            ->success()
+                                            ->title('Status updated & notification sent!')
+                                            ->body("Vendor {$record->user->name} has been notified")
+                                            ->send();
+                                    } catch (\Exception $e) {
+                                        Notification::make()
+                                            ->warning()
+                                            ->title('Status updated')
+                                            ->body('Status changed but notification failed: ' . $e->getMessage())
+                                            ->send();
+                                    }
+                                }
+                            }
                         })
                         ->successNotificationTitle('Status updated successfully!'),
 
