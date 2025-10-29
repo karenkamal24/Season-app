@@ -41,4 +41,20 @@ class ProfileController extends Controller
             new ProfileResource($user)
         );
     }
+
+    public function updateLanguage(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'preferred_language' => 'required|in:ar,en',
+        ]);
+
+        $user = Auth::user();
+        $user->update(['preferred_language' => $request->preferred_language]);
+
+        return ApiResponse::send(
+            Response::HTTP_OK,
+            LangHelper::msg('language_updated'),
+            ['preferred_language' => $user->preferred_language]
+        );
+    }
 }

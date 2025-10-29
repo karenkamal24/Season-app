@@ -183,16 +183,16 @@ class VendorServicesTable
                                 ];
 
                                 $message = $statusMessages[$newStatus] ?? null;
-                                
+
                                 if ($message) {
                                     try {
                                         // Get user's preferred language (ar or en)
                                         $userLang = $record->user->preferred_language ?? 'ar';
-                                        
+
                                         // Select title and body based on user's language
                                         $notificationTitle = $userLang === 'en' ? $message['title_en'] : $message['title'];
                                         $notificationBody = $userLang === 'en' ? $message['body_en'] : $message['body'];
-                                        
+
                                         $firebase->sendToDevice(
                                             $record->user->fcm_token,
                                             $notificationTitle,
