@@ -40,6 +40,7 @@ class User extends Authenticatable implements FilamentUser
         'has_interests',
         'notification_token',
         'fcm_token',
+        'preferred_language',
         'birth_date',
         'gender',
         'is_vendor',
