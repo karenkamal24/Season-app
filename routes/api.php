@@ -39,7 +39,6 @@ Route::middleware('auth:sanctum')
     ->group(function () {
         Route::get('/', [ProfileController::class, 'show']);
         Route::put('/', [ProfileController::class, 'update']);
-        Route::post('/language', [ProfileController::class, 'updateLanguage']);
     });
 //vendor
 Route::middleware('auth:sanctum')->group(function () {

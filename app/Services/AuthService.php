@@ -116,19 +116,8 @@ class AuthService
             throw new Exception($this->msg('not_verified'));
         }
 
-        // Update FCM token and preferred language if provided
-        $updateData = [];
-
         if (!empty($credentials['fcm_token'])) {
-            $updateData['fcm_token'] = $credentials['fcm_token'];
-        }
-
-        if (!empty($credentials['preferred_language']) && in_array($credentials['preferred_language'], ['ar', 'en'])) {
-            $updateData['preferred_language'] = $credentials['preferred_language'];
-        }
-
-        if (!empty($updateData)) {
-            $user->update($updateData);
+            $user->update(['fcm_token' => $credentials['fcm_token']]);
         }
 
         $token = $user->createToken('API TOKEN')->plainTextToken;

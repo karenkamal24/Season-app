@@ -32,7 +32,6 @@ class UpdateProfileRequest extends FormRequest
             'birth_date' => 'nullable|date',
             'gender' => 'nullable|in:male,female',
             'photo_url' => 'nullable|image|max:2048',
-            'preferred_language' => 'nullable|in:ar,en',
         ];
     }
 

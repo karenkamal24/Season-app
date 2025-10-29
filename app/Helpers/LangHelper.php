@@ -93,10 +93,6 @@ class LangHelper
                 'en' => 'Profile updated successfully.',
                 'ar' => 'تم تحديث الملف الشخصي بنجاح.'
             ],
-            'language_updated' => [
-                'en' => 'Language updated successfully.',
-                'ar' => 'تم تحديث اللغة بنجاح.'
-            ],
             'birth_date_invalid' => [
                 'en' => 'Please enter a valid date.',
                 'ar' => 'يرجى إدخال تاريخ صالح.'
