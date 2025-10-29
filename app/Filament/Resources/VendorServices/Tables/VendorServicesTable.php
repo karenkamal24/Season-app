@@ -189,15 +189,6 @@ class VendorServicesTable
                                         // Get user's preferred language (ar or en)
                                         $userLang = $record->user->preferred_language ?? 'ar';
                                         
-                                        // DEBUG: Log the language
-                                        \Log::info('Sending notification', [
-                                            'user_id' => $record->user->id,
-                                            'user_name' => $record->user->name,
-                                            'preferred_language' => $userLang,
-                                            'service_name' => $record->name,
-                                            'new_status' => $newStatus,
-                                        ]);
-                                        
                                         // Select title and body based on user's language
                                         $notificationTitle = $userLang === 'en' ? $message['title_en'] : $message['title'];
                                         $notificationBody = $userLang === 'en' ? $message['body_en'] : $message['body'];
