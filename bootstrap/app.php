@@ -25,9 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\SetLocaleFromHeader::class);
 
-        // Add UpdateUserLastActive to API middleware group
+        // Add middlewares to API group
         $middleware->api(append: [
             \App\Http\Middleware\UpdateUserLastActive::class,
+            \App\Http\Middleware\SaveUserPreferredLanguage::class,
         ]);
     })
 
