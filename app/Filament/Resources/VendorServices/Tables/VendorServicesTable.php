@@ -129,45 +129,61 @@ class VendorServicesTable
                         ->action(function ($record, array $data, FirebaseService $firebase): void {
                             $oldStatus = $record->status;
                             $newStatus = $data['status'];
-                            
+
                             // Update the status
                             $record->update(['status' => $newStatus]);
-                            
+
                             // Send notification to vendor if status changed
                             if ($oldStatus !== $newStatus && $record->user && $record->user->fcm_token) {
                                 $statusMessages = [
                                     'approved' => [
-                                        'title' => '✅ خدمتك تمت الموافقة عليها!',
-                                        'body' => 'تم الموافقة على خدمة "' . $record->name . '" وهي الآن متاحة للعملاء',
-                                        'icon' => '✅',
-                                        'title_en' => '✅ Your Service Approved!',
-                                        'body_en' => 'Your service "' . $record->name . '" has been approved and is now live',
+                                        'title' => 'تم الموافقة على خدمتك!',
+                                        'body' => 'مبروك! خدمة "' . $record->name . '" أصبحت نشطة الآن ومتاحة لجميع العملاء. ابدأ باستقبال الطلبات!',
+                                        'title_en' => 'Service Approved Successfully!',
+                                        'body_en' => 'Congratulations! Your service "' . $record->name . '" is now live and available to all customers. Start receiving orders!',
+                                        'status_ar' => 'موافق عليها',
+                                        'status_en' => 'Approved',
+                                        'color' => '#10B981', // Green
+                                        'action_text' => 'عرض الخدمة',
+                                        'action_text_en' => 'View Service',
                                     ],
                                     'rejected' => [
-                                        'title' => '❌ تم رفض خدمتك',
-                                        'body' => 'للأسف، تم رفض خدمة "' . $record->name . '". يرجى مراجعة البيانات وإعادة التقديم',
-                                        'icon' => '❌',
-                                        'title_en' => '❌ Service Rejected',
-                                        'body_en' => 'Unfortunately, your service "' . $record->name . '" was rejected. Please review and resubmit',
+                                        'title' => 'تحديث بخصوص خدمتك',
+                                        'body' => 'نأسف لإبلاغك أن خدمة "' . $record->name . '" تحتاج لمراجعة. يرجى تحديث البيانات وإعادة التقديم للحصول على الموافقة.',
+                                        'title_en' => 'Service Update Required',
+                                        'body_en' => 'We regret to inform you that your service "' . $record->name . '" needs review. Please update the information and resubmit for approval.',
+                                        'status_ar' => 'بحاجة لمراجعة',
+                                        'status_en' => 'Rejected',
+                                        'color' => '#EF4444', // Red
+                                        'action_text' => 'تعديل الخدمة',
+                                        'action_text_en' => 'Edit Service',
                                     ],
                                     'pending' => [
-                                        'title' => '⏳ خدمتك قيد المراجعة',
-                                        'body' => 'خدمة "' . $record->name . '" الآن قيد المراجعة من قبل الإدارة',
-                                        'icon' => '⏳',
-                                        'title_en' => '⏳ Service Under Review',
-                                        'body_en' => 'Your service "' . $record->name . '" is now under admin review',
+                                        'title' => 'خدمتك قيد المراجعة',
+                                        'body' => 'شكراً لتحديث خدمة "' . $record->name . '". فريقنا يقوم بمراجعتها الآن وسنبلغك بالنتيجة قريباً.',
+                                        'title_en' => 'Service Under Review',
+                                        'body_en' => 'Thank you for updating your service "' . $record->name . '". Our team is reviewing it now and will notify you soon.',
+                                        'status_ar' => 'قيد المراجعة',
+                                        'status_en' => 'Pending',
+                                        'color' => '#F59E0B', // Amber
+                                        'action_text' => 'تتبع الحالة',
+                                        'action_text_en' => 'Track Status',
                                     ],
                                     'disabled' => [
-                                        'title' => '⏸️ تم تعطيل خدمتك',
-                                        'body' => 'تم تعطيل خدمة "' . $record->name . '" مؤقتاً',
-                                        'icon' => '⏸️',
-                                        'title_en' => '⏸️ Service Disabled',
-                                        'body_en' => 'Your service "' . $record->name . '" has been temporarily disabled',
+                                        'title' => 'تم إيقاف خدمتك مؤقتاً',
+                                        'body' => 'خدمة "' . $record->name . '" غير متاحة حالياً للعملاء. للمزيد من المعلومات، يرجى التواصل مع الدعم الفني.',
+                                        'title_en' => 'Service Temporarily Disabled',
+                                        'body_en' => 'Your service "' . $record->name . '" is currently unavailable to customers. For more information, please contact support.',
+                                        'status_ar' => 'متوقفة مؤقتاً',
+                                        'status_en' => 'Disabled',
+                                        'color' => '#6B7280', // Gray
+                                        'action_text' => 'اتصل بالدعم',
+                                        'action_text_en' => 'Contact Support',
                                     ],
                                 ];
-                                
+
                                 $message = $statusMessages[$newStatus] ?? null;
-                                
+
                                 if ($message) {
                                     try {
                                         $firebase->sendToDevice(
@@ -180,10 +196,18 @@ class VendorServicesTable
                                                 'service_name' => $record->name,
                                                 'old_status' => $oldStatus,
                                                 'new_status' => $newStatus,
-                                                'icon' => $message['icon'],
+                                                'status_label_ar' => $message['status_ar'],
+                                                'status_label_en' => $message['status_en'],
+                                                'color' => $message['color'],
+                                                'action_text' => $message['action_text'],
+                                                'action_text_en' => $message['action_text_en'],
+                                                'title_en' => $message['title_en'],
+                                                'body_en' => $message['body_en'],
+                                                'timestamp' => now()->toIso8601String(),
+                                                'priority' => 'high',
                                             ]
                                         );
-                                        
+
                                         Notification::make()
                                             ->success()
                                             ->title('Status updated & notification sent!')
