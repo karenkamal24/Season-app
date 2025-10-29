@@ -25,7 +25,6 @@ class ProfileResource extends JsonResource
             // 'address' => $this->address,
             'city' => $this->city,
             // 'language' => $this->language,
-            'preferred_language' => $this->preferred_language ?? 'ar',
             'currency' => $this->currency,
             'coins' => $this->coins,
             'trips' => $this->trips,
