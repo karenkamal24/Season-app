@@ -13,7 +13,8 @@ class EmergencyNumber extends Model
         'country_id',
         'fire',
         'police',
-        'ambulance'
+        'ambulance',
+        'embassy'
     ];
 
     public function country()

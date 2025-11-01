@@ -20,7 +20,16 @@ class EmergencyNumberInfolist
                                 TextEntry::make('country.name_ar')
                                     ->label('Country')
                                     ->placeholder('-')
-                                    ->columnSpanFull(),
+                                    ->badge()
+                                    ->color('info')
+                                    ->columnSpan(1),
+
+                                TextEntry::make('country.code')
+                                    ->label('Country Code')
+                                    ->placeholder('-')
+                                    ->badge()
+                                    ->color('success')
+                                    ->columnSpan(1),
 
                                 TextEntry::make('fire')
                                     ->label('Fire Number')
@@ -35,6 +44,11 @@ class EmergencyNumberInfolist
                                 TextEntry::make('ambulance')
                                     ->label('Ambulance Number')
                                     ->icon('heroicon-m-heart')
+                                    ->placeholder('-'),
+
+                                TextEntry::make('embassy')
+                                    ->label('Embassy Number')
+                                    ->icon('heroicon-o-building-office')
                                     ->placeholder('-'),
                             ]),
                     ])

@@ -13,6 +13,7 @@ class EmergencyResource extends JsonResource
             'fire' => $this->fire,
             'police' => $this->police,
             'ambulance' => $this->ambulance,
+            'embassy' => $this->embassy,
         ];
     }
 }

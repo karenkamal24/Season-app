@@ -21,7 +21,7 @@ class EmergencyNumbersTable
                     ->label('Country')
                     ->sortable()
                     ->searchable()
-                    // ->description(fn($record) => $record->country?->name_en)
+                    ->description(fn($record) => $record->country?->code)
                     ->badge()
                     ->color('info'),
 
@@ -45,6 +45,13 @@ class EmergencyNumbersTable
                     ->searchable()
                     ->icon('heroicon-o-truck')
                     ->color('success'),
+
+                TextColumn::make('embassy')
+                    ->label('Embassy Number')
+                    ->sortable()
+                    ->searchable()
+                    ->icon('heroicon-o-building-office')
+                    ->color('info'),
 
                 TextColumn::make('created_at')
                     ->label('Created')

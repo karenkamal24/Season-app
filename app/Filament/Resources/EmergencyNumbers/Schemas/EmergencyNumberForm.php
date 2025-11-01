@@ -16,7 +16,7 @@ class EmergencyNumberForm
         return $schema->components([
             Section::make('Emergency Information')
                 ->description('Enter the emergency numbers for each country.')
-                ->columnSpanFull() 
+                ->columnSpanFull()
                 ->schema([
 
                     Grid::make(1)->schema([
@@ -26,6 +26,7 @@ class EmergencyNumberForm
                             ->searchable()
                             ->required()
                             ->preload()
+                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name_ar} ({$record->code})")
                             ->columnSpanFull(),
 
                         Fieldset::make('Emergency Numbers')->schema([
@@ -46,7 +47,13 @@ class EmergencyNumberForm
                                 ->prefixIcon('heroicon-o-truck')
                                 ->tel()
                                 ->required(),
-                        ])->columns(3),
+
+                            TextInput::make('embassy')
+                                ->label('Embassy Number')
+                                ->prefixIcon('heroicon-o-building-office')
+                                ->tel()
+                                ->required(),
+                        ])->columns(2),
                     ]),
                 ]),
         ]);
