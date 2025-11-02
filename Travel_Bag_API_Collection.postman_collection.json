@@ -1,0 +1,657 @@
+{
+	"info": {
+		"_postman_id": "season-travel-bag-api",
+		"name": "Season App - Travel Bag API",
+		"description": "Travel Bag Management System APIs - نظام إدارة حقائب السفر",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "item_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "category_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "reminder_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login (Get Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"token\", jsonData.token);",
+									"        console.log(\"Token saved:\", jsonData.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Travel Bag Management",
+			"item": [
+				{
+					"name": "Get Travel Bag Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/travel-bag/details",
+							"host": ["{{base_url}}"],
+							"path": ["travel-bag", "details"]
+						},
+						"description": "Get details of the user's main travel bag"
+					}
+				},
+				{
+					"name": "Update Maximum Weight",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"max_weight\": 25.0,\n    \"weight_unit\": \"kg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/travel-bag/max-weight",
+							"host": ["{{base_url}}"],
+							"path": ["travel-bag", "max-weight"]
+						}
+					}
+				},
+				{
+					"name": "Add Item to Bag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.item_added) {",
+									"        pm.collectionVariables.set(\"item_id\", jsonData.data.item_added.item_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"item_id\": \"1\",\n    \"quantity\": 2,\n    \"custom_weight\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/travel-bag/add-item",
+							"host": ["{{base_url}}"],
+							"path": ["travel-bag", "add-item"]
+						}
+					}
+				},
+				{
+					"name": "Get Bag Items",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/travel-bag/items",
+							"host": ["{{base_url}}"],
+							"path": ["travel-bag", "items"]
+						}
+					}
+				},
+				{
+					"name": "Remove Item from Bag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/travel-bag/items/{{item_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["travel-bag", "items", "{{item_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Item Management",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.categories && jsonData.data.categories.length > 0) {",
+									"        pm.collectionVariables.set(\"category_id\", jsonData.data.categories[0].category_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/items/categories",
+							"host": ["{{base_url}}"],
+							"path": ["items", "categories"]
+						}
+					}
+				},
+				{
+					"name": "Get Items by Category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+									"        pm.collectionVariables.set(\"item_id\", jsonData.data.items[0].item_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/items?category_id={{category_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["items"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "{{category_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Single Item Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/items/{{item_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["items", "{{item_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Reminder Management",
+			"item": [
+				{
+					"name": "Get All Reminders",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reminders",
+							"host": ["{{base_url}}"],
+							"path": ["reminders"]
+						}
+					}
+				},
+				{
+					"name": "Get Reminders with Filters",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reminders?status=active&from_date=2025-01-01&to_date=2025-12-31",
+							"host": ["{{base_url}}"],
+							"path": ["reminders"],
+							"query": [
+								{
+									"key": "status",
+									"value": "active"
+								},
+								{
+									"key": "from_date",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "to_date",
+									"value": "2025-12-31"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Reminder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.reminder_id) {",
+									"        pm.collectionVariables.set(\"reminder_id\", jsonData.data.reminder_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Pack suitcase\",\n    \"date\": \"2025-10-06\",\n    \"time\": \"10:00\",\n    \"recurrence\": \"once\",\n    \"notes\": \"Don't forget passport\",\n    \"timezone\": \"UTC\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/reminders",
+							"host": ["{{base_url}}"],
+							"path": ["reminders"]
+						}
+					}
+				},
+				{
+					"name": "Get Single Reminder",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reminders/{{reminder_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["reminders", "{{reminder_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Reminder",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Pack suitcase - Updated\",\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/reminders/{{reminder_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["reminders", "{{reminder_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Reminder",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reminders/{{reminder_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["reminders", "{{reminder_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Packing Tips",
+			"item": [
+				{
+					"name": "Get Packing Tips",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/packing-tips",
+							"host": ["{{base_url}}"],
+							"path": ["packing-tips"]
+						}
+					}
+				},
+				{
+					"name": "Get Packing Tips with Limit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/packing-tips?limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["packing-tips"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. AI Suggestions",
+			"item": [
+				{
+					"name": "Get AI Suggestions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/ai/suggestions?destination=Egypt&include_current_items=true",
+							"host": ["{{base_url}}"],
+							"path": ["ai", "suggestions"],
+							"query": [
+								{
+									"key": "destination",
+									"value": "Egypt"
+								},
+								{
+									"key": "include_current_items",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Suggested Item to Bag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"item_id\": \"{{item_id}}\",\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ai/suggestions/add-item",
+							"host": ["{{base_url}}"],
+							"path": ["ai", "suggestions", "add-item"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
+

@@ -477,6 +477,47 @@ class LangHelper
                 'ar' => 'نطاق الأمان يجب أن لا يتجاوز 5000 متر.'
             ],
 
+            'reminders_fetched' => [
+                'en' => 'Reminders retrieved successfully.',
+                'ar' => 'تم جلب التذكيرات بنجاح.'
+            ],
+            'reminder_created' => [
+                'en' => 'Reminder created successfully.',
+                'ar' => 'تم إنشاء التذكير بنجاح.'
+            ],
+            'reminder_updated' => [
+                'en' => 'Reminder updated successfully.',
+                'ar' => 'تم تحديث التذكير بنجاح.'
+            ],
+            'reminder_deleted' => [
+                'en' => 'Reminder deleted successfully.',
+                'ar' => 'تم حذف التذكير بنجاح.'
+            ],
+            'reminder_fetched' => [
+                'en' => 'Reminder retrieved successfully.',
+                'ar' => 'تم جلب التذكير بنجاح.'
+            ],
+            'reminder_not_found' => [
+                'en' => 'Reminder not found.',
+                'ar' => 'التذكير غير موجود.'
+            ],
+            'reminder_fetch_failed' => [
+                'en' => 'Failed to retrieve reminders.',
+                'ar' => 'فشل جلب التذكيرات.'
+            ],
+            'reminder_create_failed' => [
+                'en' => 'Failed to create reminder.',
+                'ar' => 'فشل إنشاء التذكير.'
+            ],
+            'reminder_update_failed' => [
+                'en' => 'Failed to update reminder.',
+                'ar' => 'فشل تحديث التذكير.'
+            ],
+            'reminder_delete_failed' => [
+                'en' => 'Failed to delete reminder.',
+                'ar' => 'فشل حذف التذكير.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;

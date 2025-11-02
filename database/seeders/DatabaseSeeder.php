@@ -17,5 +17,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(AdminSeeder::class);
         $this->call(EmergencyNumbersSeeder::class);
+        $this->call(BagTypesSeeder::class);
+        $this->call(ItemCategoriesSeeder::class);
+        $this->call(ItemsSeeder::class);
+        $this->call(PackingTipsSeeder::class);
     }
 }

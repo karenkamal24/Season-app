@@ -34,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->command('users:delete-unverified')->everyTenMinutes();
+        // Check and send reminders every minute
+        $schedule->command('reminders:send')->everyMinute();
     })
 
 

@@ -12,6 +12,11 @@ use App\Http\Controllers\Api\Emergency\EmergencyController;
 use App\Http\Controllers\Api\QR\UserQrController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\Group\GroupController;
+use App\Http\Controllers\Api\TravelBagController;
+use App\Http\Controllers\Api\ItemController;
+use App\Http\Controllers\Api\ReminderController;
+use App\Http\Controllers\Api\PackingTipController;
+use App\Http\Controllers\Api\AiSuggestionController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -90,4 +95,40 @@ Route::middleware('auth:sanctum')->prefix('groups')->group(function () {
     Route::post('/{groupId}/sos/{alertId}/resolve', [GroupController::class, 'resolveSos']);
 });
 Route::get('/groups/invite/{inviteCode}', [GroupController::class, 'inviteDetails']);
+
+// Travel Bag Management
+Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
+    Route::get('/details', [TravelBagController::class, 'details']);
+    Route::put('/max-weight', [TravelBagController::class, 'updateMaxWeight']);
+    Route::post('/add-item', [TravelBagController::class, 'addItem']);
+    Route::get('/items', [TravelBagController::class, 'getItems']);
+    Route::delete('/items/{item_id}', [TravelBagController::class, 'removeItem']);
+});
+
+// Item Management
+Route::middleware('auth:sanctum')->prefix('items')->group(function () {
+    Route::get('/categories', [ItemController::class, 'categories']);
+    Route::get('/', [ItemController::class, 'index']); // ?category_id={id}
+    // Route::get('/{id}', [ItemController::class, 'show']);
+});
+
+// Reminder Management
+Route::middleware('auth:sanctum')->prefix('reminders')->group(function () {
+    Route::get('/', [ReminderController::class, 'index']);
+    Route::post('/', [ReminderController::class, 'store']);
+    Route::get('/{id}', [ReminderController::class, 'show']);
+    Route::put('/{id}', [ReminderController::class, 'update']);
+    Route::delete('/{id}', [ReminderController::class, 'destroy']);
+});
+
+// Packing Tips
+Route::middleware('auth:sanctum')->prefix('packing-tips')->group(function () {
+    Route::get('/', [PackingTipController::class, 'index']);
+});
+
+// AI Suggestions
+Route::middleware('auth:sanctum')->prefix('ai')->group(function () {
+    Route::get('/suggestions', [AiSuggestionController::class, 'suggestions']);
+    Route::post('/suggestions/add-item', [AiSuggestionController::class, 'addSuggestedItem']);
+});
 
