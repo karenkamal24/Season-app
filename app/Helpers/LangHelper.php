@@ -561,6 +561,14 @@ class LangHelper
                 'en' => 'Travel bag retrieved successfully.',
                 'ar' => 'تم جلب حقيبة السفر بنجاح.'
             ],
+            'travel_bag_fetched_with_name' => [
+                'en' => 'Travel bag details for :bag_name retrieved successfully.',
+                'ar' => 'تم جلب تفاصيل :bag_name بنجاح.'
+            ],
+            'travel_bags_fetched' => [
+                'en' => 'All travel bags retrieved successfully.',
+                'ar' => 'تم جلب جميع حقائب السفر بنجاح.'
+            ],
             'travel_bag_fetch_failed' => [
                 'en' => 'Failed to retrieve travel bag.',
                 'ar' => 'فشل جلب حقيبة السفر.'
@@ -581,6 +589,14 @@ class LangHelper
                 'en' => 'Item added to bag successfully.',
                 'ar' => 'تم إضافة العنصر إلى الحقيبة بنجاح.'
             ],
+            'item_added_to_bag_with_name' => [
+                'en' => 'Item added to :bag_name successfully.',
+                'ar' => 'تم إضافة العنصر إلى :bag_name بنجاح.'
+            ],
+            'cannot_add_more_weight_exceeded' => [
+                'en' => 'Cannot add more. Maximum weight limit exceeded.',
+                'ar' => 'لا يمكنك إضافة المزيد. تم تجاوز الحد الأقصى للوزن.'
+            ],
             'item_add_to_bag_failed' => [
                 'en' => 'Failed to add item to bag.',
                 'ar' => 'فشل إضافة العنصر إلى الحقيبة.'
@@ -588,6 +604,14 @@ class LangHelper
             'item_removed_from_bag' => [
                 'en' => 'Item removed from bag successfully.',
                 'ar' => 'تم إزالة العنصر من الحقيبة بنجاح.'
+            ],
+            'item_removed_from_bag_with_name' => [
+                'en' => 'Item removed from :bag_name successfully.',
+                'ar' => 'تم إزالة العنصر من :bag_name بنجاح.'
+            ],
+            'quantity_exceeds_available' => [
+                'en' => 'Quantity to remove exceeds available quantity.',
+                'ar' => 'الكمية المراد إزالتها تتجاوز الكمية المتاحة.'
             ],
             'item_remove_from_bag_failed' => [
                 'en' => 'Failed to remove item from bag.',
@@ -608,6 +632,10 @@ class LangHelper
             'bag_type_not_found' => [
                 'en' => 'Bag type not found.',
                 'ar' => 'نوع الحقيبة غير موجود.'
+            ],
+            'bag_type_id_required' => [
+                'en' => 'Bag type ID is required.',
+                'ar' => 'معرف نوع الحقيبة مطلوب.'
             ],
 
             // Travel Bag Validation Messages
@@ -646,6 +674,22 @@ class LangHelper
             'custom_weight_min' => [
                 'en' => 'Custom weight must be at least 0.',
                 'ar' => 'يجب أن يكون الوزن المخصص على الأقل 0.'
+            ],
+            'bag_weight_exceeded' => [
+                'en' => 'Cannot add item. Maximum weight limit exceeded for',
+                'ar' => 'لا يمكن إضافة العنصر. تم تجاوز الحد الأقصى للوزن في'
+            ],
+            'bag_type_name' => [
+                'en' => 'Bag Type',
+                'ar' => 'نوع الحقيبة'
+            ],
+            'current_weight' => [
+                'en' => 'Current weight',
+                'ar' => 'الوزن الحالي'
+            ],
+            'max_weight' => [
+                'en' => 'Maximum weight',
+                'ar' => 'الوزن الأقصى'
             ],
 
         ];

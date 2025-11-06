@@ -22,17 +22,41 @@ class TravelBagController extends Controller
     ) {}
     /**
      * Get Travel Bag Details
-     * GET /api/travel-bag/details
+     * GET /api/travel-bag/details?bag_type_id={id}
+     * If bag_type_id is not provided, returns all user's bags
      */
     public function details(Request $request)
     {
         try {
-            $travelBag = $this->travelBagService->getOrCreateMainBag();
+            $bagTypeId = $request->query('bag_type_id');
+            
+            // If bag_type_id is provided and not empty, return single bag
+            if ($bagTypeId !== null && $bagTypeId !== '') {
+                $travelBag = $this->travelBagService->getOrCreateBagByType((int)$bagTypeId);
+
+                // Get bag type name based on locale
+                $locale = app()->getLocale();
+                $bagTypeName = $locale === 'ar' 
+                    ? ($travelBag->bagType->name_ar ?? '') 
+                    : ($travelBag->bagType->name_en ?? '');
+
+                // Create success message with bag name
+                $successMessage = str_replace(':bag_name', $bagTypeName, LangHelper::msg('travel_bag_fetched_with_name'));
+
+                return ApiResponse::send(
+                    Response::HTTP_OK,
+                    $successMessage,
+                    new TravelBagResource($travelBag)
+                );
+            }
+            
+            // If bag_type_id is not provided, return all user's bags
+            $travelBags = $this->travelBagService->getAllUserBags();
 
             return ApiResponse::send(
                 Response::HTTP_OK,
-                LangHelper::msg('travel_bag_fetched'),
-                new TravelBagResource($travelBag)
+                LangHelper::msg('travel_bags_fetched'),
+                TravelBagResource::collection($travelBags)
             );
         } catch (NotFoundHttpException $e) {
             return ApiResponse::send(
@@ -54,7 +78,8 @@ class TravelBagController extends Controller
             $validated = $request->validated();
             $travelBag = $this->travelBagService->updateMaxWeight(
                 $validated['max_weight'],
-                $validated['weight_unit'] ?? null
+                $validated['weight_unit'] ?? null,
+                $validated['bag_type_id'] ?? 1  // Default to main cargo bag (ID = 1)
             );
 
             return ApiResponse::send(
@@ -87,20 +112,32 @@ class TravelBagController extends Controller
             $result = $this->travelBagService->addItem(
                 $validated['item_id'],
                 $validated['quantity'] ?? 1,
-                $validated['custom_weight'] ?? null
+                $validated['custom_weight'] ?? null,
+                $validated['bag_type_id'] ?? 1  // Default to main cargo bag (ID = 1)
             );
 
             $bagItem = $result['bag_item'];
             $travelBag = $result['travel_bag'];
+
+            // Get bag type name based on locale
+            $locale = app()->getLocale();
+            $bagTypeName = $locale === 'ar' 
+                ? ($travelBag->bagType->name_ar ?? '') 
+                : ($travelBag->bagType->name_en ?? '');
+
+            // Create success message with bag name
+            $successMessage = str_replace(':bag_name', $bagTypeName, LangHelper::msg('item_added_to_bag_with_name'));
 
             $weight = $bagItem->custom_weight ?? $bagItem->item->default_weight;
             $totalWeight = $weight * $bagItem->quantity;
 
             return ApiResponse::send(
                 Response::HTTP_OK,
-                LangHelper::msg('item_added_to_bag'),
+                $successMessage,
                 [
                     'item_added' => new BagItemResource($bagItem),
+                    'bag_type_id' => $travelBag->bag_type_id,
+                    'bag_name' => $bagTypeName,
                     'updated_bag' => [
                         'current_weight' => round((float) $travelBag->current_weight, 2),
                         'max_weight' => round((float) $travelBag->max_weight, 2),
@@ -121,7 +158,7 @@ class TravelBagController extends Controller
 
     /**
      * Remove Item from Travel Bag
-     * DELETE /api/travel-bag/items/{item_id}
+     * DELETE /api/travel-bag/items/{item_id}?bag_type_id={id}&quantity={qty}
      */
     public function removeItem(RemoveItemRequest $request, $itemId)
     {
@@ -129,13 +166,25 @@ class TravelBagController extends Controller
             $validated = $request->validated();
             $travelBag = $this->travelBagService->removeItem(
                 $itemId,
-                $validated['quantity'] ?? null
+                $validated['quantity'] ?? null,
+                $validated['bag_type_id']
             );
+
+            // Get bag type name based on locale
+            $locale = app()->getLocale();
+            $bagTypeName = $locale === 'ar' 
+                ? ($travelBag->bagType->name_ar ?? '') 
+                : ($travelBag->bagType->name_en ?? '');
+
+            // Create success message with bag name
+            $successMessage = str_replace(':bag_name', $bagTypeName, LangHelper::msg('item_removed_from_bag_with_name'));
 
             return ApiResponse::send(
                 Response::HTTP_OK,
-                LangHelper::msg('item_removed_from_bag'),
+                $successMessage,
                 [
+                    'bag_type_id' => $travelBag->bag_type_id,
+                    'bag_name' => $bagTypeName,
                     'updated_bag' => [
                         'current_weight' => round((float) $travelBag->current_weight, 2),
                         'max_weight' => round((float) $travelBag->max_weight, 2),
@@ -156,12 +205,13 @@ class TravelBagController extends Controller
 
     /**
      * Get Travel Bag Items
-     * GET /api/travel-bag/items
+     * GET /api/travel-bag/items?bag_type_id={id}
      */
     public function getItems(Request $request)
     {
         try {
-            $travelBag = $this->travelBagService->getBagItems();
+            $bagTypeId = $request->query('bag_type_id', 1); // Default to main cargo bag (ID = 1)
+            $travelBag = $this->travelBagService->getBagItems($bagTypeId);
 
             if (!$travelBag) {
                 return ApiResponse::send(
@@ -171,6 +221,8 @@ class TravelBagController extends Controller
                         'items' => [],
                         'total_weight' => 0,
                         'total_items' => 0,
+                        'max_weight' => 0,
+                        'weight_percentage' => 0,
                     ]
                 );
             }
@@ -179,8 +231,14 @@ class TravelBagController extends Controller
                 Response::HTTP_OK,
                 LangHelper::msg('travel_bag_items_fetched'),
                 [
+                    'bag_type_id' => $travelBag->bag_type_id,
+                    'bag_name' => app()->getLocale() === 'ar'
+                        ? ($travelBag->bagType->name_ar ?? '')
+                        : ($travelBag->bagType->name_en ?? ''),
                     'items' => BagItemResource::collection($travelBag->bagItems),
                     'total_weight' => round((float) $travelBag->current_weight, 2),
+                    'max_weight' => round((float) $travelBag->max_weight, 2),
+                    'weight_percentage' => round((float) $travelBag->weight_percentage, 2),
                     'total_items' => $travelBag->bagItems->sum('quantity'),
                 ]
             );
