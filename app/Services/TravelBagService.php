@@ -210,6 +210,51 @@ class TravelBagService
     }
 
     /**
+     * Update item quantity in travel bag
+     */
+    public function updateItemQuantity(int $itemId, int $quantity, int $bagTypeId)
+    {
+        $travelBag = $this->getBagByType($bagTypeId);
+
+        $bagItem = BagItem::where('travel_bag_id', $travelBag->id)
+            ->where('item_id', $itemId)
+            ->first();
+
+        if (!$bagItem) {
+            throw new NotFoundHttpException(LangHelper::msg('bag_item_not_found'));
+        }
+
+        // Calculate weight for the new quantity
+        $itemWeight = $bagItem->custom_weight ?? $bagItem->item->default_weight;
+        
+        // Calculate current weight excluding this item
+        $currentWeight = $travelBag->current_weight;
+        $existingItemWeight = $itemWeight * $bagItem->quantity;
+        $weightWithoutItem = $currentWeight - $existingItemWeight;
+        
+        // Calculate new total weight with updated quantity
+        $newItemWeight = $itemWeight * $quantity;
+        $newTotalWeight = $weightWithoutItem + $newItemWeight;
+
+        // Check if new quantity will exceed max weight
+        if ($newTotalWeight > $travelBag->max_weight) {
+            throw new \Exception(LangHelper::msg('cannot_add_more_weight_exceeded'));
+        }
+
+        // Update quantity
+        $bagItem->quantity = $quantity;
+        $bagItem->save();
+
+        $bagItem->load('item.category');
+        $travelBag->load(['bagItems.item', 'bagType']);
+
+        return [
+            'bag_item' => $bagItem,
+            'travel_bag' => $travelBag,
+        ];
+    }
+
+    /**
      * Get all items in travel bag by bag type
      */
     public function getBagItems(int $bagTypeId = 1)

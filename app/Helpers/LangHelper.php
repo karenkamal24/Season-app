@@ -617,6 +617,18 @@ class LangHelper
                 'en' => 'Failed to remove item from bag.',
                 'ar' => 'فشل إزالة العنصر من الحقيبة.'
             ],
+            'item_quantity_updated' => [
+                'en' => 'Item quantity updated successfully.',
+                'ar' => 'تم تحديث كمية العنصر بنجاح.'
+            ],
+            'item_quantity_updated_with_name' => [
+                'en' => 'Item quantity updated in :bag_name successfully.',
+                'ar' => 'تم تحديث كمية العنصر في :bag_name بنجاح.'
+            ],
+            'item_quantity_update_failed' => [
+                'en' => 'Failed to update item quantity.',
+                'ar' => 'فشل تحديث كمية العنصر.'
+            ],
             'travel_bag_items_fetched' => [
                 'en' => 'Travel bag items retrieved successfully.',
                 'ar' => 'تم جلب عناصر حقيبة السفر بنجاح.'
@@ -666,6 +678,10 @@ class LangHelper
             'quantity_min' => [
                 'en' => 'Quantity must be at least 1.',
                 'ar' => 'يجب أن تكون الكمية على الأقل 1.'
+            ],
+            'quantity_required' => [
+                'en' => 'Quantity is required.',
+                'ar' => 'الكمية مطلوبة.'
             ],
             'custom_weight_numeric' => [
                 'en' => 'Custom weight must be a number.',

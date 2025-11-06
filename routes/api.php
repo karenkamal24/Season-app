@@ -109,6 +109,7 @@ Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
     Route::put('/max-weight', [TravelBagController::class, 'updateMaxWeight']);
     Route::post('/add-item', [TravelBagController::class, 'addItem']);
     Route::get('/items', [TravelBagController::class, 'getItems']);
+    Route::put('/items/{item_id}/quantity', [TravelBagController::class, 'updateItemQuantity']);
     Route::delete('/items/{item_id}', [TravelBagController::class, 'removeItem']);
 });
 

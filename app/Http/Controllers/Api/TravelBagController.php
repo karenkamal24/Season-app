@@ -8,6 +8,7 @@ use App\Http\Resources\BagItemResource;
 use App\Http\Requests\UpdateMaxWeightRequest;
 use App\Http\Requests\AddItemRequest;
 use App\Http\Requests\RemoveItemRequest;
+use App\Http\Requests\UpdateItemQuantityRequest;
 use App\Services\TravelBagService;
 use App\Utils\ApiResponse;
 use App\Helpers\LangHelper;
@@ -200,6 +201,57 @@ class TravelBagController extends Controller
             );
         } catch (\Exception $e) {
             return ApiResponse::error(LangHelper::msg('item_remove_from_bag_failed') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update Item Quantity in Travel Bag
+     * PUT /api/travel-bag/items/{item_id}/quantity
+     */
+    public function updateItemQuantity(UpdateItemQuantityRequest $request, $itemId)
+    {
+        try {
+            $validated = $request->validated();
+            $result = $this->travelBagService->updateItemQuantity(
+                $itemId,
+                $validated['quantity'],
+                $validated['bag_type_id']
+            );
+
+            $bagItem = $result['bag_item'];
+            $travelBag = $result['travel_bag'];
+
+            // Get bag type name based on locale
+            $locale = app()->getLocale();
+            $bagTypeName = $locale === 'ar' 
+                ? ($travelBag->bagType->name_ar ?? '') 
+                : ($travelBag->bagType->name_en ?? '');
+
+            // Create success message with bag name
+            $successMessage = str_replace(':bag_name', $bagTypeName, LangHelper::msg('item_quantity_updated_with_name'));
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                $successMessage,
+                [
+                    'item_updated' => new BagItemResource($bagItem),
+                    'bag_type_id' => $travelBag->bag_type_id,
+                    'bag_name' => $bagTypeName,
+                    'updated_bag' => [
+                        'current_weight' => round((float) $travelBag->current_weight, 2),
+                        'max_weight' => round((float) $travelBag->max_weight, 2),
+                        'weight_percentage' => round((float) $travelBag->weight_percentage, 2),
+                        'total_items' => $travelBag->bagItems->sum('quantity'),
+                    ]
+                ]
+            );
+        } catch (NotFoundHttpException $e) {
+            return ApiResponse::send(
+                Response::HTTP_NOT_FOUND,
+                $e->getMessage()
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::error(LangHelper::msg('item_quantity_update_failed') . ': ' . $e->getMessage());
         }
     }
 
