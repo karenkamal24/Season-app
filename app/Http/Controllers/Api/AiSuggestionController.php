@@ -25,7 +25,8 @@ class AiSuggestionController extends Controller
             $user = Auth::user();
 
             // Get items already in bag
-            $bagType = BagType::where('code', 'main_cargo')->first();
+            // Main cargo bag is always ID 1 (first bag type created)
+            $bagType = BagType::find(1);
             $travelBag = null;
             $itemsInBag = [];
 
@@ -133,7 +134,8 @@ class AiSuggestionController extends Controller
             }
 
             $user = Auth::user();
-            $bagType = BagType::where('code', 'main_cargo')->first();
+            // Main cargo bag is always ID 1 (first bag type created)
+            $bagType = BagType::find(1);
 
             if (!$bagType) {
                 return ApiResponse::badRequest('Bag type not found');

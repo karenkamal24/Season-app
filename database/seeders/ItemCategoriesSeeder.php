@@ -2,87 +2,82 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use App\Models\ItemCategory;
 
 class ItemCategoriesSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        // 🚫 أوقف مؤقتًا الـ foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        // 🧹 امسح البيانات القديمة
+        ItemCategory::truncate();
+
+        // ✅ أرجع تشغيل الـ foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
         $categories = [
             [
                 'name_en' => 'Boarding',
                 'name_ar' => 'الصعود',
-                'icon' => 'plane',
-                'icon_color' => '#3B82F6',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/190/190601.png',
                 'sort_order' => 1,
             ],
             [
                 'name_en' => 'Funds',
                 'name_ar' => 'أموال',
-                'icon' => 'credit-card',
-                'icon_color' => '#10B981',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/2331/2331943.png',
                 'sort_order' => 2,
             ],
             [
                 'name_en' => 'Personal Essentials',
                 'name_ar' => 'أساسيات شخصية',
-                'icon' => 'user',
-                'icon_color' => '#F59E0B',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/706/706164.png',
                 'sort_order' => 3,
             ],
             [
                 'name_en' => 'Entertainment',
                 'name_ar' => 'ترفيه',
-                'icon' => 'music-note',
-                'icon_color' => '#8B5CF6',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/727/727245.png',
                 'sort_order' => 4,
             ],
             [
                 'name_en' => 'Electronics',
                 'name_ar' => 'إلكترونيات',
-                'icon' => 'bolt',
-                'icon_color' => '#EF4444',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/1041/1041916.png',
                 'sort_order' => 5,
             ],
             [
                 'name_en' => 'Clothing',
                 'name_ar' => 'ملابس',
-                'icon' => 'shirt',
-                'icon_color' => '#EC4899',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/892/892458.png',
                 'sort_order' => 6,
             ],
             [
                 'name_en' => 'Toiletries',
                 'name_ar' => 'أدوات نظافة',
-                'icon' => 'sparkles',
-                'icon_color' => '#06B6D4',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/706/706195.png',
                 'sort_order' => 7,
             ],
             [
                 'name_en' => 'Accessories',
                 'name_ar' => 'إكسسوارات',
-                'icon' => 'tag',
-                'icon_color' => '#64748B',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
                 'sort_order' => 8,
             ],
             [
                 'name_en' => 'First Aids',
                 'name_ar' => 'إسعافات أولية',
-                'icon' => 'plus-circle',
-                'icon_color' => '#DC2626',
+                'icon' => 'https://cdn-icons-png.flaticon.com/512/2966/2966327.png',
                 'sort_order' => 9,
             ],
         ];
 
         foreach ($categories as $category) {
-            \App\Models\ItemCategory::firstOrCreate(
-                ['name_en' => $category['name_en']],
-                $category
-            );
+            ItemCategory::create($category);
         }
     }
 }

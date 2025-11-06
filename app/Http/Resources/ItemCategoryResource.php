@@ -20,7 +20,7 @@ class ItemCategoryResource extends JsonResource
             'category_id' => $this->id,
             'name' => $lang === 'ar' ? $this->name_ar : $this->name_en,
             'icon' => $this->icon,
-            'icon_color' => $this->icon_color,
+          
             'items' => ItemResource::collection($this->whenLoaded('items')),
         ];
     }

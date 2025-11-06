@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Emergency\EmergencyController;
 use App\Http\Controllers\Api\QR\UserQrController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\Group\GroupController;
+use App\Http\Controllers\Api\BagTypeController;
 use App\Http\Controllers\Api\TravelBagController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ReminderController;
@@ -96,6 +97,12 @@ Route::middleware('auth:sanctum')->prefix('groups')->group(function () {
 });
 Route::get('/groups/invite/{inviteCode}', [GroupController::class, 'inviteDetails']);
 
+// Bag Types
+Route::middleware('auth:sanctum')->prefix('bag-types')->group(function () {
+    Route::get('/', [BagTypeController::class, 'index']);
+    Route::get('/{id}', [BagTypeController::class, 'show']);
+});
+
 // Travel Bag Management
 Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
     Route::get('/details', [TravelBagController::class, 'details']);
@@ -106,9 +113,9 @@ Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
 });
 
 // Item Management
-Route::middleware('auth:sanctum')->prefix('items')->group(function () {
-    Route::get('/categories', [ItemController::class, 'categories']);
-    Route::get('/', [ItemController::class, 'index']); // ?category_id={id}
+Route::middleware('auth:sanctum')->prefix('categories')->group(function () {
+    Route::get('/', [ItemController::class, 'categories']);
+    Route::get('/items', [ItemController::class, 'index']); // ?category_id={id}
     // Route::get('/{id}', [ItemController::class, 'show']);
 });
 

@@ -10,7 +10,6 @@ class BagType extends Model
     protected $fillable = [
         'name_en',
         'name_ar',
-        'code',
         'description_en',
         'description_ar',
         'default_max_weight',

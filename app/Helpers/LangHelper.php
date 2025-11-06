@@ -556,6 +556,98 @@ class LangHelper
                 'ar' => 'الفئة غير موجودة.'
             ],
 
+            // Travel Bag System Messages
+            'travel_bag_fetched' => [
+                'en' => 'Travel bag retrieved successfully.',
+                'ar' => 'تم جلب حقيبة السفر بنجاح.'
+            ],
+            'travel_bag_fetch_failed' => [
+                'en' => 'Failed to retrieve travel bag.',
+                'ar' => 'فشل جلب حقيبة السفر.'
+            ],
+            'travel_bag_not_found' => [
+                'en' => 'Travel bag not found.',
+                'ar' => 'حقيبة السفر غير موجودة.'
+            ],
+            'travel_bag_weight_updated' => [
+                'en' => 'Maximum weight updated successfully.',
+                'ar' => 'تم تحديث الوزن الأقصى بنجاح.'
+            ],
+            'travel_bag_weight_update_failed' => [
+                'en' => 'Failed to update maximum weight.',
+                'ar' => 'فشل تحديث الوزن الأقصى.'
+            ],
+            'item_added_to_bag' => [
+                'en' => 'Item added to bag successfully.',
+                'ar' => 'تم إضافة العنصر إلى الحقيبة بنجاح.'
+            ],
+            'item_add_to_bag_failed' => [
+                'en' => 'Failed to add item to bag.',
+                'ar' => 'فشل إضافة العنصر إلى الحقيبة.'
+            ],
+            'item_removed_from_bag' => [
+                'en' => 'Item removed from bag successfully.',
+                'ar' => 'تم إزالة العنصر من الحقيبة بنجاح.'
+            ],
+            'item_remove_from_bag_failed' => [
+                'en' => 'Failed to remove item from bag.',
+                'ar' => 'فشل إزالة العنصر من الحقيبة.'
+            ],
+            'travel_bag_items_fetched' => [
+                'en' => 'Travel bag items retrieved successfully.',
+                'ar' => 'تم جلب عناصر حقيبة السفر بنجاح.'
+            ],
+            'travel_bag_items_fetch_failed' => [
+                'en' => 'Failed to retrieve travel bag items.',
+                'ar' => 'فشل جلب عناصر حقيبة السفر.'
+            ],
+            'bag_item_not_found' => [
+                'en' => 'Item not found in bag.',
+                'ar' => 'العنصر غير موجود في الحقيبة.'
+            ],
+            'bag_type_not_found' => [
+                'en' => 'Bag type not found.',
+                'ar' => 'نوع الحقيبة غير موجود.'
+            ],
+
+            // Travel Bag Validation Messages
+            'max_weight_required' => [
+                'en' => 'Maximum weight is required.',
+                'ar' => 'الوزن الأقصى مطلوب.'
+            ],
+            'max_weight_numeric' => [
+                'en' => 'Maximum weight must be a number.',
+                'ar' => 'يجب أن يكون الوزن الأقصى رقماً.'
+            ],
+            'max_weight_min' => [
+                'en' => 'Maximum weight must be at least 0.',
+                'ar' => 'يجب أن يكون الوزن الأقصى على الأقل 0.'
+            ],
+            'weight_unit_invalid' => [
+                'en' => 'Weight unit must be either kg or lb.',
+                'ar' => 'يجب أن تكون وحدة الوزن إما kg أو lb.'
+            ],
+            'item_id_required' => [
+                'en' => 'Item ID is required.',
+                'ar' => 'معرف العنصر مطلوب.'
+            ],
+            'quantity_integer' => [
+                'en' => 'Quantity must be an integer.',
+                'ar' => 'يجب أن تكون الكمية رقماً صحيحاً.'
+            ],
+            'quantity_min' => [
+                'en' => 'Quantity must be at least 1.',
+                'ar' => 'يجب أن تكون الكمية على الأقل 1.'
+            ],
+            'custom_weight_numeric' => [
+                'en' => 'Custom weight must be a number.',
+                'ar' => 'يجب أن يكون الوزن المخصص رقماً.'
+            ],
+            'custom_weight_min' => [
+                'en' => 'Custom weight must be at least 0.',
+                'ar' => 'يجب أن يكون الوزن المخصص على الأقل 0.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;

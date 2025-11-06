@@ -14,15 +14,16 @@ class BagItemResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $lang = app()->getLocale();
         $weight = $this->custom_weight ?? $this->item->default_weight;
         $totalWeight = $weight * $this->quantity;
 
         return [
             'item_id' => $this->item_id,
-            'name' => $this->item->name_en,
-            'name_arabic' => $this->item->name_ar,
-            'category' => $this->item->category->name_en ?? null,
-            'category_arabic' => $this->item->category->name_ar ?? null,
+            'name' => $lang === 'ar' ? $this->item->name_ar : $this->item->name_en,
+            'category' => $lang === 'ar'
+                ? ($this->item->category->name_ar ?? null)
+                : ($this->item->category->name_en ?? null),
             'quantity' => $this->quantity,
             'weight_per_item' => round($weight, 2),
             'total_weight' => round($totalWeight, 2),
