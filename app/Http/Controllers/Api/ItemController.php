@@ -5,14 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ItemResource;
 use App\Http\Resources\ItemCategoryResource;
-use App\Models\Item;
-use App\Models\ItemCategory;
+use App\Http\Requests\GetItemsRequest;
+use App\Services\ItemService;
 use App\Utils\ApiResponse;
+use App\Helpers\LangHelper;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ItemController extends Controller
 {
+    public function __construct(
+        protected ItemService $itemService
+    ) {}
+
     /**
      * Get All Categories
      * GET /api/items/categories
@@ -20,18 +26,15 @@ class ItemController extends Controller
     public function categories(Request $request)
     {
         try {
-            $categories = ItemCategory::where('is_active', true)
-                ->orderBy('sort_order')
-                ->get();
+            $categories = $this->itemService->getAllCategories();
 
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'categories' => ItemCategoryResource::collection($categories)
-                ]
-            ]);
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('items_categories_fetched'),
+                ItemCategoryResource::collection($categories)
+            );
         } catch (\Exception $e) {
-            return ApiResponse::error('Failed to retrieve categories: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('items_categories_fetch_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -39,46 +42,24 @@ class ItemController extends Controller
      * Get Items by Category
      * GET /api/items?category_id={category_id}
      */
-    public function index(Request $request)
+    public function index(GetItemsRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'category_id' => 'required|exists:item_categories,id',
-            ]);
+            $validated = $request->validated();
+            $items = $this->itemService->getItemsByCategory($validated['category_id']);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 'VALIDATION_ERROR',
-                        'message' => 'Validation failed',
-                        'details' => collect($validator->errors()->all())->map(function ($message) {
-                            return ['message' => $message];
-                        })->values()
-                    ]
-                ], 400);
-            }
-
-            $category = ItemCategory::findOrFail($request->category_id);
-            $items = Item::where('category_id', $category->id)
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->with('category')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'category' => [
-                        'category_id' => $category->id,
-                        'name' => $category->name_en,
-                        'name_arabic' => $category->name_ar,
-                    ],
-                    'items' => ItemResource::collection($items)
-                ]
-            ]);
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('items_fetched'),
+                ItemResource::collection($items)
+            );
+        } catch (NotFoundHttpException $e) {
+            return ApiResponse::send(
+                Response::HTTP_NOT_FOUND,
+                $e->getMessage()
+            );
         } catch (\Exception $e) {
-            return ApiResponse::error('Failed to retrieve items: ' . $e->getMessage());
+            return ApiResponse::error(LangHelper::msg('items_fetch_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -89,22 +70,20 @@ class ItemController extends Controller
     public function show($id)
     {
         try {
-            $item = Item::with('category')
-                ->where('is_active', true)
-                ->findOrFail($id);
+            $item = $this->itemService->getItemById($id);
 
-            return response()->json([
-                'success' => true,
-                'data' => new ItemResource($item)
-            ]);
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('item_fetched'),
+                new ItemResource($item)
+            );
+        } catch (NotFoundHttpException $e) {
+            return ApiResponse::send(
+                Response::HTTP_NOT_FOUND,
+                $e->getMessage()
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'NOT_FOUND',
-                    'message' => 'Item not found'
-                ]
-            ], 404);
+            return ApiResponse::error(LangHelper::msg('item_fetch_failed') . ': ' . $e->getMessage());
         }
     }
 }

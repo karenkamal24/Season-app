@@ -518,6 +518,44 @@ class LangHelper
                 'ar' => 'فشل حذف التذكير.'
             ],
 
+            // Items System Messages
+            'items_categories_fetched' => [
+                'en' => 'Item categories retrieved successfully.',
+                'ar' => 'تم جلب فئات العناصر بنجاح.'
+            ],
+            'items_categories_fetch_failed' => [
+                'en' => 'Failed to retrieve item categories.',
+                'ar' => 'فشل جلب فئات العناصر.'
+            ],
+            'items_fetched' => [
+                'en' => 'Items retrieved successfully.',
+                'ar' => 'تم جلب العناصر بنجاح.'
+            ],
+            'items_fetch_failed' => [
+                'en' => 'Failed to retrieve items.',
+                'ar' => 'فشل جلب العناصر.'
+            ],
+            'item_fetched' => [
+                'en' => 'Item retrieved successfully.',
+                'ar' => 'تم جلب العنصر بنجاح.'
+            ],
+            'item_fetch_failed' => [
+                'en' => 'Failed to retrieve item.',
+                'ar' => 'فشل جلب العنصر.'
+            ],
+            'item_not_found' => [
+                'en' => 'Item not found.',
+                'ar' => 'العنصر غير موجود.'
+            ],
+            'category_id_required' => [
+                'en' => 'Category ID is required.',
+                'ar' => 'معرف الفئة مطلوب.'
+            ],
+            'category_not_found' => [
+                'en' => 'Category not found.',
+                'ar' => 'الفئة غير موجودة.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;

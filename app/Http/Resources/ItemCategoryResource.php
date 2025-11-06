@@ -14,10 +14,11 @@ class ItemCategoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $lang = app()->getLocale();
+
         return [
             'category_id' => $this->id,
-            'name' => $this->name_en,
-            'name_arabic' => $this->name_ar,
+            'name' => $lang === 'ar' ? $this->name_ar : $this->name_en,
             'icon' => $this->icon,
             'icon_color' => $this->icon_color,
             'items' => ItemResource::collection($this->whenLoaded('items')),

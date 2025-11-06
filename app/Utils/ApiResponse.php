@@ -20,7 +20,7 @@ public static function send(
     $response = [
         'status' => $code,
         'message' => $message,
-        'meta' => $meta ?? ($data['meta'] ?? null), 
+        'meta' => $meta ?? ($data['meta'] ?? null),
         'data' => $data['items'],
     ];
 
@@ -80,6 +80,12 @@ public static function send(
                 'meta' => self::getPaginationMeta($data),
                 'items' => $items,
             ];
+        }
+
+        // If data is a Resource collection or single Resource, return it directly
+        if ($data instanceof \Illuminate\Http\Resources\Json\ResourceCollection ||
+            $data instanceof \Illuminate\Http\Resources\Json\JsonResource) {
+            return ['items' => $data];
         }
 
         return ['items' => $data];
