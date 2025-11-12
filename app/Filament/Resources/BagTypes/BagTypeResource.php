@@ -10,6 +10,7 @@ use App\Filament\Resources\BagTypes\Schemas\BagTypeForm;
 use App\Filament\Resources\BagTypes\Schemas\BagTypeInfolist;
 use App\Filament\Resources\BagTypes\Tables\BagTypesTable;
 use App\Models\BagType;
+use App\Helpers\LanguageHelper;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -21,10 +22,37 @@ class BagTypeResource extends Resource
     protected static ?string $model = BagType::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static ?string $navigationLabel = 'Bag Types';
-
+    
     protected static ?string $recordTitleAttribute = 'name_ar';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return LanguageHelper::getNavigationGroup('settings');
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return LanguageHelper::translate('bag_types', [
+            'ar' => 'أنواع الحقائب',
+            'en' => 'Bag Types'
+        ]);
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return LanguageHelper::translate('bag_type', [
+            'ar' => 'نوع حقيبة',
+            'en' => 'Bag Type'
+        ]);
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return LanguageHelper::translate('bag_types', [
+            'ar' => 'أنواع الحقائب',
+            'en' => 'Bag Types'
+        ]);
+    }
 
     public static function form(Schema $schema): Schema
     {

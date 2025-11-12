@@ -120,21 +120,31 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"max_weight\": 25.0,\n    \"weight_unit\": \"kg\"\n}"
+							"raw": "{\n    \"max_weight\": 25.0,\n    \"weight_unit\": \"kg\",\n    \"bag_type_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/travel-bag/max-weight",
 							"host": ["{{base_url}}"],
 							"path": ["travel-bag", "max-weight"]
-						}
+						},
+						"description": "تحديث الوزن الأقصى للحقيبة\n\nالمعاملات المطلوبة:\n- max_weight: الوزن الأقصى (مطلوب، رقم)\n\nالمعاملات الاختيارية:\n- weight_unit: وحدة الوزن ('kg' أو 'lb')\n- bag_type_id: معرف نوع الحقيبة (افتراضي: 1)"
 					}
 				},
 				{
-					"name": "Add Item to Bag",
+					"name": "Add Item to Bag (Regular)",
 					"event": [
 						{
 							"listen": "test",
@@ -167,17 +177,68 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"item_id\": \"1\",\n    \"quantity\": 2,\n    \"custom_weight\": null\n}"
+							"raw": "{\n    \"item_id\": 1,\n    \"quantity\": 2,\n    \"custom_weight\": null,\n    \"bag_type_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/travel-bag/add-item",
 							"host": ["{{base_url}}"],
 							"path": ["travel-bag", "add-item"]
-						}
+						},
+						"description": "إضافة عنصر عادي من القائمة\n\nالمعاملات:\n- item_id: معرف العنصر (مطلوب)\n- quantity: الكمية (اختياري)\n- custom_weight: وزن مخصص (اختياري)\n- bag_type_id: نوع الحقيبة (اختياري)"
+					}
+				},
+				{
+					"name": "Add Custom Item to Bag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"custom_item_name\": \"محمول شخصي\",\n    \"custom_weight\": 2.5,\n    \"quantity\": 1,\n    \"bag_type_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/travel-bag/add-item",
+							"host": ["{{base_url}}"],
+							"path": ["travel-bag", "add-item"]
+						},
+						"description": "إضافة عنصر مخصص (custom item)\n\nالمعاملات المطلوبة:\n- custom_item_name: اسم العنصر المخصص (مطلوب)\n- custom_weight: وزن العنصر بالكيلوجرام (مطلوب)\n\nالمعاملات الاختيارية:\n- quantity: الكمية (افتراضي: 1)\n- bag_type_id: نوع الحقيبة (افتراضي: 1)\n\nملاحظة: يجب إرسال إما item_id أو custom_item_name (ليس كلاهما)"
 					}
 				},
 				{

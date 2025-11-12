@@ -10,6 +10,7 @@ class BagItem extends Model
     protected $fillable = [
         'travel_bag_id',
         'item_id',
+        'custom_item_name',
         'quantity',
         'custom_weight',
     ];

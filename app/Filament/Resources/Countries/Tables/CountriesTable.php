@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Countries\Tables;
 
+use App\Helpers\LanguageHelper;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -14,21 +15,34 @@ class CountriesTable
 {
     public static function configure(Table $table): Table
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $table
             ->columns([
-                TextColumn::make('name_en')
-                    ->label(' English name')
-                    ->searchable(),
                 TextColumn::make('name_ar')
-                    ->label('الاسم (بالعربي)')
-                    ->searchable(),
+                    ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
+                    ->searchable()
+                    ->sortable(),
+                
+                TextColumn::make('name_en')
+                    ->label($isArabic ? 'الاسم (إنجليزي)' : 'English Name')
+                    ->searchable()
+                    ->sortable(),
+                
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->label($isArabic ? 'رمز الدولة' : 'Country Code')
+                    ->searchable()
+                    ->badge()
+                    ->color('primary'),
+                
                 TextColumn::make('created_at')
+                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                
                 TextColumn::make('updated_at')
+                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

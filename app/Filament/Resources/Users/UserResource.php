@@ -20,13 +20,29 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
-
-protected static string|\UnitEnum|null $navigationGroup = 'Customers';
-
-
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
     protected static ?string $recordTitleAttribute = 'name';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'العملاء' : 'Customers';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'المستخدمين' : 'Users';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'مستخدم' : 'User';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'المستخدمين' : 'Users';
+    }
 
     public static function form(Schema $schema): Schema
     {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\VendorServices\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Schemas\Schema;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ImageEntry;
@@ -11,81 +12,90 @@ class VendorServiceInfolist
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema->components([
-            Section::make('Details')
-                ->description('Main vendor service details')
+            Section::make($isArabic ? 'التفاصيل' : 'Details')
+                ->description($isArabic ? 'تفاصيل خدمة البائع الرئيسية' : 'Main vendor service details')
                 ->inlineLabel()
                 ->components([
                     TextEntry::make('user.name')
-                        ->label('Vendor')
+                        ->label($isArabic ? 'البائع' : 'Vendor')
                         ->placeholder('-'),
 
                     TextEntry::make('user.email')
-                        ->label('Vendor Email')
+                        ->label($isArabic ? 'بريد البائع' : 'Vendor Email')
                         ->placeholder('-'),
 
                     TextEntry::make('user.phone')
-                        ->label('Vendor Phone')
+                        ->label($isArabic ? 'هاتف البائع' : 'Vendor Phone')
                         ->placeholder('-'),
 
                     TextEntry::make('serviceType.name_en')
-                        ->label('Service Type')
+                        ->label($isArabic ? 'نوع الخدمة' : 'Service Type')
                         ->placeholder('-'),
 
                     TextEntry::make('name')
-                        ->label('Service Name'),
+                        ->label($isArabic ? 'اسم الخدمة' : 'Service Name'),
 
                     TextEntry::make('description')
-                        ->label('Description')
+                        ->label($isArabic ? 'الوصف' : 'Description')
                         ->placeholder('-'),
                 ]),
 
-            Section::make('Contact & Location')
+            Section::make($isArabic ? 'الاتصال والموقع' : 'Contact & Location')
                 ->icon('heroicon-o-map-pin')
                 ->inlineLabel()
                 ->components([
                     TextEntry::make('contact_number')
-                        ->label('Contact Number')
+                        ->label($isArabic ? 'رقم الاتصال' : 'Contact Number')
                         ->placeholder('-'),
 
                     TextEntry::make('address')
-                        ->label('Address')
+                        ->label($isArabic ? 'العنوان' : 'Address')
                         ->placeholder('-'),
 
                     TextEntry::make('latitude')
-                        ->label('Latitude')
+                        ->label($isArabic ? 'خط العرض' : 'Latitude')
                         ->placeholder('-'),
 
                     TextEntry::make('longitude')
-                        ->label('Longitude')
+                        ->label($isArabic ? 'خط الطول' : 'Longitude')
                         ->placeholder('-'),
                 ]),
 
-            Section::make('Files & Status')
+            Section::make($isArabic ? 'الملفات والحالة' : 'Files & Status')
                 ->icon('heroicon-o-document')
                 ->inlineLabel()
                 ->components([
                     TextEntry::make('commercial_register')
-                        ->label('Commercial Register')
+                        ->label($isArabic ? 'السجل التجاري' : 'Commercial Register')
                         ->url(fn($record) => $record->commercial_register ? asset('storage/' . $record->commercial_register) : null)
                         ->openUrlInNewTab()
                         ->placeholder('-'),
 
                     ImageEntry::make('images')
-                        ->label('Service Images')
+                        ->label($isArabic ? 'صور الخدمة' : 'Service Images')
                         ->hiddenLabel()
                         ->limit(10),
 
                     TextEntry::make('status')
-                        ->label('Status')
-                        ->badge(),
+                        ->label($isArabic ? 'الحالة' : 'Status')
+                        ->badge()
+                        ->formatStateUsing(fn($state) => match($state) {
+                            'pending' => $isArabic ? 'قيد المراجعة' : 'Pending',
+                            'approved' => $isArabic ? 'موافق عليها' : 'Approved',
+                            'rejected' => $isArabic ? 'مرفوضة' : 'Rejected',
+                            'disabled' => $isArabic ? 'معطلة' : 'Disabled',
+                            default => $state,
+                        }),
 
                     TextEntry::make('created_at')
-                        ->label('Created At')
+                        ->label($isArabic ? 'تاريخ الإنشاء' : 'Created At')
                         ->dateTime(),
 
                     TextEntry::make('updated_at')
-                        ->label('Updated At')
+                        ->label($isArabic ? 'تاريخ التحديث' : 'Updated At')
                         ->dateTime(),
                 ]),
         ]);

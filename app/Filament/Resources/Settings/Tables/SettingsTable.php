@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Settings\Tables;
 
+use App\Helpers\LanguageHelper;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -14,33 +15,38 @@ class SettingsTable
 {
     public static function configure(Table $table): Table
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $table
             ->columns([
-                TextColumn::make('name.en')
-                    ->label('Name (English)')
-                    ->sortable()
-                    ->searchable(),
                 TextColumn::make('name.ar')
-                    ->label('الاسم')
+                    ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                     ->sortable()
                     ->searchable(),
+                
+                TextColumn::make('name.en')
+                    ->label($isArabic ? 'الاسم (إنجليزي)' : 'English Name')
+                    ->sortable()
+                    ->searchable(),
+                
                 TextColumn::make('value')
-                    ->label('Value')
+                    ->label($isArabic ? 'القيمة' : 'Value')
                     ->numeric()
                     ->sortable(),
+                
                 TextColumn::make('max')
-                    ->label('Max')
+                    ->label($isArabic ? 'الحد الأقصى' : 'Max')
                     ->numeric()
                     ->sortable(),
 
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

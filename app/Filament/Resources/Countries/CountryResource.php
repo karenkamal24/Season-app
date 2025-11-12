@@ -22,9 +22,27 @@ class CountryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedGlobeAlt;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Country&cites';
-
-    protected static ?string $recordTitleAttribute = 'y';
+    protected static ?string $recordTitleAttribute = 'name_en';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'الدول والمدن' : 'Country & Cities';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'الدول' : 'Countries';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'دولة' : 'Country';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'الدول' : 'Countries';
+    }
 
     public static function form(Schema $schema): Schema
     {

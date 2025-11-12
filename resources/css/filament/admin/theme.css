@@ -1,0 +1,21 @@
+@import '/vendor/filament/filament/resources/css/theme.css';
+
+@config 'tailwind.config.js';
+
+/* RTL Support for Arabic */
+html[lang="ar"] {
+    direction: rtl;
+}
+
+html[lang="ar"] body {
+    direction: rtl;
+}
+
+html[lang="en"] {
+    direction: ltr;
+}
+
+html[lang="en"] body {
+    direction: ltr;
+}
+

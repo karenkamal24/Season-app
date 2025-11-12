@@ -21,10 +21,28 @@ class ItemResource extends Resource
     protected static ?string $model = Item::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cube';
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static ?string $navigationLabel = 'Items';
-
+    
     protected static ?string $recordTitleAttribute = 'name_ar';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'الإعدادات' : 'Settings';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'الأغراض' : 'Items';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'غرض' : 'Item';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'الأغراض' : 'Items';
+    }
 
     public static function form(Schema $schema): Schema
     {

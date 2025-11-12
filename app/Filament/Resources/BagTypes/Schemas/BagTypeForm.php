@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BagTypes\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -13,32 +14,34 @@ class BagTypeForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema
             ->components([
-                Section::make('Bag Type Information')
-                    ->description('Enter the bag type details.')
+                Section::make($isArabic ? 'معلومات نوع الحقيبة' : 'Bag Type Information')
+                    ->description($isArabic ? 'أدخل تفاصيل نوع الحقيبة.' : 'Enter the bag type details.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextInput::make('name_ar')
-                                    ->label('الاسم بالعربي')
+                                    ->label($isArabic ? 'الاسم بالعربي' : 'Arabic Name')
                                     ->required()
                                     ->maxLength(255),
 
                                 TextInput::make('name_en')
-                                    ->label('English Name')
+                                    ->label($isArabic ? 'الاسم بالإنجليزي' : 'English Name')
                                     ->required()
                                     ->maxLength(255),
 
                                 TextInput::make('default_max_weight')
-                                    ->label('Default Max Weight')
+                                    ->label($isArabic ? 'الوزن الأقصى الافتراضي' : 'Default Max Weight')
                                     ->numeric()
                                     ->step(0.01)
                                     ->suffix('kg')
                                     ->default(0),
 
                                 Toggle::make('is_active')
-                                    ->label('Is Active')
+                                    ->label($isArabic ? 'نشط' : 'Is Active')
                                     ->default(true)
                                     ->required()
                                     ->columnSpanFull(),
@@ -46,18 +49,18 @@ class BagTypeForm
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Descriptions')
-                    ->description('Bag type descriptions in both languages.')
+                Section::make($isArabic ? 'الأوصاف' : 'Descriptions')
+                    ->description($isArabic ? 'أوصاف نوع الحقيبة باللغتين.' : 'Bag type descriptions in both languages.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 Textarea::make('description_ar')
-                                    ->label('الوصف بالعربي')
+                                    ->label($isArabic ? 'الوصف بالعربي' : 'Arabic Description')
                                     ->rows(3)
                                     ->maxLength(1000),
 
                                 Textarea::make('description_en')
-                                    ->label('Description (English)')
+                                    ->label($isArabic ? 'الوصف بالإنجليزي' : 'English Description')
                                     ->rows(3)
                                     ->maxLength(1000),
                             ]),

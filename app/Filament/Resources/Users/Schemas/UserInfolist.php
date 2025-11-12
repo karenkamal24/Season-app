@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ImageEntry;
@@ -13,15 +14,16 @@ class UserInfolist
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema
             ->components([
-                Section::make('Personal Information')
+                Section::make($isArabic ? 'المعلومات الشخصية' : 'Personal Information')
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 ImageEntry::make('photo_url')
-                                    ->label('Profile Picture')
-
+                                    ->label($isArabic ? 'صورة الملف الشخصي' : 'Profile Picture')
                                     ->size(120)
                                     ->getStateUsing(
                                         fn($record) => $record->photo_url
@@ -35,37 +37,37 @@ class UserInfolist
                                         'class' => 'object-cover rounded-full shadow-md',
                                     ]),
 
-                                // ->defaultImageUrl(url('/images/default-avatar.png')),
                                 Grid::make(2)
                                     ->schema([
                                         TextEntry::make('name')
-                                            ->label('Full Name')
+                                            ->label($isArabic ? 'الاسم الكامل' : 'Full Name')
                                             ->weight('bold')
                                             ->size('lg'),
 
                                         TextEntry::make('nickname')
-                                            ->label('Nickname')
+                                            ->label($isArabic ? 'الاسم المستعار' : 'Nickname')
                                             ->placeholder('-'),
 
                                         TextEntry::make('email')
-                                            ->label('Email Address')
+                                            ->label($isArabic ? 'البريد الإلكتروني' : 'Email Address')
                                             ->icon('heroicon-m-envelope')
                                             ->copyable(),
 
                                         TextEntry::make('phone')
-                                            ->label('Phone')
+                                            ->label($isArabic ? 'الهاتف' : 'Phone')
                                             ->icon('heroicon-m-phone')
                                             ->placeholder('-')
                                             ->copyable(),
 
                                         TextEntry::make('birth_date')
-                                            ->label('Date of Birth')
+                                            ->label($isArabic ? 'تاريخ الميلاد' : 'Date of Birth')
                                             ->date()
                                             ->placeholder('-'),
 
                                         TextEntry::make('gender')
-                                            ->label('Gender')
+                                            ->label($isArabic ? 'الجنس' : 'Gender')
                                             ->badge()
+                                            ->formatStateUsing(fn($state) => $state === 'male' ? ($isArabic ? 'ذكر' : 'Male') : ($isArabic ? 'أنثى' : 'Female'))
                                             ->color(fn(string $state): string => match ($state) {
                                                 'male' => 'info',
                                                 'female' => 'pink',
@@ -78,13 +80,19 @@ class UserInfolist
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Account Details')
+                Section::make($isArabic ? 'تفاصيل الحساب' : 'Account Details')
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('role')
-                                    ->label('User Role')
+                                    ->label($isArabic ? 'دور المستخدم' : 'User Role')
                                     ->badge()
+                                    ->formatStateUsing(fn($state) => match($state) {
+                                        'admin' => $isArabic ? 'مدير' : 'Admin',
+                                        'vendor' => $isArabic ? 'بائع' : 'Vendor',
+                                        'customer' => $isArabic ? 'عميل' : 'Customer',
+                                        default => $state,
+                                    })
                                     ->color(fn(string $state): string => match ($state) {
                                         'admin' => 'danger',
                                         'vendor' => 'warning',
@@ -92,100 +100,38 @@ class UserInfolist
                                         default => 'gray',
                                     }),
 
-                                    TextEntry::make('is_blocked')
-                                    ->label('stuts')
-                                    ->formatStateUsing(fn($state) => $state ? 'Inactive ' : 'Active ')
+                                TextEntry::make('is_blocked')
+                                    ->label($isArabic ? 'الحالة' : 'Status')
+                                    ->formatStateUsing(fn($state) => $state ? ($isArabic ? 'غير نشط' : 'Inactive') : ($isArabic ? 'نشط' : 'Active'))
                                     ->color(fn($state) => $state ? 'danger' : 'success'),
 
-
-
-                                    TextEntry::make('is_vendor')
-                                    ->label('Account type ')
-                                    ->formatStateUsing(fn($state) => $state ? 'vendor ' : 'user ')
+                                TextEntry::make('is_vendor')
+                                    ->label($isArabic ? 'نوع الحساب' : 'Account Type')
+                                    ->formatStateUsing(fn($state) => $state ? ($isArabic ? 'بائع' : 'Vendor') : ($isArabic ? 'مستخدم' : 'User'))
                                     ->color(fn($state) => $state ? 'danger' : 'success'),
-
-
-                                // IconEntry::make('has_interests')
-                                //     ->label('Has Interests')
-                                //     ->boolean(),
                             ]),
                     ])
                     ->columnSpanFull(),
 
-                // Section::make('Location & Preferences')
-                //     ->schema([
-                //         Grid::make(2)
-                //             ->schema([
-                //                 TextEntry::make('address')
-                //                     ->label('Address')
-                //                     ->icon('heroicon-m-map-pin')
-                //                     ->placeholder('-')
-                //                     ->columnSpanFull(),
-
-                //                 TextEntry::make('city')
-                //                     ->label('City')
-                //                     ->placeholder('-'),
-
-                //                 TextEntry::make('currency')
-                //                     ->label('Currency')
-                //                     ->badge()
-                //                     ->placeholder('-'),
-
-                //                 TextEntry::make('language')
-                //                     ->label('Language')
-                //                     ->badge()
-                //                     ->placeholder('-'),
-
-                //                 TextEntry::make('lat')
-                //                     ->label('Latitude')
-                //                     ->placeholder('-'),
-
-                //                 TextEntry::make('lng')
-                //                     ->label('Longitude')
-                //                     ->placeholder('-'),
-                //             ]),
-                //     ])
-                //     ->collapsed()
-                // //     ->columnSpanFull(),
-
-                // Section::make('Social Login')
-                //     ->schema([
-                //         Grid::make(2)
-                //             ->schema([
-                //                 TextEntry::make('provider')
-                //                     ->label('Provider')
-                //                     ->badge()
-                //                     ->color('info')
-                //                     ->placeholder('-'),
-
-                //                 TextEntry::make('provider_id')
-                //                     ->label('Provider ID')
-                //                     ->copyable()
-                //                     ->placeholder('-'),
-                //             ]),
-                //     ])
-                //     ->collapsed()
-                //     ->columnSpanFull(),
-
-                Section::make('Statistics')
+                Section::make($isArabic ? 'الإحصائيات' : 'Statistics')
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('request')
-                                    ->label('Total Requests')
+                                    ->label($isArabic ? 'إجمالي الطلبات' : 'Total Requests')
                                     ->numeric()
                                     ->badge()
                                     ->color('info'),
 
                                 TextEntry::make('coins')
-                                    ->label('Coins Balance')
+                                    ->label($isArabic ? 'رصيد النقاط' : 'Coins Balance')
                                     ->numeric()
                                     ->badge()
                                     ->color('warning')
                                     ->icon('heroicon-m-currency-dollar'),
 
                                 TextEntry::make('trips')
-                                    ->label('Total Trips')
+                                    ->label($isArabic ? 'إجمالي الرحلات' : 'Total Trips')
                                     ->numeric()
                                     ->badge()
                                     ->color('success')
@@ -194,19 +140,17 @@ class UserInfolist
                     ])
                     ->columnSpanFull(),
 
-
-
-                Section::make('Timestamps')
+                Section::make($isArabic ? 'التواريخ' : 'Timestamps')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('created_at')
-                                    ->label('Account Created')
+                                    ->label($isArabic ? 'تاريخ إنشاء الحساب' : 'Account Created')
                                     ->dateTime()
                                     ->placeholder('-'),
 
                                 TextEntry::make('updated_at')
-                                    ->label('Last Updated')
+                                    ->label($isArabic ? 'آخر تحديث' : 'Last Updated')
                                     ->dateTime()
                                     ->since()
                                     ->placeholder('-'),

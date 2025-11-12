@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ItemCategories\Tables;
 
+use App\Helpers\LanguageHelper;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -15,49 +16,53 @@ class ItemCategoriesTable
 {
     public static function configure(Table $table): Table
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $table
             ->columns([
                 TextColumn::make('name_ar')
-                    ->label('الاسم (عربي)')
+                    ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('name_en')
-                    ->label('Name (English)')
+                    ->label($isArabic ? 'الاسم (إنجليزي)' : 'English Name')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('icon')
-                    ->label('Icon')
+                    ->label($isArabic ? 'الأيقونة' : 'Icon')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('icon_color')
-                    ->label('Icon Color')
+                    ->label($isArabic ? 'لون الأيقونة' : 'Icon Color')
                     ->badge()
                     ->color(fn($state) => $state ?? 'gray')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('sort_order')
-                    ->label('Sort Order')
+                    ->label($isArabic ? 'ترتيب العرض' : 'Sort Order')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('items_count')
-                    ->label('Items Count')
+                    ->label($isArabic ? 'عدد الأغراض' : 'Items Count')
                     ->counts('items')
                     ->sortable(),
 
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label($isArabic ? 'نشط' : 'Active'),
 
                 TextColumn::make('created_at')
+                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
+                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

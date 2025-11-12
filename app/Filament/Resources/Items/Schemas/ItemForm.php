@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Items\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -14,15 +15,17 @@ class ItemForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema
             ->components([
-                Section::make('Item Information')
-                    ->description('Enter the item details.')
+                Section::make($isArabic ? 'معلومات الغرض' : 'Item Information')
+                    ->description($isArabic ? 'أدخل تفاصيل الغرض.' : 'Enter the item details.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 Select::make('category_id')
-                                    ->label('Category')
+                                    ->label($isArabic ? 'التصنيف' : 'Category')
                                     ->relationship('category', 'name_ar')
                                     ->searchable()
                                     ->preload()
@@ -30,43 +33,43 @@ class ItemForm
                                     ->columnSpanFull(),
 
                                 TextInput::make('name_ar')
-                                    ->label('الاسم بالعربي')
+                                    ->label($isArabic ? 'الاسم بالعربي' : 'Arabic Name')
                                     ->required()
                                     ->maxLength(255),
 
                                 TextInput::make('name_en')
-                                    ->label('English Name')
+                                    ->label($isArabic ? 'الاسم بالإنجليزي' : 'English Name')
                                     ->required()
                                     ->maxLength(255),
 
                                 TextInput::make('default_weight')
-                                    ->label('Default Weight')
+                                    ->label($isArabic ? 'الوزن الافتراضي' : 'Default Weight')
                                     ->numeric()
                                     ->step(0.01)
                                     ->suffix('kg'),
 
                                 Select::make('weight_unit')
-                                    ->label('Weight Unit')
+                                    ->label($isArabic ? 'وحدة الوزن' : 'Weight Unit')
                                     ->options([
-                                        'kg' => 'Kilogram (kg)',
-                                        'g' => 'Gram (g)',
-                                        'lb' => 'Pound (lb)',
-                                        'oz' => 'Ounce (oz)',
+                                        'kg' => $isArabic ? 'كيلوجرام (kg)' : 'Kilogram (kg)',
+                                        'g' => $isArabic ? 'جرام (g)' : 'Gram (g)',
+                                        'lb' => $isArabic ? 'رطل (lb)' : 'Pound (lb)',
+                                        'oz' => $isArabic ? 'أونصة (oz)' : 'Ounce (oz)',
                                     ])
                                     ->default('kg'),
 
                                 TextInput::make('icon')
-                                    ->label('Icon')
+                                    ->label($isArabic ? 'الأيقونة' : 'Icon')
                                     ->maxLength(255)
-                                    ->placeholder('e.g., heroicon-o-cube'),
+                                    ->placeholder($isArabic ? 'مثال: heroicon-o-cube' : 'e.g., heroicon-o-cube'),
 
                                 TextInput::make('sort_order')
-                                    ->label('Sort Order')
+                                    ->label($isArabic ? 'ترتيب العرض' : 'Sort Order')
                                     ->numeric()
                                     ->default(0),
 
                                 Toggle::make('is_active')
-                                    ->label('Is Active')
+                                    ->label($isArabic ? 'نشط' : 'Is Active')
                                     ->default(true)
                                     ->required()
                                     ->columnSpanFull(),
@@ -74,18 +77,18 @@ class ItemForm
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Descriptions')
-                    ->description('Item descriptions in both languages.')
+                Section::make($isArabic ? 'الأوصاف' : 'Descriptions')
+                    ->description($isArabic ? 'أوصاف الغرض باللغتين.' : 'Item descriptions in both languages.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 Textarea::make('description_ar')
-                                    ->label('الوصف بالعربي')
+                                    ->label($isArabic ? 'الوصف بالعربي' : 'Arabic Description')
                                     ->rows(3)
                                     ->maxLength(1000),
 
                                 Textarea::make('description_en')
-                                    ->label('Description (English)')
+                                    ->label($isArabic ? 'الوصف بالإنجليزي' : 'English Description')
                                     ->rows(3)
                                     ->maxLength(1000),
                             ]),

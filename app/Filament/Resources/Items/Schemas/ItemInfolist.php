@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Items\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -12,76 +13,78 @@ class ItemInfolist
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema
             ->components([
-                Section::make('Item Information')
+                Section::make($isArabic ? 'معلومات الغرض' : 'Item Information')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('category.name_ar')
-                                    ->label('Category')
+                                    ->label($isArabic ? 'التصنيف' : 'Category')
                                     ->formatStateUsing(fn($state, $record) => $state ? $state . ($record->category?->name_en ? ' (' . $record->category->name_en . ')' : '') : '-')
                                     ->badge()
                                     ->color('info')
                                     ->columnSpanFull(),
 
                                 TextEntry::make('name_ar')
-                                    ->label('الاسم(عربي)')
+                                    ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                                     ->placeholder('-')
                                     ->weight('bold'),
 
                                 TextEntry::make('name_en')
-                                    ->label('Name (English)')
+                                    ->label($isArabic ? 'الاسم (إنجليزي)' : 'English Name')
                                     ->placeholder('-'),
 
                                 TextEntry::make('default_weight')
-                                    ->label('Default Weight')
+                                    ->label($isArabic ? 'الوزن الافتراضي' : 'Default Weight')
                                     ->formatStateUsing(fn($state, $record) => $state ? $state . ' ' . ($record->weight_unit ?? 'kg') : '-')
                                     ->placeholder('-'),
 
                                 TextEntry::make('weight_unit')
-                                    ->label('Weight Unit')
+                                    ->label($isArabic ? 'وحدة الوزن' : 'Weight Unit')
                                     ->placeholder('-'),
 
                                 TextEntry::make('icon')
-                                    ->label('Icon')
+                                    ->label($isArabic ? 'الأيقونة' : 'Icon')
                                     ->placeholder('-'),
 
                                 TextEntry::make('sort_order')
-                                    ->label('Sort Order')
+                                    ->label($isArabic ? 'ترتيب العرض' : 'Sort Order')
                                     ->placeholder('-'),
 
                                 IconEntry::make('is_active')
                                     ->boolean()
-                                    ->label('Is Active'),
+                                    ->label($isArabic ? 'نشط' : 'Is Active'),
                             ]),
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Descriptions')
+                Section::make($isArabic ? 'الأوصاف' : 'Descriptions')
                     ->schema([
                         TextEntry::make('description_ar')
-                            ->label('الوصف بالعربي')
+                            ->label($isArabic ? 'الوصف بالعربي' : 'Arabic Description')
                             ->placeholder('-')
                             ->columnSpanFull(),
                         TextEntry::make('description_en')
-                            ->label('Description (English)')
+                            ->label($isArabic ? 'الوصف بالإنجليزي' : 'English Description')
                             ->placeholder('-')
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Timestamps')
+                Section::make($isArabic ? 'التواريخ' : 'Timestamps')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('created_at')
-                                    ->label('Created At')
+                                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created At')
                                     ->dateTime()
                                     ->placeholder('-'),
 
                                 TextEntry::make('updated_at')
-                                    ->label('Updated At')
+                                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated At')
                                     ->dateTime()
                                     ->placeholder('-'),
                             ]),

@@ -22,9 +22,27 @@ class VendorServiceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-protected static string|\UnitEnum|null $navigationGroup = 'Customers';
-
     protected static ?string $recordTitleAttribute = 'name';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'العملاء' : 'Customers';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'خدمات البائعين' : 'Vendor Services';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'خدمة بائع' : 'Vendor Service';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'خدمات البائعين' : 'Vendor Services';
+    }
 
     public static function form(Schema $schema): Schema
     {

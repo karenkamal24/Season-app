@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\VendorServices\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
-
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
@@ -15,71 +15,73 @@ class VendorServiceForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema->components([
-            Section::make('Vendor Info')
-                ->description('Basic information about the vendor service')
+            Section::make($isArabic ? 'معلومات البائع' : 'Vendor Info')
+                ->description($isArabic ? 'المعلومات الأساسية عن خدمة البائع' : 'Basic information about the vendor service')
                 ->schema([
                     Select::make('user_id')
-                        ->label('Vendor')
+                        ->label($isArabic ? 'البائع' : 'Vendor')
                         ->relationship('user', 'name')
                         ->searchable()
                         ->preload()
                         ->required(),
 
                     Select::make('service_type_id')
-                        ->label('Service Type')
+                        ->label($isArabic ? 'نوع الخدمة' : 'Service Type')
                         ->relationship('serviceType', 'name_en')
                         ->searchable()
                         ->preload()
                         ->required(),
 
                     TextInput::make('name')
-                        ->label('Service Name')
+                        ->label($isArabic ? 'اسم الخدمة' : 'Service Name')
                         ->required()
                         ->maxLength(255),
 
                     Textarea::make('description')
-                        ->label('Description')
-                        ->placeholder('Write short description about the service...')
+                        ->label($isArabic ? 'الوصف' : 'Description')
+                        ->placeholder($isArabic ? 'اكتب وصفاً مختصراً عن الخدمة...' : 'Write short description about the service...')
                         ->rows(3)
                         ->columnSpanFull(),
                 ])
                 ->columns(2),
 
-            Section::make('Contact & Location')
+            Section::make($isArabic ? 'الاتصال والموقع' : 'Contact & Location')
                 ->icon('heroicon-o-map-pin')
                 ->schema([
                     TextInput::make('contact_number')
-                        ->label('Contact Number')
+                        ->label($isArabic ? 'رقم الاتصال' : 'Contact Number')
                         ->tel(),
 
                     TextInput::make('address')
-                        ->label('Address'),
+                        ->label($isArabic ? 'العنوان' : 'Address'),
 
                     TextInput::make('latitude')
                         ->numeric()
                         ->step('any')
-                        ->label('Latitude'),
+                        ->label($isArabic ? 'خط العرض' : 'Latitude'),
 
                     TextInput::make('longitude')
                         ->numeric()
                         ->step('any')
-                        ->label('Longitude'),
+                        ->label($isArabic ? 'خط الطول' : 'Longitude'),
                 ])
                 ->columns(2),
 
-            Section::make('Files & Status')
+            Section::make($isArabic ? 'الملفات والحالة' : 'Files & Status')
                 ->icon('heroicon-o-document')
                 ->schema([
                     FileUpload::make('commercial_register')
-                        ->label('Commercial Register')
+                        ->label($isArabic ? 'السجل التجاري' : 'Commercial Register')
                         ->directory('vendor_services/registers')
                         ->preserveFilenames()
                         ->downloadable()
                         ->openable(),
 
                     FileUpload::make('images')
-                        ->label('Service Images')
+                        ->label($isArabic ? 'صور الخدمة' : 'Service Images')
                         ->directory('vendor_services/images')
                         ->multiple()
                         ->reorderable()
@@ -88,12 +90,12 @@ class VendorServiceForm
                         ->imageEditor(),
 
                     Select::make('status')
-                        ->label('Status')
+                        ->label($isArabic ? 'الحالة' : 'Status')
                         ->options([
-                            'pending' => 'Pending',
-                            'approved' => 'Approved',
-                            'rejected' => 'Rejected',
-                            'disabled' => 'Disabled',
+                            'pending' => $isArabic ? 'قيد المراجعة' : 'Pending',
+                            'approved' => $isArabic ? 'موافق عليها' : 'Approved',
+                            'rejected' => $isArabic ? 'مرفوضة' : 'Rejected',
+                            'disabled' => $isArabic ? 'معطلة' : 'Disabled',
                         ])
                         ->default('pending')
                         ->native(false)

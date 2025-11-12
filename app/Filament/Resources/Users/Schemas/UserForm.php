@@ -2,15 +2,14 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
-
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
 use Filament\Forms\Components\Select;
-
 use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Schema;
 
@@ -18,49 +17,51 @@ class UserForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema
             ->components([
-                Section::make('Personal Information')
-                    ->description('Basic user information.')
+                Section::make($isArabic ? 'المعلومات الشخصية' : 'Personal Information')
+                    ->description($isArabic ? 'المعلومات الأساسية للمستخدم.' : 'Basic user information.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextInput::make('name')
-                                    ->label('Full Name')
+                                    ->label($isArabic ? 'الاسم الكامل' : 'Full Name')
                                     ->required()
                                     ->maxLength(255),
 
                                 TextInput::make('nickname')
-                                    ->label('Nickname')
+                                    ->label($isArabic ? 'الاسم المستعار' : 'Nickname')
                                     ->maxLength(255),
 
                                 TextInput::make('email')
-                                    ->label('Email Address')
+                                    ->label($isArabic ? 'البريد الإلكتروني' : 'Email Address')
                                     ->email()
                                     ->required()
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(255),
 
                                 TextInput::make('phone')
-                                    ->label('Phone Number')
+                                    ->label($isArabic ? 'رقم الهاتف' : 'Phone Number')
                                     ->tel()
                                     ->maxLength(20),
 
                                 DatePicker::make('birth_date')
-                                    ->label('Date of Birth')
+                                    ->label($isArabic ? 'تاريخ الميلاد' : 'Date of Birth')
                                     ->native(false)
                                     ->maxDate(now()),
 
                                 Select::make('gender')
-                                    ->label('Gender')
+                                    ->label($isArabic ? 'الجنس' : 'Gender')
                                     ->options([
-                                        'male' => 'Male',
-                                        'female' => 'Female',
+                                        'male' => $isArabic ? 'ذكر' : 'Male',
+                                        'female' => $isArabic ? 'أنثى' : 'Female',
                                     ])
                                     ->native(false),
 
                                 FileUpload::make('photo_url')
-                                    ->label('Profile Picture')
+                                    ->label($isArabic ? 'صورة الملف الشخصي' : 'Profile Picture')
                                     ->image()
                                     ->directory('avatars')
                                     ->columnSpanFull(),
@@ -68,62 +69,62 @@ class UserForm
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Location & Settings')
-                    ->description('User location and preferences.')
+                Section::make($isArabic ? 'الموقع والإعدادات' : 'Location & Settings')
+                    ->description($isArabic ? 'موقع المستخدم وتفضيلاته.' : 'User location and preferences.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextInput::make('address')
-                                    ->label('Address')
+                                    ->label($isArabic ? 'العنوان' : 'Address')
                                     ->maxLength(255)
                                     ->columnSpanFull(),
 
                                 TextInput::make('city')
-                                    ->label('City')
+                                    ->label($isArabic ? 'المدينة' : 'City')
                                     ->maxLength(100),
 
                                 TextInput::make('currency')
-                                    ->label('Currency')
+                                    ->label($isArabic ? 'العملة' : 'Currency')
                                     ->maxLength(10)
-                                    ->placeholder('e.g., EGP, USD'),
+                                    ->placeholder($isArabic ? 'مثال: EGP, USD' : 'e.g., EGP, USD'),
 
                                 TextInput::make('language')
-                                    ->label('Preferred Language')
+                                    ->label($isArabic ? 'اللغة المفضلة' : 'Preferred Language')
                                     ->maxLength(10)
-                                    ->placeholder('e.g., ar, en'),
+                                    ->placeholder($isArabic ? 'مثال: ar, en' : 'e.g., ar, en'),
 
                                 TextInput::make('lat')
-                                    ->label('Latitude')
+                                    ->label($isArabic ? 'خط العرض' : 'Latitude')
                                     ->numeric()
-                                    ->placeholder('e.g., 30.0444'),
+                                    ->placeholder($isArabic ? 'مثال: 30.0444' : 'e.g., 30.0444'),
 
                                 TextInput::make('lng')
-                                    ->label('Longitude')
+                                    ->label($isArabic ? 'خط الطول' : 'Longitude')
                                     ->numeric()
-                                    ->placeholder('e.g., 31.2357'),
+                                    ->placeholder($isArabic ? 'مثال: 31.2357' : 'e.g., 31.2357'),
                             ]),
                     ])
                     ->collapsed()
                     ->columnSpanFull(),
 
-                Section::make('Account Settings')
-                    ->description('Role, status, and authentication.')
+                Section::make($isArabic ? 'إعدادات الحساب' : 'Account Settings')
+                    ->description($isArabic ? 'الدور والحالة والمصادقة.' : 'Role, status, and authentication.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 Select::make('role')
-                                    ->label('User Role')
+                                    ->label($isArabic ? 'دور المستخدم' : 'User Role')
                                     ->options([
-                                        'customer' => 'Customer',
-                                        'admin' => 'Admin',
-                                        'vendor' => 'Vendor',
+                                        'customer' => $isArabic ? 'عميل' : 'Customer',
+                                        'admin' => $isArabic ? 'مدير' : 'Admin',
+                                        'vendor' => $isArabic ? 'بائع' : 'Vendor',
                                     ])
                                     ->required()
                                     ->default('customer')
                                     ->native(false),
 
                                 TextInput::make('password')
-                                    ->label('Password')
+                                    ->label($isArabic ? 'كلمة المرور' : 'Password')
                                     ->password()
                                     ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
                                     ->dehydrated(fn ($state) => filled($state))
@@ -131,74 +132,74 @@ class UserForm
                                     ->maxLength(255),
 
                                 Toggle::make('is_blocked')
-                                    ->label('Block User')
+                                    ->label($isArabic ? 'حظر المستخدم' : 'Block User')
                                     ->inline(false)
                                     ->default(false),
 
                                 Toggle::make('is_vendor')
-                                    ->label('Is Vendor')
+                                    ->label($isArabic ? 'هو بائع' : 'Is Vendor')
                                     ->inline(false)
                                     ->default(false),
 
                                 Toggle::make('has_interests')
-                                    ->label('Has Interests')
+                                    ->label($isArabic ? 'لديه اهتمامات' : 'Has Interests')
                                     ->inline(false)
                                     ->default(false),
 
                                 DateTimePicker::make('email_verified_at')
-                                    ->label('Email Verified At')
+                                    ->label($isArabic ? 'تم التحقق من البريد' : 'Email Verified At')
                                     ->native(false),
                             ]),
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Social Login')
-                    ->description('Third-party authentication details.')
+                Section::make($isArabic ? 'تسجيل الدخول الاجتماعي' : 'Social Login')
+                    ->description($isArabic ? 'تفاصيل المصادقة من طرف ثالث.' : 'Third-party authentication details.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextInput::make('provider')
-                                    ->label('Provider')
+                                    ->label($isArabic ? 'الموفر' : 'Provider')
                                     ->maxLength(50)
-                                    ->placeholder('e.g., google, facebook'),
+                                    ->placeholder($isArabic ? 'مثال: google, facebook' : 'e.g., google, facebook'),
 
                                 TextInput::make('provider_id')
-                                    ->label('Provider ID')
+                                    ->label($isArabic ? 'معرف الموفر' : 'Provider ID')
                                     ->maxLength(255),
                             ]),
                     ])
                     ->collapsed()
                     ->columnSpanFull(),
 
-                Section::make('Statistics & OTP')
-                    ->description('User activity and verification.')
+                Section::make($isArabic ? 'الإحصائيات وOTP' : 'Statistics & OTP')
+                    ->description($isArabic ? 'نشاط المستخدم والتحقق.' : 'User activity and verification.')
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('request')
-                                    ->label('Requests')
+                                    ->label($isArabic ? 'الطلبات' : 'Requests')
                                     ->numeric()
                                     ->default(0)
                                     ->minValue(0),
 
                                 TextInput::make('coins')
-                                    ->label('Coins')
+                                    ->label($isArabic ? 'النقاط' : 'Coins')
                                     ->numeric()
                                     ->default(0)
                                     ->minValue(0),
 
                                 TextInput::make('trips')
-                                    ->label('Trips')
+                                    ->label($isArabic ? 'الرحلات' : 'Trips')
                                     ->numeric()
                                     ->default(0)
                                     ->minValue(0),
 
                                 TextInput::make('last_otp')
-                                    ->label('Last OTP')
+                                    ->label($isArabic ? 'OTP الأخير' : 'Last OTP')
                                     ->maxLength(10),
 
                                 DateTimePicker::make('last_otp_expire')
-                                    ->label('OTP Expiration')
+                                    ->label($isArabic ? 'انتهاء OTP' : 'OTP Expiration')
                                     ->native(false),
                             ]),
                     ])

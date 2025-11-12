@@ -20,12 +20,29 @@ class ServiceTypeResource extends Resource
 {
     protected static ?string $model = ServiceType::class;
 
-      protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-    protected static ?string $navigationLabel = 'Service Types';
-
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
 
     protected static ?string $recordTitleAttribute = 'name_ar';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'الإعدادات' : 'Settings';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'أنواع الخدمات' : 'Service Types';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'نوع خدمة' : 'Service Type';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'أنواع الخدمات' : 'Service Types';
+    }
 
     public static function form(Schema $schema): Schema
     {

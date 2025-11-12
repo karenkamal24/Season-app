@@ -36,7 +36,11 @@ class TravelBagService
             ]
         );
 
-        $travelBag->load(['bagItems.item.category', 'bagType']);
+        // Load bagItems - load item.category for regular items, and all items (including custom)
+        $travelBag->load([
+            'bagItems.item.category',
+            'bagType'
+        ]);
 
         return $travelBag;
     }
@@ -69,7 +73,11 @@ class TravelBagService
             throw new NotFoundHttpException(LangHelper::msg('travel_bag_not_found'));
         }
 
-        $travelBag->load(['bagItems.item.category', 'bagType']);
+        // Load bagItems - load item.category for regular items, and all items (including custom)
+        $travelBag->load([
+            'bagItems.item.category',
+            'bagType'
+        ]);
 
         return $travelBag;
     }
@@ -95,7 +103,11 @@ class TravelBagService
         }
 
         $travelBag->update($updateData);
-        $travelBag->load('bagItems.item');
+        // Load bagItems - load item.category for regular items, and all items (including custom)
+        $travelBag->load([
+            'bagItems.item.category',
+            'bagType'
+        ]);
 
         return $travelBag;
     }
@@ -103,13 +115,33 @@ class TravelBagService
     /**
      * Add item to travel bag
      */
-    public function addItem(int $itemId, int $quantity = 1, ?float $customWeight = null, int $bagTypeId = 1)
+    public function addItem(?int $itemId = null, int $quantity = 1, ?float $customWeight = null, int $bagTypeId = 1, ?string $customItemName = null)
     {
         $travelBag = $this->getOrCreateBagByType($bagTypeId);
-        $item = Item::find($itemId);
 
-        if (!$item) {
-            throw new NotFoundHttpException(LangHelper::msg('item_not_found'));
+        // Either item_id or custom_item_name must be provided
+        if (!$itemId && !$customItemName) {
+            throw new \Exception(LangHelper::msg('item_id_or_name_required'));
+        }
+
+        // If custom item, weight is required
+        if ($customItemName && $customWeight === null) {
+            throw new \Exception(LangHelper::msg('custom_weight_required_for_custom_item'));
+        }
+
+        $item = null;
+        $itemWeight = null;
+
+        if ($itemId) {
+            // Regular item from items table
+            $item = Item::find($itemId);
+            if (!$item) {
+                throw new NotFoundHttpException(LangHelper::msg('item_not_found'));
+            }
+            $itemWeight = $customWeight ?? $item->default_weight;
+        } else {
+            // Custom item
+            $itemWeight = $customWeight;
         }
 
         // Check if current weight already exceeds max weight
@@ -118,22 +150,35 @@ class TravelBagService
             throw new \Exception(LangHelper::msg('cannot_add_more_weight_exceeded'));
         }
 
-        // Calculate weight for the new item(s)
-        $itemWeight = $customWeight ?? $item->default_weight;
-        
         // Check if item already exists in bag
-        $bagItem = BagItem::where('travel_bag_id', $travelBag->id)
-            ->where('item_id', $item->id)
-            ->first();
+        $bagItem = null;
+        if ($itemId) {
+            // Check for regular item
+            $bagItem = BagItem::where('travel_bag_id', $travelBag->id)
+                ->where('item_id', $itemId)
+                ->first();
+        } else {
+            // Check for custom item with same name
+            $bagItem = BagItem::where('travel_bag_id', $travelBag->id)
+                ->where('custom_item_name', $customItemName)
+                ->whereNull('item_id')
+                ->first();
+        }
 
         // Calculate current weight (excluding this item if it exists)
         $currentWeight = $travelBag->current_weight;
-        
+
         if ($bagItem) {
             // Remove existing item weight from current weight
-            $existingItemWeight = $bagItem->custom_weight ?? $item->default_weight;
+            if ($itemId && $item) {
+                // Regular item
+                $existingItemWeight = $bagItem->custom_weight ?? $item->default_weight;
+            } else {
+                // Custom item - use stored custom_weight
+                $existingItemWeight = $bagItem->custom_weight ?? $itemWeight;
+            }
             $currentWeight -= ($existingItemWeight * $bagItem->quantity);
-            
+
             // Calculate new total weight after adding quantity
             $newQuantity = $bagItem->quantity + $quantity;
             $newTotalWeight = $currentWeight + ($itemWeight * $newQuantity);
@@ -150,22 +195,29 @@ class TravelBagService
         if ($bagItem) {
             // Update quantity
             $bagItem->quantity += $quantity;
-            if ($customWeight !== null) {
-                $bagItem->custom_weight = $customWeight;
+            if ($customWeight !== null || $customItemName) {
+                $bagItem->custom_weight = $itemWeight;
+            }
+            if ($customItemName) {
+                $bagItem->custom_item_name = $customItemName;
             }
             $bagItem->save();
         } else {
             // Create new bag item
             $bagItem = BagItem::create([
                 'travel_bag_id' => $travelBag->id,
-                'item_id' => $item->id,
+                'item_id' => $itemId,
+                'custom_item_name' => $customItemName,
                 'quantity' => $quantity,
-                'custom_weight' => $customWeight,
+                'custom_weight' => $itemWeight,
             ]);
         }
 
-        $bagItem->load('item.category');
-        $travelBag->load(['bagItems.item', 'bagType']);
+        // Load relationships - item.category will be null for custom items (which is fine)
+        if ($itemId) {
+            $bagItem->load('item.category');
+        }
+        $travelBag->load(['bagItems.item.category', 'bagType']);
 
         return [
             'bag_item' => $bagItem,
@@ -204,7 +256,11 @@ class TravelBagService
             $bagItem->save();
         }
 
-        $travelBag->load(['bagItems.item', 'bagType']);
+        // Load bagItems - load item.category for regular items, and all items (including custom)
+        $travelBag->load([
+            'bagItems.item.category',
+            'bagType'
+        ]);
 
         return $travelBag;
     }
@@ -225,13 +281,18 @@ class TravelBagService
         }
 
         // Calculate weight for the new quantity
-        $itemWeight = $bagItem->custom_weight ?? $bagItem->item->default_weight;
-        
+        if ($bagItem->item_id && $bagItem->item) {
+            $itemWeight = $bagItem->custom_weight ?? $bagItem->item->default_weight;
+        } else {
+            // Custom item - use stored custom_weight
+            $itemWeight = $bagItem->custom_weight;
+        }
+
         // Calculate current weight excluding this item
         $currentWeight = $travelBag->current_weight;
         $existingItemWeight = $itemWeight * $bagItem->quantity;
         $weightWithoutItem = $currentWeight - $existingItemWeight;
-        
+
         // Calculate new total weight with updated quantity
         $newItemWeight = $itemWeight * $quantity;
         $newTotalWeight = $weightWithoutItem + $newItemWeight;
@@ -245,8 +306,11 @@ class TravelBagService
         $bagItem->quantity = $quantity;
         $bagItem->save();
 
-        $bagItem->load('item.category');
-        $travelBag->load(['bagItems.item', 'bagType']);
+        // Load relationships - item.category will be null for custom items (which is fine)
+        if ($bagItem->item_id) {
+            $bagItem->load('item.category');
+        }
+        $travelBag->load(['bagItems.item.category', 'bagType']);
 
         return [
             'bag_item' => $bagItem,
@@ -267,7 +331,11 @@ class TravelBagService
             return null;
         }
 
-        $travelBag->load('bagItems.item.category');
+        // Load bagItems - load item.category for regular items, and all items (including custom)
+        $travelBag->load([
+            'bagItems.item.category',
+            'bagType'
+        ]);
 
         return $travelBag;
     }
@@ -278,22 +346,14 @@ class TravelBagService
     public function getAllUserBags()
     {
         $user = Auth::user();
-        
+
+        // Load bagItems - load item.category for regular items, and all items (including custom)
         $travelBags = TravelBag::where('user_id', $user->id)
             ->with([
-                'bagItems' => function($query) {
-                    $query->with('item.category');
-                },
+                'bagItems.item.category',
                 'bagType'
             ])
             ->get();
-
-        // Ensure bagItems relationship is loaded for weight calculations
-        foreach ($travelBags as $bag) {
-            if (!$bag->relationLoaded('bagItems')) {
-                $bag->load('bagItems.item.category');
-            }
-        }
 
         return $travelBags;
     }

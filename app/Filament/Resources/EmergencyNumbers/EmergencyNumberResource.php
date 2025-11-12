@@ -22,8 +22,27 @@ class EmergencyNumberResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
 
-protected static string|\UnitEnum|null $navigationGroup = 'EmergencyNumber';
     protected static ?string $recordTitleAttribute = 'country_id';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'أرقام الطوارئ' : 'Emergency Numbers';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'أرقام الطوارئ' : 'Emergency Numbers';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'رقم طوارئ' : 'Emergency Number';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'أرقام الطوارئ' : 'Emergency Numbers';
+    }
 
     public static function form(Schema $schema): Schema
     {

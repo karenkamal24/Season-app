@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BagTypes\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -12,62 +13,64 @@ class BagTypeInfolist
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema
             ->components([
-                Section::make('Bag Type Information')
+                Section::make($isArabic ? 'معلومات نوع الحقيبة' : 'Bag Type Information')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('name_ar')
-                                    ->label('الاسم(عربي)')
+                                    ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                                     ->placeholder('-')
                                     ->weight('bold'),
 
                                 TextEntry::make('name_en')
-                                    ->label('Name (English)')
+                                    ->label($isArabic ? 'الاسم (إنجليزي)' : 'English Name')
                                     ->placeholder('-'),
 
                                 TextEntry::make('default_max_weight')
-                                    ->label('Default Max Weight')
+                                    ->label($isArabic ? 'الوزن الأقصى الافتراضي' : 'Default Max Weight')
                                     ->formatStateUsing(fn($state) => $state ? $state . ' kg' : '-')
                                     ->placeholder('-'),
 
                                 IconEntry::make('is_active')
                                     ->boolean()
-                                    ->label('Is Active'),
+                                    ->label($isArabic ? 'نشط' : 'Is Active'),
 
                                 TextEntry::make('travelBags_count')
-                                    ->label('Travel Bags Count')
+                                    ->label($isArabic ? 'عدد الحقائب' : 'Travel Bags Count')
                                     ->formatStateUsing(fn($state) => $state ?? 0)
                                     ->placeholder('-'),
                             ]),
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Descriptions')
+                Section::make($isArabic ? 'الأوصاف' : 'Descriptions')
                     ->schema([
                         TextEntry::make('description_ar')
-                            ->label('الوصف بالعربي')
+                            ->label($isArabic ? 'الوصف بالعربي' : 'Arabic Description')
                             ->placeholder('-')
                             ->columnSpanFull(),
                         TextEntry::make('description_en')
-                            ->label('Description (English)')
+                            ->label($isArabic ? 'الوصف بالإنجليزي' : 'English Description')
                             ->placeholder('-')
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Timestamps')
+                Section::make($isArabic ? 'التواريخ' : 'Timestamps')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('created_at')
-                                    ->label('Created At')
+                                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created At')
                                     ->dateTime()
                                     ->placeholder('-'),
 
                                 TextEntry::make('updated_at')
-                                    ->label('Updated At')
+                                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated At')
                                     ->dateTime()
                                     ->placeholder('-'),
                             ]),

@@ -111,10 +111,11 @@ class TravelBagController extends Controller
         try {
             $validated = $request->validated();
             $result = $this->travelBagService->addItem(
-                $validated['item_id'],
+                $validated['item_id'] ?? null,
                 $validated['quantity'] ?? 1,
                 $validated['custom_weight'] ?? null,
-                $validated['bag_type_id'] ?? 1  // Default to main cargo bag (ID = 1)
+                $validated['bag_type_id'] ?? 1,  // Default to main cargo bag (ID = 1)
+                $validated['custom_item_name'] ?? null
             );
 
             $bagItem = $result['bag_item'];
@@ -129,7 +130,11 @@ class TravelBagController extends Controller
             // Create success message with bag name
             $successMessage = str_replace(':bag_name', $bagTypeName, LangHelper::msg('item_added_to_bag_with_name'));
 
-            $weight = $bagItem->custom_weight ?? $bagItem->item->default_weight;
+            // Calculate weight
+            $weight = $bagItem->custom_weight;
+            if ($bagItem->item_id && $bagItem->item) {
+                $weight = $bagItem->custom_weight ?? $bagItem->item->default_weight;
+            }
             $totalWeight = $weight * $bagItem->quantity;
 
             return ApiResponse::send(

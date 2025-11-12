@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\EmergencyNumbers\Tables;
 
+use App\Helpers\LanguageHelper;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
@@ -15,10 +16,12 @@ class EmergencyNumbersTable
 {
     public static function configure(Table $table): Table
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $table
             ->columns([
                 TextColumn::make('country.name_ar')
-                    ->label('Country')
+                    ->label($isArabic ? 'الدولة' : 'Country')
                     ->sortable()
                     ->searchable()
                     ->description(fn($record) => $record->country?->code)
@@ -26,66 +29,56 @@ class EmergencyNumbersTable
                     ->color('info'),
 
                 TextColumn::make('fire')
-                    ->label('Fire Number')
+                    ->label($isArabic ? 'الإطفاء' : 'Fire Number')
                     ->sortable()
                     ->searchable()
                     ->icon('heroicon-o-fire')
                     ->color('danger'),
 
                 TextColumn::make('police')
-                    ->label('Police Number')
+                    ->label($isArabic ? 'الشرطة' : 'Police Number')
                     ->sortable()
                     ->searchable()
                     ->icon('heroicon-o-shield-check')
                     ->color('warning'),
 
                 TextColumn::make('ambulance')
-                    ->label('Ambulance Number')
+                    ->label($isArabic ? 'الإسعاف' : 'Ambulance Number')
                     ->sortable()
                     ->searchable()
                     ->icon('heroicon-o-truck')
                     ->color('success'),
 
                 TextColumn::make('embassy')
-                    ->label('Embassy Number')
+                    ->label($isArabic ? 'السفارة' : 'Embassy Number')
                     ->sortable()
                     ->searchable()
                     ->icon('heroicon-o-building-office')
                     ->color('info'),
 
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created')
                     ->dateTime('d M, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated')
                     ->dateTime('d M, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                // Add filters later if needed
+                //
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->label('View')
-                    ->icon('heroicon-o-eye'),
-
-                EditAction::make()
-                    ->label('Edit')
-                    ->icon('heroicon-o-pencil-square'),
-
-                DeleteAction::make()
-                    ->label('Delete')
-                    ->icon('heroicon-o-trash'),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->label('Delete Selected')
-                        ->color('danger'),
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

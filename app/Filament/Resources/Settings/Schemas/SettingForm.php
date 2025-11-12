@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Settings\Schemas;
 
+use App\Helpers\LanguageHelper;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Forms\Components\TextInput;
@@ -10,40 +11,41 @@ class SettingForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $schema
             ->components([
-
                 FusedGroup::make([
                     TextInput::make('name.en')
-                        ->label('Name (English)')
-                        ->placeholder('Enter English name')
+                        ->label($isArabic ? 'الاسم (إنجليزي)' : 'Name (English)')
+                        ->placeholder($isArabic ? 'أدخل الاسم بالإنجليزي' : 'Enter English name')
                         ->required(),
 
                     TextInput::make('name.ar')
-                        ->label('Name (Arabic)')
-                        ->placeholder('ادخل الاسم بالعربية')
+                        ->label($isArabic ? 'الاسم (عربي)' : 'Name (Arabic)')
+                        ->placeholder($isArabic ? 'ادخل الاسم بالعربية' : 'Enter Arabic name')
                         ->required(),
                 ])
-                    ->label('Setting Name')
+                    ->label($isArabic ? 'اسم الإعداد' : 'Setting Name')
                     ->columns(2),
 
                 FusedGroup::make([
                     TextInput::make('value')
-                        ->label('Value')
+                        ->label($isArabic ? 'القيمة' : 'Value')
                         ->numeric()
                         ->required()
                         ->default(0)
-                        ->suffix('points'),
+                        ->suffix($isArabic ? 'نقطة' : 'points'),
 
                     TextInput::make('max')
-                        ->label('Max Points')
+                        ->label($isArabic ? 'الحد الأقصى للنقاط' : 'Max Points')
                         ->numeric()
                         ->required()
                         ->default(0)
-                        ->suffix('points')
-                        ->helperText('Maximum number of points allowed.'),
+                        ->suffix($isArabic ? 'نقطة' : 'points')
+                        ->helperText($isArabic ? 'الحد الأقصى لعدد النقاط المسموح بها.' : 'Maximum number of points allowed.'),
                 ])
-                    ->label('Points Configuration')
+                    ->label($isArabic ? 'إعدادات النقاط' : 'Points Configuration')
                     ->columns(2),
             ]);
     }

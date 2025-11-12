@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BagTypes\Tables;
 
+use App\Helpers\LanguageHelper;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -15,39 +16,43 @@ class BagTypesTable
 {
     public static function configure(Table $table): Table
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $table
             ->columns([
                 TextColumn::make('name_ar')
-                    ->label('الاسم (عربي)')
+                    ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('name_en')
-                    ->label('Name (English)')
+                    ->label($isArabic ? 'الاسم (إنجليزي)' : 'English Name')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('default_max_weight')
-                    ->label('Default Max Weight')
+                    ->label($isArabic ? 'الوزن الأقصى' : 'Default Max Weight')
                     ->sortable()
                     ->formatStateUsing(fn($state) => $state ? $state . ' kg' : '-'),
 
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label($isArabic ? 'نشط' : 'Active'),
 
                 TextColumn::make('travelBags_count')
-                    ->label('Travel Bags Count')
+                    ->label($isArabic ? 'عدد الحقائب' : 'Travel Bags Count')
                     ->counts('travelBags')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
+                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
+                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

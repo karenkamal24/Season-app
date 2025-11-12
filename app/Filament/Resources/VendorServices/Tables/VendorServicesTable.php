@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\VendorServices\Tables;
 
+use App\Helpers\LanguageHelper;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
@@ -19,34 +20,36 @@ class VendorServicesTable
 {
     public static function configure(Table $table): Table
     {
+        $isArabic = LanguageHelper::isArabic();
+        
         return $table
             ->columns([
                 TextColumn::make('user.name')
-                    ->label('Vendor')
+                    ->label($isArabic ? 'البائع' : 'Vendor')
                     ->sortable()
                     ->searchable()
                     ->icon('heroicon-o-user'),
 
                 TextColumn::make('serviceType.name_en')
-                    ->label('Service Type')
+                    ->label($isArabic ? 'نوع الخدمة' : 'Service Type')
                     ->sortable()
                     ->searchable()
                     ->icon('heroicon-o-briefcase'),
 
                 TextColumn::make('name')
-                    ->label('Service Name')
+                    ->label($isArabic ? 'اسم الخدمة' : 'Service Name')
                     ->sortable()
                     ->searchable()
                     ->icon('heroicon-o-building-storefront'),
 
                 TextColumn::make('contact_number')
-                    ->label('Phone')
+                    ->label($isArabic ? 'الهاتف' : 'Phone')
                     ->copyable()
                     ->icon('heroicon-o-phone')
                     ->searchable(),
 
                 TextColumn::make('address')
-                    ->label('Address')
+                    ->label($isArabic ? 'العنوان' : 'Address')
                     ->limit(30)
                     ->tooltip(fn ($state) => $state)
                     ->icon('heroicon-o-map-pin')
@@ -54,12 +57,19 @@ class VendorServicesTable
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 IconColumn::make('commercial_register')
-                    ->label('Commercial File')
+                    ->label($isArabic ? 'السجل التجاري' : 'Commercial File')
                     ->boolean()
-                    ->tooltip('Has uploaded commercial register'),
+                    ->tooltip($isArabic ? 'تم رفع السجل التجاري' : 'Has uploaded commercial register'),
 
                 TextColumn::make('status')
                     ->badge()
+                    ->formatStateUsing(fn($state) => match($state) {
+                        'pending' => $isArabic ? 'قيد المراجعة' : 'Pending',
+                        'approved' => $isArabic ? 'موافق عليها' : 'Approved',
+                        'rejected' => $isArabic ? 'مرفوضة' : 'Rejected',
+                        'disabled' => $isArabic ? 'معطلة' : 'Disabled',
+                        default => $state,
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
                         'approved' => 'success',
@@ -74,17 +84,17 @@ class VendorServicesTable
                         'disabled' => 'heroicon-o-pause-circle',
                         default => 'heroicon-o-question-mark-circle',
                     })
-                    ->label('Status')
+                    ->label($isArabic ? 'الحالة' : 'Status')
                     ->sortable(),
 
                 TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label($isArabic ? 'تاريخ الإنشاء' : 'Created At')
                     ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Updated At')
+                    ->label($isArabic ? 'تاريخ التحديث' : 'Updated At')
                     ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -92,11 +102,12 @@ class VendorServicesTable
 
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
+                    ->label($isArabic ? 'الحالة' : 'Status')
                     ->options([
-                        'pending' => 'Pending',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
-                        'disabled' => 'Disabled',
+                        'pending' => $isArabic ? 'قيد المراجعة' : 'Pending',
+                        'approved' => $isArabic ? 'موافق عليها' : 'Approved',
+                        'rejected' => $isArabic ? 'مرفوضة' : 'Rejected',
+                        'disabled' => $isArabic ? 'معطلة' : 'Disabled',
                     ]),
             ])
 
@@ -111,22 +122,22 @@ class VendorServicesTable
                         ->icon('heroicon-o-pencil-square'),
 
                     Action::make('change_status')
-                        ->label('Change Status')
+                        ->label($isArabic ? 'تغيير الحالة' : 'Change Status')
                         ->icon('heroicon-o-adjustments-horizontal')
                         ->color('warning')
                         ->requiresConfirmation()
                         ->form([
                             Select::make('status')
-                                ->label('Select new status')
+                                ->label($isArabic ? 'اختر الحالة الجديدة' : 'Select new status')
                                 ->options([
-                                    'pending' => 'Pending',
-                                    'approved' => 'Approved',
-                                    'rejected' => 'Rejected',
-                                    'disabled' => 'Disabled',
+                                    'pending' => $isArabic ? 'قيد المراجعة' : 'Pending',
+                                    'approved' => $isArabic ? 'موافق عليها' : 'Approved',
+                                    'rejected' => $isArabic ? 'مرفوضة' : 'Rejected',
+                                    'disabled' => $isArabic ? 'معطلة' : 'Disabled',
                                 ])
                                 ->required(),
                         ])
-                        ->action(function ($record, array $data, FirebaseService $firebase): void {
+                        ->action(function ($record, array $data, FirebaseService $firebase) use ($isArabic): void {
                             $oldStatus = $record->status;
                             $newStatus = $data['status'];
 
@@ -217,27 +228,24 @@ class VendorServicesTable
 
                                         Notification::make()
                                             ->success()
-                                            ->title('Status updated & notification sent!')
-                                            ->body("Vendor {$record->user->name} has been notified")
+                                            ->title($isArabic ? 'تم تحديث الحالة وإرسال الإشعار!' : 'Status updated & notification sent!')
+                                            ->body($isArabic ? "تم إشعار البائع {$record->user->name}" : "Vendor {$record->user->name} has been notified")
                                             ->send();
                                     } catch (\Exception $e) {
                                         Notification::make()
                                             ->warning()
-                                            ->title('Status updated')
-                                            ->body('Status changed but notification failed: ' . $e->getMessage())
+                                            ->title($isArabic ? 'تم تحديث الحالة' : 'Status updated')
+                                            ->body($isArabic ? 'تم تغيير الحالة لكن فشل إرسال الإشعار: ' . $e->getMessage() : 'Status changed but notification failed: ' . $e->getMessage())
                                             ->send();
                                     }
                                 }
                             }
                         })
-                        ->successNotificationTitle('Status updated successfully!'),
+                        ->successNotificationTitle($isArabic ? 'تم تحديث الحالة بنجاح!' : 'Status updated successfully!'),
 
                     DeleteAction::make()
                         ->icon('heroicon-o-trash'),
                 ]),
             ]);
-
-
-
     }
 }

@@ -23,14 +23,26 @@ class SettingResource extends Resource
     protected static ?string $model = Setting::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyDollar;
-
-protected static ?string $navigationLabel = 'points';
-
-protected static ?string $pluralModelLabel = 'points';
-protected static string|\UnitEnum|null $navigationGroup = 'Settings';
-
-
-protected static ?string $modelLabel = 'Coin';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'الإعدادات' : 'Settings';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'النقاط' : 'Points';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'نقطة' : 'Coin';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'النقاط' : 'Points';
+    }
     public static function form(Schema $schema): Schema
     {
         return SettingForm::configure($schema);

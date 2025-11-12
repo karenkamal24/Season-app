@@ -17,6 +17,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Http\Middleware\SetLocale;
+use App\Filament\Widgets\LanguageSwitcherWidget;
+use Filament\Navigation\MenuItem;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -27,12 +30,25 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->authGuard('web') // ✅ guard web لتسجيل الدخول بالسيشن
+            ->authGuard('web')
             ->colors([
-                'primary' => Color::hex('#FF9F0A'),
+                'primary' => Color::hex('#092C4C'),
             ])
             ->brandLogo(asset('images/logo.png'))
             ->favicon(asset('images/logo.png'))
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label(function () {
+                        $locale = session('locale', config('app.locale', 'en'));
+                        return $locale === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
+                    })
+                    ->icon('heroicon-o-language')
+                    ->url(function () {
+                        $locale = session('locale', config('app.locale', 'en'));
+                        return route('switch-language', ['locale' => $locale === 'ar' ? 'en' : 'ar']);
+                    })
+                    ->openUrlInNewTab(false)
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -53,6 +69,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                SetLocale::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

@@ -22,9 +22,27 @@ class CityResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Country&cites';
-
     protected static ?string $recordTitleAttribute = 'name_ar';
+    
+    public static function getNavigationGroup(): ?string
+    {
+        return app()->getLocale() === 'ar' ? 'الدول والمدن' : 'Country & Cities';
+    }
+    
+    public static function getNavigationLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'المدن' : 'Cities';
+    }
+    
+    public static function getModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'مدينة' : 'City';
+    }
+    
+    public static function getPluralModelLabel(): string
+    {
+        return app()->getLocale() === 'ar' ? 'المدن' : 'Cities';
+    }
 
     public static function form(Schema $schema): Schema
     {

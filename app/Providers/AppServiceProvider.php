@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Services\FirebaseService;
+use Filament\Support\Facades\FilamentView;
+use Illuminate\Contracts\View\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Set locale based on session or user preference
+        if (session()->has('locale')) {
+            app()->setLocale(session('locale'));
+        }
     }
 }
