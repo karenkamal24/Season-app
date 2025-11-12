@@ -32,7 +32,18 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->authGuard('web')
             ->colors([
-                'primary' => Color::hex('#092C4C'),
+                'primary' => [
+                    50 => '#092C4C',
+                    100 => '#092C4C',
+                    200 => '#092C4C',
+                    300 => '#092C4C',
+                    400 => '#092C4C',
+                    500 => '#092C4C',
+                    600 => '#092C4C',
+                    700 => '#092C4C',
+                    800 => '#092C4C',
+                    900 => '#092C4C',
+                ],
             ])
             ->brandLogo(asset('images/logo.png'))
             ->favicon(asset('images/logo.png'))

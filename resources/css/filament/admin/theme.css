@@ -19,3 +19,53 @@ html[lang="en"] body {
     direction: ltr;
 }
 
+/* Force vibrant red color - override Filament's opacity */
+:root {
+    --primary-50: rgb(254 242 242);
+    --primary-100: rgb(254 226 226);
+    --primary-200: rgb(254 202 202);
+    --primary-300: rgb(252 165 165);
+    --primary-400: rgb(248 113 113);
+    --primary-500: rgb(239 68 68);
+    --primary-600: rgb(220 38 38);
+    --primary-700: rgb(185 28 28);
+    --primary-800: rgb(153 27 27);
+    --primary-900: rgb(127 29 29);
+    --primary-950: rgb(69 10 10);
+}
+
+/* Ensure primary color appears vibrant without opacity */
+.fi-primary-600,
+.bg-primary-600,
+.text-primary-600,
+[class*="primary-600"],
+[class*="fi-primary"] {
+    --tw-bg-opacity: 1 !important;
+    --tw-text-opacity: 1 !important;
+}
+
+/* Override any opacity on primary color elements */
+.fi-btn-primary,
+.fi-btn-primary-600,
+.fi-accent-primary,
+.fi-accent-primary-600,
+button[class*="primary"],
+a[class*="primary"] {
+    opacity: 1 !important;
+}
+
+/* Force solid red background for primary buttons */
+.fi-btn-primary,
+.fi-btn-primary-600 {
+    background-color: rgb(220 38 38) !important;
+    border-color: rgb(220 38 38) !important;
+}
+
+/* Ensure primary color in navigation and sidebar */
+.fi-sidebar-nav-item-active,
+.fi-topbar-item-active,
+[data-active="true"] {
+    background-color: rgb(220 38 38) !important;
+    color: white !important;
+}
+
