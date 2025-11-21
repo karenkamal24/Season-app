@@ -16,6 +16,7 @@ class TravelBag extends Model
         'max_weight',
         'weight_unit',
         'is_active',
+        'status',
     ];
 
     protected $casts = [
@@ -52,5 +53,13 @@ class TravelBag extends Model
     {
         if ($this->max_weight == 0) return 0;
         return round(($this->current_weight / $this->max_weight) * 100, 2);
+    }
+
+    /**
+     * Determine if bag is ready based on weight
+     */
+    public function getIsReadyAttribute(): bool
+    {
+        return $this->current_weight >= $this->max_weight;
     }
 }

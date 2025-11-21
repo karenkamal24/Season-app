@@ -6,9 +6,11 @@ use App\Models\TravelBag;
 use App\Models\BagItem;
 use App\Models\BagType;
 use App\Models\Item;
+use App\Models\Reminder;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Helpers\LangHelper;
+use Carbon\Carbon;
 
 class TravelBagService
 {
@@ -219,6 +221,9 @@ class TravelBagService
         }
         $travelBag->load(['bagItems.item.category', 'bagType']);
 
+        // Update bag status based on weight
+        $this->updateBagStatusBasedOnWeight($travelBag);
+
         return [
             'bag_item' => $bagItem,
             'travel_bag' => $travelBag,
@@ -261,6 +266,9 @@ class TravelBagService
             'bagItems.item.category',
             'bagType'
         ]);
+
+        // Update bag status based on weight
+        $this->updateBagStatusBasedOnWeight($travelBag);
 
         return $travelBag;
     }
@@ -312,6 +320,9 @@ class TravelBagService
         }
         $travelBag->load(['bagItems.item.category', 'bagType']);
 
+        // Update bag status based on weight
+        $this->updateBagStatusBasedOnWeight($travelBag);
+
         return [
             'bag_item' => $bagItem,
             'travel_bag' => $travelBag,
@@ -357,6 +368,90 @@ class TravelBagService
 
         return $travelBags;
     }
-}
 
+    /**
+     * Update bag status based on current weight and max weight
+     * and manage the auto-reminder for "bag not full yet".
+     */
+    protected function updateBagStatusBasedOnWeight(TravelBag $travelBag): void
+    {
+        // Determine status from weight
+        $status = $travelBag->is_ready ? 'ready' : 'not_ready';
+
+        if ($travelBag->status !== $status) {
+            $travelBag->status = $status;
+            $travelBag->save();
+        }
+
+        // Auto-manage daily reminder:
+        // - If bag has items and is not_ready -> ensure daily reminder exists
+        // - If bag is ready OR empty          -> cancel existing "not full yet" reminder
+        $bagHasItems = $travelBag->bagItems && $travelBag->bagItems->count() > 0;
+
+        if ($bagHasItems && $status === 'not_ready') {
+            $this->ensureNotFullReminderExists($travelBag);
+        } else {
+            $this->cancelNotFullReminder($travelBag);
+        }
+    }
+
+    /**
+     * Ensure there is a daily reminder for this user's travel bag
+     * while it is not full yet.
+     */
+    protected function ensureNotFullReminderExists(TravelBag $travelBag): void
+    {
+        $user = $travelBag->user;
+        if (!$user) {
+            return;
+        }
+
+        $title = 'Your travel bag is not full yet | شنطة السفر لسه مش كاملة';
+
+        $existing = Reminder::where('user_id', $user->id)
+            ->where('recurrence', 'daily')
+            ->where('status', 'active')
+            ->where('title', $title)
+            ->first();
+
+        if ($existing) {
+            return;
+        }
+
+        $nowCairo = Carbon::now('Africa/Cairo');
+
+        Reminder::create([
+            'user_id' => $user->id,
+            'title' => $title,
+            'date' => $nowCairo->toDateString(),
+            // Fixed time once per day; scheduler + recurrence=daily
+            // will take care of sending it every day around this time.
+            'time' => '21:00',
+            'timezone' => 'Africa/Cairo',
+            'recurrence' => 'daily',
+            'notes' => "Your travel bag is not full yet. You still have space to add more items.\n" .
+                "شنطة السفر بتاعتك لسه مش كاملة، لسه في مساحة تضيف حاجات تانية.",
+            'status' => 'active',
+        ]);
+    }
+
+    /**
+     * Cancel the "bag not full yet" daily reminder when it is no longer needed.
+     */
+    protected function cancelNotFullReminder(TravelBag $travelBag): void
+    {
+        $user = $travelBag->user;
+        if (!$user) {
+            return;
+        }
+
+        $title = 'Your travel bag is not full yet | شنطة السفر لسه مش كاملة';
+
+        Reminder::where('user_id', $user->id)
+            ->where('recurrence', 'daily')
+            ->where('status', 'active')
+            ->where('title', $title)
+            ->update(['status' => 'completed']);
+    }
+}
 

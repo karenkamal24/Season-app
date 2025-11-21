@@ -31,6 +31,8 @@ class TravelBagResource extends JsonResource
             'weight_percentage' => round($this->weight_percentage, 2),
             'items' => BagItemResource::collection($bagItems),
             'is_empty' => $bagItems->isEmpty(),
+            'status' => $this->status,
+            'is_ready' => (bool) $this->is_ready,
         ];
     }
 }
