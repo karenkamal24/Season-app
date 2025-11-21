@@ -90,7 +90,6 @@ class AiSuggestionController extends Controller
                     'description_arabic' => $item->description_ar ?? 'عنصر أساسي للسفر',
                     'reason' => 'Recommended for ' . $destination['name'],
                     'priority' => $priority,
-                    'icon' => $item->icon,
                     'is_in_bag' => in_array($item->id, $itemsInBag),
                 ];
             });

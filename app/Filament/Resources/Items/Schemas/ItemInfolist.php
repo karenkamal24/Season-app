@@ -14,7 +14,7 @@ class ItemInfolist
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema
             ->components([
                 Section::make($isArabic ? 'معلومات الغرض' : 'Item Information')
@@ -44,10 +44,6 @@ class ItemInfolist
 
                                 TextEntry::make('weight_unit')
                                     ->label($isArabic ? 'وحدة الوزن' : 'Weight Unit')
-                                    ->placeholder('-'),
-
-                                TextEntry::make('icon')
-                                    ->label($isArabic ? 'الأيقونة' : 'Icon')
                                     ->placeholder('-'),
 
                                 TextEntry::make('sort_order')

@@ -14,7 +14,6 @@ class Item extends Model
         'name_ar',
         'default_weight',
         'weight_unit',
-        'icon',
         'description_en',
         'description_ar',
         'is_active',

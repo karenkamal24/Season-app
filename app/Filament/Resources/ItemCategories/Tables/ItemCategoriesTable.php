@@ -17,7 +17,7 @@ class ItemCategoriesTable
     public static function configure(Table $table): Table
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $table
             ->columns([
                 TextColumn::make('name_ar')

@@ -15,10 +15,10 @@ class BagItemResource extends JsonResource
     public function toArray(Request $request): array
     {
         $lang = app()->getLocale();
-        
+
         // Check if this is a custom item or regular item
         $isCustomItem = $this->item_id === null && $this->custom_item_name !== null;
-        
+
         if ($isCustomItem) {
             // Custom item
             $weight = $this->custom_weight;
@@ -32,7 +32,6 @@ class BagItemResource extends JsonResource
                 'quantity' => $this->quantity,
                 'weight_per_item' => round($weight, 2),
                 'total_weight' => round($totalWeight, 2),
-                'icon' => null,
                 'is_custom' => true,
             ];
         } else {
@@ -47,11 +46,10 @@ class BagItemResource extends JsonResource
                     'quantity' => $this->quantity,
                     'weight_per_item' => round($this->custom_weight ?? 0, 2),
                     'total_weight' => round(($this->custom_weight ?? 0) * $this->quantity, 2),
-                    'icon' => null,
                     'is_custom' => false,
                 ];
             }
-            
+
             $weight = $this->custom_weight ?? $this->item->default_weight;
             $totalWeight = $weight * $this->quantity;
 
@@ -67,7 +65,6 @@ class BagItemResource extends JsonResource
                 'quantity' => $this->quantity,
                 'weight_per_item' => round($weight, 2),
                 'total_weight' => round($totalWeight, 2),
-                'icon' => $this->item->icon,
                 'is_custom' => false,
             ];
         }

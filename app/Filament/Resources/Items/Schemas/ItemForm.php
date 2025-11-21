@@ -16,7 +16,7 @@ class ItemForm
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema
             ->components([
                 Section::make($isArabic ? 'معلومات الغرض' : 'Item Information')
@@ -57,11 +57,6 @@ class ItemForm
                                         'oz' => $isArabic ? 'أونصة (oz)' : 'Ounce (oz)',
                                     ])
                                     ->default('kg'),
-
-                                TextInput::make('icon')
-                                    ->label($isArabic ? 'الأيقونة' : 'Icon')
-                                    ->maxLength(255)
-                                    ->placeholder($isArabic ? 'مثال: heroicon-o-cube' : 'e.g., heroicon-o-cube'),
 
                                 TextInput::make('sort_order')
                                     ->label($isArabic ? 'ترتيب العرض' : 'Sort Order')

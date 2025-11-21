@@ -15,7 +15,7 @@ class ItemCategoryForm
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema
             ->components([
                 Section::make($isArabic ? 'معلومات التصنيف' : 'Category Information')

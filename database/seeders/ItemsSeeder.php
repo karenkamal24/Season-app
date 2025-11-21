@@ -24,61 +24,60 @@ class ItemsSeeder extends Seeder
 
         $data = [
             'Boarding' => [
-                ['Airline Check-In', 'تسجيل الوصول للطيران', 10, 'https://cdn-icons-png.flaticon.com/512/633/633652.png'],
-                ['Boarding Pass', 'تذكرة الصعود', 10, 'https://cdn-icons-png.flaticon.com/512/555/555417.png'],
-                ['Passport / Visa / ID', 'جواز سفر / تأشيرة / هوية', 10, 'https://cdn-icons-png.flaticon.com/512/681/681494.png'],
+                ['Airline Check-In', 'تسجيل الوصول للطيران', 10],
+                ['Boarding Pass', 'تذكرة الصعود', 10],
+                ['Passport / Visa / ID', 'جواز سفر / تأشيرة / هوية', 10],
             ],
             'Funds' => [
-                ['Cash', 'نقد', 9, 'https://cdn-icons-png.flaticon.com/512/2331/2331943.png'],
-                ['Credit Card', 'بطاقة ائتمان', 9, 'https://cdn-icons-png.flaticon.com/512/262/262008.png'],
+                ['Cash', 'نقد', 9],
+                ['Credit Card', 'بطاقة ائتمان', 9],
             ],
             'Personal Essentials' => [
-                ['Water Bottle', 'زجاجة ماء', 8, 'https://cdn-icons-png.flaticon.com/512/1147/1147930.png'],
-                ['Travel Pillow', 'وسادة سفر', 7, 'https://cdn-icons-png.flaticon.com/512/1048/1048924.png'],
-                ['Medicines', 'أدوية', 9, 'https://cdn-icons-png.flaticon.com/512/2966/2966327.png'],
-                ['Snacks', 'وجبات خفيفة', 7, 'https://cdn-icons-png.flaticon.com/512/857/857681.png'],
+                ['Water Bottle', 'زجاجة ماء', 8],
+                ['Travel Pillow', 'وسادة سفر', 7],
+                ['Medicines', 'أدوية', 9],
+                ['Snacks', 'وجبات خفيفة', 7],
             ],
             'Electronics' => [
-                ['Phone', 'هاتف محمول', 8, 'https://cdn-icons-png.flaticon.com/512/15/15874.png'],
-                ['Charger', 'شاحن', 7, 'https://cdn-icons-png.flaticon.com/512/1792/1792532.png'],
-                ['Laptop', 'حاسوب محمول', 8, 'https://cdn-icons-png.flaticon.com/512/4725/4725414.png'],
-                ['Headphones', 'سماعات', 7, 'https://cdn-icons-png.flaticon.com/512/2927/2927268.png'],
-                ['Camera', 'كاميرا', 7, 'https://cdn-icons-png.flaticon.com/512/149/149699.png'],
+                ['Phone', 'هاتف محمول', 8],
+                ['Charger', 'شاحن', 7],
+                ['Laptop', 'حاسوب محمول', 8],
+                ['Headphones', 'سماعات', 7],
+                ['Camera', 'كاميرا', 7],
             ],
             'Clothing' => [
-                ['T-Shirt', 'تي شيرت', 6, 'https://cdn-icons-png.flaticon.com/512/892/892458.png'],
-                ['Pants', 'بنطلون', 6, 'https://cdn-icons-png.flaticon.com/512/3532/3532886.png'],
-                ['Shoes', 'أحذية', 7, 'https://cdn-icons-png.flaticon.com/512/891/891462.png'],
+                ['T-Shirt', 'تي شيرت', 6],
+                ['Pants', 'بنطلون', 6],
+                ['Shoes', 'أحذية', 7],
             ],
             'Toiletries' => [
-                ['Toothbrush', 'فرشاة أسنان', 6, 'https://cdn-icons-png.flaticon.com/512/2767/2767305.png'],
-                ['Shampoo', 'شامبو', 6, 'https://cdn-icons-png.flaticon.com/512/706/706195.png'],
-                ['Soap', 'صابون', 5, 'https://cdn-icons-png.flaticon.com/512/2614/2614556.png'],
+                ['Toothbrush', 'فرشاة أسنان', 6],
+                ['Shampoo', 'شامبو', 6],
+                ['Soap', 'صابون', 5],
             ],
             'Accessories' => [
-                ['Hat', 'قبعة', 5, 'https://cdn-icons-png.flaticon.com/512/892/892629.png'],
-                ['Bag', 'حقيبة', 6, 'https://cdn-icons-png.flaticon.com/512/891/891407.png'],
-                ['Belt', 'حزام', 5, 'https://cdn-icons-png.flaticon.com/512/892/892408.png'],
+                ['Hat', 'قبعة', 5],
+                ['Bag', 'حقيبة', 6],
+                ['Belt', 'حزام', 5],
             ],
             'First Aids' => [
-                ['Bandages', 'ضمادات', 9, 'https://cdn-icons-png.flaticon.com/512/2966/2966327.png'],
-                ['Pain Relievers', 'مسكنات ألم', 9, 'https://cdn-icons-png.flaticon.com/512/2966/2966327.png'],
+                ['Bandages', 'ضمادات', 9],
+                ['Pain Relievers', 'مسكنات ألم', 9],
             ],
         ];
 
         foreach ($data as $categoryName => $items) {
-            foreach ($items as $index => [$name_en, $name_ar, $weight, $icon]) {
+            foreach ($items as $index => [$name_en, $name_ar, $weight]) {
                 Item::create([
                     'name_en' => $name_en,
                     'name_ar' => $name_ar,
                     'default_weight' => $weight,
-                    'icon' => $icon,
                     'sort_order' => $index + 1,
                     'category_id' => $categories[$categoryName]->id,
                 ]);
             }
         }
 
-        $this->command->info('✅ All Items seeded successfully with image icons!');
+        $this->command->info('✅ All Items seeded successfully!');
     }
 }

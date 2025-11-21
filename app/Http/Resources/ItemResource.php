@@ -22,7 +22,6 @@ class ItemResource extends JsonResource
             'default_weight' => round($this->default_weight, 2),
             'weight_unit' => $this->weight_unit ?? 'kg',
             'category_id' => $this->category_id,
-            'icon' => $this->icon,
             'description' => $lang === 'ar' ? $this->description_ar : $this->description_en,
         ];
     }
