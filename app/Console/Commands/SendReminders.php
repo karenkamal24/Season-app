@@ -1,7 +1,9 @@
 <?php
 namespace App\Console\Commands;
+
 use Illuminate\Console\Command;
 use App\Models\Reminder;
+use App\Models\TravelBag;
 use App\Jobs\SendPushNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -112,7 +114,7 @@ class SendReminders extends Command
                         break;
                 }
 
-                if ($shouldSend) {
+                    if ($shouldSend) {
                     $userLang = $reminder->user->preferred_language ?? 'ar';
 
                     $title = $reminder->title;
@@ -143,6 +145,17 @@ class SendReminders extends Command
 
                     $reminder->last_sent_at = now('Africa/Cairo');
                     $reminder->save();
+
+                    // لو التذكير مربوط بشنطة سفر (سفر فعلي) امسح الشنطة بعد إرسال التذكير
+                    if ($reminder->recurrence === 'once' && $reminder->travel_bag_id) {
+                        $bag = TravelBag::find($reminder->travel_bag_id);
+                        if ($bag) {
+                            // حذف كل العناصر ثم الشنطة نفسها
+                            $bag->bagItems()->delete();
+                            $bag->delete();
+                            Log::info("Deleted travel bag #{$bag->id} after sending its trip reminder.");
+                        }
+                    }
 
                     $sentCount++;
                     Log::info("Sent reminder #{$reminder->id} to user #{$reminder->user_id}");

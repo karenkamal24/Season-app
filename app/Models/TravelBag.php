@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TravelBag extends Model
 {
@@ -37,6 +38,13 @@ class TravelBag extends Model
     public function bagItems(): HasMany
     {
         return $this->hasMany(BagItem::class);
+    }
+
+    public function tripReminder(): HasOne
+    {
+        return $this->hasOne(Reminder::class, 'travel_bag_id')
+            ->where('status', 'active')
+            ->where('recurrence', 'once');
     }
 
     // Calculate current total weight

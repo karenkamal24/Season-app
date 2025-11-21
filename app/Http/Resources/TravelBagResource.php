@@ -17,6 +17,34 @@ class TravelBagResource extends JsonResource
         $lang = app()->getLocale();
         $bagType = $this->whenLoaded('bagType') ?? $this->bagType;
         $bagItems = $this->whenLoaded('bagItems') ?? $this->bagItems ?? collect([]);
+        $tripReminder = $this->relationLoaded('tripReminder')
+            ? $this->tripReminder
+            : null;
+
+        $reminderData = null;
+        if ($tripReminder) {
+            $date = $tripReminder->date
+                ? $tripReminder->date->format('Y-m-d')
+                : null;
+
+            $timeValue = $tripReminder->time;
+            if (is_string($timeValue)) {
+                if (preg_match('/^(\d{1,2}):(\d{2})/', $timeValue, $matches)) {
+                    $time = $matches[1] . ':' . $matches[2];
+                } else {
+                    $time = $timeValue;
+                }
+            } elseif (is_object($timeValue) && method_exists($timeValue, 'format')) {
+                $time = $timeValue->format('H:i');
+            } else {
+                $time = null;
+            }
+
+            $reminderData = [
+                'date' => $date,
+                'time' => $time,
+            ];
+        }
 
         return [
             'bag_id' => $this->id,
@@ -31,8 +59,10 @@ class TravelBagResource extends JsonResource
             'weight_percentage' => round($this->weight_percentage, 2),
             'items' => BagItemResource::collection($bagItems),
             'is_empty' => $bagItems->isEmpty(),
-            'status' => $this->status,
-            'is_ready' => (bool) $this->is_ready,
+            'reminder' => $reminderData,
+            // في الـ API: لو في reminder -> ready, لو null -> not_ready
+            'status' => $reminderData ? 'ready' : 'not_ready',
+            'is_ready' => (bool) $reminderData,
         ];
     }
 }

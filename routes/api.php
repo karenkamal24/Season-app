@@ -111,6 +111,7 @@ Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
     Route::get('/items', [TravelBagController::class, 'getItems']);
     Route::put('/items/{item_id}/quantity', [TravelBagController::class, 'updateItemQuantity']);
     Route::delete('/items/{item_id}', [TravelBagController::class, 'removeItem']);
+    Route::post('/reminder', [TravelBagController::class, 'setReminder']);
 });
 
 // Item Management

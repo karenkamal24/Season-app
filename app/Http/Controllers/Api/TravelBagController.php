@@ -30,15 +30,15 @@ class TravelBagController extends Controller
     {
         try {
             $bagTypeId = $request->query('bag_type_id');
-            
+
             // If bag_type_id is provided and not empty, return single bag
             if ($bagTypeId !== null && $bagTypeId !== '') {
                 $travelBag = $this->travelBagService->getOrCreateBagByType((int)$bagTypeId);
 
                 // Get bag type name based on locale
                 $locale = app()->getLocale();
-                $bagTypeName = $locale === 'ar' 
-                    ? ($travelBag->bagType->name_ar ?? '') 
+                $bagTypeName = $locale === 'ar'
+                    ? ($travelBag->bagType->name_ar ?? '')
                     : ($travelBag->bagType->name_en ?? '');
 
                 // Create success message with bag name
@@ -50,7 +50,7 @@ class TravelBagController extends Controller
                     new TravelBagResource($travelBag)
                 );
             }
-            
+
             // If bag_type_id is not provided, return all user's bags
             $travelBags = $this->travelBagService->getAllUserBags();
 
@@ -123,8 +123,8 @@ class TravelBagController extends Controller
 
             // Get bag type name based on locale
             $locale = app()->getLocale();
-            $bagTypeName = $locale === 'ar' 
-                ? ($travelBag->bagType->name_ar ?? '') 
+            $bagTypeName = $locale === 'ar'
+                ? ($travelBag->bagType->name_ar ?? '')
                 : ($travelBag->bagType->name_en ?? '');
 
             // Create success message with bag name
@@ -178,8 +178,8 @@ class TravelBagController extends Controller
 
             // Get bag type name based on locale
             $locale = app()->getLocale();
-            $bagTypeName = $locale === 'ar' 
-                ? ($travelBag->bagType->name_ar ?? '') 
+            $bagTypeName = $locale === 'ar'
+                ? ($travelBag->bagType->name_ar ?? '')
                 : ($travelBag->bagType->name_en ?? '');
 
             // Create success message with bag name
@@ -228,8 +228,8 @@ class TravelBagController extends Controller
 
             // Get bag type name based on locale
             $locale = app()->getLocale();
-            $bagTypeName = $locale === 'ar' 
-                ? ($travelBag->bagType->name_ar ?? '') 
+            $bagTypeName = $locale === 'ar'
+                ? ($travelBag->bagType->name_ar ?? '')
                 : ($travelBag->bagType->name_en ?? '');
 
             // Create success message with bag name
@@ -301,6 +301,49 @@ class TravelBagController extends Controller
             );
         } catch (\Exception $e) {
             return ApiResponse::error(LangHelper::msg('travel_bag_items_fetch_failed') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Set travel reminder (date/time) for a travel bag
+     * POST /api/travel-bag/reminder
+     * body: { "bag_type_id": 2, "date": "2025-02-15", "time": "08:30", "timezone": "Africa/Cairo" }
+     */
+    public function setReminder(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'bag_type_id' => ['required', 'integer', 'min:1'],
+                'date' => ['required', 'date_format:Y-m-d'],
+                'time' => ['required', 'date_format:H:i'],
+                'timezone' => ['nullable', 'string'],
+            ]);
+
+            $result = $this->travelBagService->setBagReminder(
+                (int) $validated['bag_type_id'],
+                $validated['date'],
+                $validated['time'],
+                $validated['timezone'] ?? null,
+            );
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('reminder_created'),
+                new TravelBagResource($result['travel_bag'])
+            );
+        } catch (NotFoundHttpException $e) {
+            return ApiResponse::send(
+                Response::HTTP_NOT_FOUND,
+                $e->getMessage()
+            );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::send(
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                LangHelper::msg('validation_failed'),
+                $e->errors()
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::error(LangHelper::msg('reminder_create_failed') . ': ' . $e->getMessage());
         }
     }
 }

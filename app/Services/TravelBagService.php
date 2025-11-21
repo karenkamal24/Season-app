@@ -345,7 +345,8 @@ class TravelBagService
         // Load bagItems - load item.category for regular items, and all items (including custom)
         $travelBag->load([
             'bagItems.item.category',
-            'bagType'
+            'bagType',
+            'tripReminder',
         ]);
 
         return $travelBag;
@@ -362,11 +363,69 @@ class TravelBagService
         $travelBags = TravelBag::where('user_id', $user->id)
             ->with([
                 'bagItems.item.category',
-                'bagType'
+                'bagType',
+                'tripReminder',
             ])
             ->get();
 
         return $travelBags;
+    }
+
+    /**
+     * Set travel reminder (date/time) for a specific bag type
+     * and link it to the travel bag.
+     */
+    public function setBagReminder(int $bagTypeId, string $date, string $time, ?string $timezone = null): array
+    {
+        $user = Auth::user();
+        $travelBag = $this->getOrCreateBagByType($bagTypeId);
+        $userLang = $user->preferred_language ?? app()->getLocale() ?? 'ar';
+
+        // Cancel previous active once-reminders for this bag
+        Reminder::where('user_id', $user->id)
+            ->where('travel_bag_id', $travelBag->id)
+            ->where('recurrence', 'once')
+            ->where('status', 'active')
+            ->update(['status' => 'cancelled']);
+
+        // بمجرد ما يحدد ميعاد سفر للشنطة، نوقف الريمايندر اليومي
+        // اللي بيقول "شنطة السفر لسه مش كاملة"
+        $this->cancelNotFullReminder($travelBag);
+
+        // العنوان والنص حسب لغة المستخدم (آخر Accept-Language محفوظة)
+        if ($userLang === 'en') {
+            $title = 'Trip reminder for your travel bag';
+            $notes = "Trip reminder for your travel bag on {$date} at {$time}.";
+        } else {
+            $title = 'تذكير برحلتك لهذه الحقيبة';
+            $notes = "تذكير برحلتك لهذه الحقيبة بتاريخ {$date} الساعة {$time}.";
+        }
+
+        $reminder = Reminder::create([
+            'user_id' => $user->id,
+            'travel_bag_id' => $travelBag->id,
+            'title' => $title,
+            'date' => $date,
+            'time' => $time,
+            // نفس نظام التذكيرات العادي: نحترم الـ timezone اللي جاي من الـ API
+            // ولو مش مبعوت نستخدم Africa/Cairo كافتراضي (زي ما بنعمل في باقي السيستم).
+            'timezone' => $timezone ?: 'Africa/Cairo',
+            'recurrence' => 'once',
+            'notes' => $notes,
+            'status' => 'active',
+        ]);
+
+        // Reload bag with reminder relation
+        $travelBag->load([
+            'bagItems.item.category',
+            'bagType',
+            'tripReminder',
+        ]);
+
+        return [
+            'travel_bag' => $travelBag,
+            'reminder' => $reminder,
+        ];
     }
 
     /**
