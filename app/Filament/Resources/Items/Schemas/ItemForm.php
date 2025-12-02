@@ -46,7 +46,8 @@ class ItemForm
                                     ->label($isArabic ? 'الوزن الافتراضي' : 'Default Weight')
                                     ->numeric()
                                     ->step(0.01)
-                                    ->suffix('kg'),
+                                    ->suffix(fn ($get) => $get('weight_unit') ?? 'kg')
+                                    ->reactive(),
 
                                 Select::make('weight_unit')
                                     ->label($isArabic ? 'وحدة الوزن' : 'Weight Unit')
@@ -56,7 +57,8 @@ class ItemForm
                                         'lb' => $isArabic ? 'رطل (lb)' : 'Pound (lb)',
                                         'oz' => $isArabic ? 'أونصة (oz)' : 'Ounce (oz)',
                                     ])
-                                    ->default('kg'),
+                                    ->default('kg')
+                                    ->reactive(),
 
                                 TextInput::make('sort_order')
                                     ->label($isArabic ? 'ترتيب العرض' : 'Sort Order')

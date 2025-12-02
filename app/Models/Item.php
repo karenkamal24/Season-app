@@ -28,7 +28,7 @@ class Item extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(ItemCategory::class);
+        return $this->belongsTo(ItemCategory::class, 'category_id');
     }
 
     public function bagItems(): HasMany

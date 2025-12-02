@@ -22,14 +22,14 @@ class BagTypeResource extends Resource
     protected static ?string $model = BagType::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
-    
+
     protected static ?string $recordTitleAttribute = 'name_ar';
-    
+
     public static function getNavigationGroup(): ?string
     {
-        return LanguageHelper::getNavigationGroup('settings');
+        return app()->getLocale() === 'ar' ? 'حقيبة' : 'Bag';
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return LanguageHelper::translate('bag_types', [
@@ -37,7 +37,7 @@ class BagTypeResource extends Resource
             'en' => 'Bag Types'
         ]);
     }
-    
+
     public static function getModelLabel(): string
     {
         return LanguageHelper::translate('bag_type', [
@@ -45,7 +45,7 @@ class BagTypeResource extends Resource
             'en' => 'Bag Type'
         ]);
     }
-    
+
     public static function getPluralModelLabel(): string
     {
         return LanguageHelper::translate('bag_types', [

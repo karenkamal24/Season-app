@@ -21,24 +21,24 @@ class ItemCategoryResource extends Resource
     protected static ?string $model = ItemCategory::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-folder';
-    
+
     protected static ?string $recordTitleAttribute = 'name_ar';
-    
+
     public static function getNavigationGroup(): ?string
     {
-        return app()->getLocale() === 'ar' ? 'الإعدادات' : 'Settings';
+        return app()->getLocale() === 'ar' ? 'حقيبة' : 'Bag';
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return app()->getLocale() === 'ar' ? 'تصنيفات الأغراض' : 'Item Categories';
     }
-    
+
     public static function getModelLabel(): string
     {
         return app()->getLocale() === 'ar' ? 'تصنيف غرض' : 'Item Category';
     }
-    
+
     public static function getPluralModelLabel(): string
     {
         return app()->getLocale() === 'ar' ? 'تصنيفات الأغراض' : 'Item Categories';
