@@ -118,7 +118,7 @@ class VendorServicesTable
                     ]),
             ])
 
-            ->actions([ // <-- تم التعديل هنا
+            ->recordActions([
                 ActionGroup::make([
                     ViewAction::make()
                         ->color('info')
@@ -148,8 +148,10 @@ class VendorServicesTable
                             $oldStatus = $record->status;
                             $newStatus = $data['status'];
 
+                            // Update the status
                             $record->update(['status' => $newStatus]);
 
+                            // Send notification to vendor if status changed
                             if ($oldStatus !== $newStatus && $record->user && $record->user->fcm_token) {
                                 $statusMessages = [
                                     'approved' => [
@@ -159,7 +161,7 @@ class VendorServicesTable
                                         'body_en' => 'Congratulations! Your service "' . $record->name . '" is now live and available to all customers. Start receiving orders!',
                                         'status_ar' => 'موافق عليها',
                                         'status_en' => 'Approved',
-                                        'color' => '#10B981',
+                                        'color' => '#10B981', // Green
                                         'action_text' => 'عرض الخدمة',
                                         'action_text_en' => 'View Service',
                                     ],
@@ -170,7 +172,7 @@ class VendorServicesTable
                                         'body_en' => 'We regret to inform you that your service "' . $record->name . '" needs review. Please update the information and resubmit for approval.',
                                         'status_ar' => 'بحاجة لمراجعة',
                                         'status_en' => 'Rejected',
-                                        'color' => '#EF4444',
+                                        'color' => '#EF4444', // Red
                                         'action_text' => 'تعديل الخدمة',
                                         'action_text_en' => 'Edit Service',
                                     ],
@@ -181,7 +183,7 @@ class VendorServicesTable
                                         'body_en' => 'Thank you for updating your service "' . $record->name . '". Our team is reviewing it now and will notify you soon.',
                                         'status_ar' => 'قيد المراجعة',
                                         'status_en' => 'Pending',
-                                        'color' => '#F59E0B',
+                                        'color' => '#F59E0B', // Amber
                                         'action_text' => 'تتبع الحالة',
                                         'action_text_en' => 'Track Status',
                                     ],
@@ -192,7 +194,7 @@ class VendorServicesTable
                                         'body_en' => 'Your service "' . $record->name . '" is currently unavailable to customers. For more information, please contact support.',
                                         'status_ar' => 'متوقفة مؤقتاً',
                                         'status_en' => 'Disabled',
-                                        'color' => '#6B7280',
+                                        'color' => '#6B7280', // Gray
                                         'action_text' => 'اتصل بالدعم',
                                         'action_text_en' => 'Contact Support',
                                     ],
@@ -202,8 +204,10 @@ class VendorServicesTable
 
                                 if ($message) {
                                     try {
+                                        // Get user's preferred language (ar or en)
                                         $userLang = $record->user->preferred_language ?? 'ar';
 
+                                        // Select title and body based on user's language
                                         $notificationTitle = $userLang === 'en' ? $message['title_en'] : $message['title'];
                                         $notificationBody = $userLang === 'en' ? $message['body_en'] : $message['body'];
 
