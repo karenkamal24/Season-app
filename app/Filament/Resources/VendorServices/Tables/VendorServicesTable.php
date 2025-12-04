@@ -119,16 +119,15 @@ class VendorServicesTable
             ])
 
             ->recordActions([
-                ActionGroup::make([
-                    ViewAction::make()
-                        ->color('info')
-                        ->icon('heroicon-o-eye'),
+                ViewAction::make()
+                    ->color('info')
+                    ->icon('heroicon-o-eye'),
 
-                    EditAction::make()
-                        ->color('primary')
-                        ->icon('heroicon-o-pencil-square'),
+                EditAction::make()
+                    ->color('primary')
+                    ->icon('heroicon-o-pencil-square'),
 
-                    Action::make('change_status')
+                Action::make('change_status')
                         ->label($isArabic ? 'تغيير الحالة' : 'Change Status')
                         ->icon('heroicon-o-adjustments-horizontal')
                         ->color('warning')
@@ -250,9 +249,8 @@ class VendorServicesTable
                         })
                         ->successNotificationTitle($isArabic ? 'تم تحديث الحالة بنجاح!' : 'Status updated successfully!'),
 
-                    DeleteAction::make()
-                        ->icon('heroicon-o-trash'),
-                ]),
+                DeleteAction::make()
+                    ->icon('heroicon-o-trash'),
             ]);
     }
 }
