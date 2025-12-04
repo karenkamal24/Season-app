@@ -21,20 +21,27 @@ class VendorServicesTable
     public static function configure(Table $table): Table
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $table
+            ->modifyQueryUsing(function ($query) {
+                $query->with(['user', 'serviceType']);
+            })
             ->columns([
                 TextColumn::make('user.name')
                     ->label($isArabic ? 'البائع' : 'Vendor')
                     ->sortable()
                     ->searchable()
-                    ->icon('heroicon-o-user'),
+                    ->icon('heroicon-o-user')
+                    ->formatStateUsing(fn ($record) => $record->user?->name ?? ($isArabic ? 'غير محدد' : 'N/A'))
+                    ->placeholder($isArabic ? 'غير محدد' : 'N/A'),
 
                 TextColumn::make('serviceType.name_en')
                     ->label($isArabic ? 'نوع الخدمة' : 'Service Type')
                     ->sortable()
                     ->searchable()
-                    ->icon('heroicon-o-briefcase'),
+                    ->icon('heroicon-o-briefcase')
+                    ->formatStateUsing(fn ($record) => $record->serviceType?->name_en ?? ($isArabic ? 'غير محدد' : 'N/A'))
+                    ->placeholder($isArabic ? 'غير محدد' : 'N/A'),
 
                 TextColumn::make('name')
                     ->label($isArabic ? 'اسم الخدمة' : 'Service Name')

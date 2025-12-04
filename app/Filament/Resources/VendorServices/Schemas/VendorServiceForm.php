@@ -16,7 +16,7 @@ class VendorServiceForm
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema->components([
             Section::make($isArabic ? 'معلومات البائع' : 'Vendor Info')
                 ->description($isArabic ? 'المعلومات الأساسية عن خدمة البائع' : 'Basic information about the vendor service')
@@ -33,7 +33,8 @@ class VendorServiceForm
                         ->relationship('serviceType', 'name_en')
                         ->searchable()
                         ->preload()
-                        ->required(),
+                        ->required()
+                        ->dehydrated(true),
 
                     TextInput::make('name')
                         ->label($isArabic ? 'اسم الخدمة' : 'Service Name')
