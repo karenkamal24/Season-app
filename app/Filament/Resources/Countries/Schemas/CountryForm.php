@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Countries\Schemas;
 
 use App\Helpers\LanguageHelper;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
@@ -13,7 +14,7 @@ class CountryForm
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema
             ->components([
                 Section::make($isArabic ? 'معلومات الدولة' : 'Country Information')
@@ -30,13 +31,17 @@ class CountryForm
                                     ->label($isArabic ? 'الاسم بالإنجليزي' : 'English Name')
                                     ->maxLength(255),
 
-                                TextInput::make('code')
+                                Select::make('code')
                                     ->label($isArabic ? 'رمز الدولة' : 'Country Code')
+                                    ->options([
+                                        'KSA' => 'KSA - ' . ($isArabic ? 'السعودية' : 'Saudi Arabia'),
+                                        'UAE' => 'UAE - ' . ($isArabic ? 'الإمارات' : 'United Arab Emirates'),
+                                        'EGY' => 'EGY - ' . ($isArabic ? 'مصر' : 'Egypt'),
+                                    ])
                                     ->required()
-                                    ->maxLength(3)
                                     ->unique(ignoreRecord: true)
-                                    ->afterStateUpdated(fn ($state, callable $set) => $set('code', strtoupper($state)))
-                                    ->placeholder($isArabic ? 'مثال: EGY, SAU' : 'e.g., EGY, SAU')
+                                    ->native(false)
+                                    ->searchable(false)
                                     ->columnSpanFull(),
                             ]),
                     ])

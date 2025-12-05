@@ -708,6 +708,36 @@ class LangHelper
                 'ar' => 'الوزن الأقصى'
             ],
 
+            // Banner System Messages
+            'banners_fetched' => [
+                'en' => 'Banners retrieved successfully.',
+                'ar' => 'تم جلب البانرات بنجاح.'
+            ],
+            'banner_fetched' => [
+                'en' => 'Banner retrieved successfully.',
+                'ar' => 'تم جلب البانر بنجاح.'
+            ],
+            'banner_not_found' => [
+                'en' => 'Banner not found.',
+                'ar' => 'البانر غير موجود.'
+            ],
+            'banner_missing_header' => [
+                'en' => 'Missing Accept-Country header.',
+                'ar' => 'رأس Accept-Country مفقود.'
+            ],
+            'banner_created' => [
+                'en' => 'Banner created successfully.',
+                'ar' => 'تم إنشاء البانر بنجاح.'
+            ],
+            'banner_updated' => [
+                'en' => 'Banner updated successfully.',
+                'ar' => 'تم تحديث البانر بنجاح.'
+            ],
+            'banner_deleted' => [
+                'en' => 'Banner deleted successfully.',
+                'ar' => 'تم حذف البانر بنجاح.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;

@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ReminderController;
 use App\Http\Controllers\Api\PackingTipController;
 use App\Http\Controllers\Api\AiSuggestionController;
+use App\Http\Controllers\Api\BannerController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -140,4 +141,7 @@ Route::middleware('auth:sanctum')->prefix('ai')->group(function () {
     Route::get('/suggestions', [AiSuggestionController::class, 'suggestions']);
     Route::post('/suggestions/add-item', [AiSuggestionController::class, 'addSuggestedItem']);
 });
+
+// Banners
+Route::get('/banners', [BannerController::class, 'index']);
 
