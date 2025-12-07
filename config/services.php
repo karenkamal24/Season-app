@@ -39,5 +39,11 @@ return [
     'project_id' => env('FIREBASE_PROJECT_ID', 'season-9ede3'),
 ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-pro'),
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
+    ],
+
 
 ];

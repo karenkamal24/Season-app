@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\ReminderController;
 use App\Http\Controllers\Api\PackingTipController;
 use App\Http\Controllers\Api\AiSuggestionController;
 use App\Http\Controllers\Api\BannerController;
+use App\Http\Controllers\Api\GeminiController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -144,4 +145,16 @@ Route::middleware('auth:sanctum')->prefix('ai')->group(function () {
 
 // Banners
 Route::get('/banners', [BannerController::class, 'index']);
+
+// Gemini AI Search
+Route::middleware('auth:sanctum')->prefix('gemini')->group(function () {
+    Route::post('/search', [GeminiController::class, 'search']);
+    Route::post('/query', [GeminiController::class, 'query']);
+});
+
+// Gemini Events (Public - No authentication required)
+Route::prefix('gemini')->group(function () {
+    Route::get('/events', [GeminiController::class, 'events']);
+    Route::post('/events', [GeminiController::class, 'events']);
+});
 
