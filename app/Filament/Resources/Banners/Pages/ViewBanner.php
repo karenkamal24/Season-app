@@ -22,9 +22,6 @@ class ViewBanner extends ViewRecord
     public function mount(int | string $record): void
     {
         parent::mount($record);
-
-        // Ensure country relationship is loaded
-        $this->record->load('country');
     }
 }
 

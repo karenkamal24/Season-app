@@ -20,22 +20,11 @@ class BannersTable
         $isArabic = LanguageHelper::isArabic();
 
         return $table
-            ->modifyQueryUsing(function ($query) {
-                $query->with('country');
-            })
             ->columns([
                 ImageColumn::make('image')
                     ->label($isArabic ? 'الصورة' : 'Image')
                     ->circular()
                     ->size(50),
-
-                TextColumn::make('country.name_' . ($isArabic ? 'ar' : 'en'))
-                    ->label($isArabic ? 'البلد' : 'Country')
-                    ->badge()
-                    ->color('info')
-                    ->sortable()
-                    ->searchable()
-                    ->placeholder('-'),
 
                 TextColumn::make('language')
                     ->label($isArabic ? 'اللغة' : 'Language')
@@ -46,6 +35,14 @@ class BannersTable
                     ->color('success')
                     ->sortable()
                     ->searchable(),
+
+                TextColumn::make('link')
+                    ->label($isArabic ? 'الرابط' : 'Link')
+                    ->url(fn($record) => $record->link)
+                    ->openUrlInNewTab()
+                    ->limit(30)
+                    ->toggleable()
+                    ->placeholder('-'),
 
                 IconColumn::make('is_active')
                     ->label($isArabic ? 'نشط' : 'Active')
@@ -75,11 +72,6 @@ class BannersTable
                     ->placeholder($isArabic ? 'الكل' : 'All')
                     ->trueLabel($isArabic ? 'نشط' : 'Active')
                     ->falseLabel($isArabic ? 'غير نشط' : 'Inactive'),
-
-                Tables\Filters\SelectFilter::make('country_id')
-                    ->label($isArabic ? 'البلد' : 'Country')
-                    ->relationship('country', $isArabic ? 'name_ar' : 'name_en')
-                    ->searchable(['name_en', 'name_ar', 'code']),
 
                 Tables\Filters\SelectFilter::make('language')
                     ->label($isArabic ? 'اللغة' : 'Language')

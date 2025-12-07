@@ -20,21 +20,13 @@ class BannerController extends Controller
     }
 
     /**
-     * Get active banner by country and language from headers
+     * Get active banner by language from headers
      */
     public function index(Request $request)
     {
-        $countryCode = $request->header('Accept-Country');
         $language = $request->header('Accept-Language', 'ar');
 
-        if (!$countryCode) {
-            return ApiResponse::send(
-                Response::HTTP_BAD_REQUEST,
-                LangHelper::msg('banner_missing_header')
-            );
-        }
-
-        $banner = $this->bannerService->getActiveByCountryAndLanguage($countryCode, $language);
+        $banner = $this->bannerService->getActiveByLanguage($language);
 
         if (!$banner) {
             return ApiResponse::send(

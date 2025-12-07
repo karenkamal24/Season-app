@@ -9,35 +9,11 @@ use App\Helpers\LangHelper;
 class BannerService
 {
     /**
-     * Get active banner by country code and language
+     * Get active banner by language
      */
-    public function getActiveByCountryAndLanguage(?string $countryCode, ?string $language): ?Banner
+    public function getActiveByLanguage(?string $language): ?Banner
     {
-        if (!$countryCode || !$language) {
-            return null;
-        }
-
-        // Find country by code (supports multiple code formats)
-        $countryCode = strtoupper($countryCode);
-
-        // Map common variations to standard codes (KSA, UAE, EGY)
-        $codeMapping = [
-            'SAU' => 'KSA',
-            'SA' => 'KSA',
-            'KSA' => 'KSA',
-            'ARE' => 'UAE',
-            'AE' => 'UAE',
-            'UAE' => 'UAE',
-            'EGY' => 'EGY',
-            'EG' => 'EGY',
-        ];
-
-        $standardCode = $codeMapping[$countryCode] ?? $countryCode;
-
-        // Try to find country by mapped code
-        $country = \App\Models\Country::where('code', $standardCode)->first();
-
-        if (!$country) {
+        if (!$language) {
             return null;
         }
 
@@ -46,10 +22,8 @@ class BannerService
             return null;
         }
 
-        return Banner::where('country_id', $country->id)
-            ->where('language', $language)
+        return Banner::where('language', $language)
             ->where('is_active', true)
-            ->with('country')
             ->first();
     }
 

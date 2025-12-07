@@ -32,13 +32,6 @@ class BannerInfolist
                     ->description($isArabic ? 'تفاصيل البانر' : 'Banner details')
                     ->inlineLabel()
                     ->schema([
-                        TextEntry::make('country.name_' . ($isArabic ? 'ar' : 'en'))
-                            ->label($isArabic ? 'البلد' : 'Country')
-                            ->badge()
-                            ->color('info')
-                            ->placeholder('-')
-                            ->default('-'),
-
                         TextEntry::make('language')
                             ->label($isArabic ? 'اللغة' : 'Language')
                             ->formatStateUsing(fn($record) => $record->language === 'ar'
@@ -46,6 +39,12 @@ class BannerInfolist
                                 : ($isArabic ? 'الإنجليزية' : 'English'))
                             ->badge()
                             ->color('success'),
+
+                        TextEntry::make('link')
+                            ->label($isArabic ? 'الرابط' : 'Link')
+                            ->url(fn($record) => $record->link)
+                            ->openUrlInNewTab()
+                            ->placeholder('-'),
 
                         TextEntry::make('is_active')
                             ->label($isArabic ? 'نشط' : 'Active')

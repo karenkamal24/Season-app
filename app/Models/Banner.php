@@ -10,9 +10,9 @@ class Banner extends Model
     use HasFactory;
 
     protected $fillable = [
-        'country_id',
         'language',
         'image',
+        'link',
         'is_active',
     ];
 
@@ -20,13 +20,6 @@ class Banner extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Get the country that owns the banner
-     */
-    public function country()
-    {
-        return $this->belongsTo(Country::class);
-    }
 
     /**
      * Get full image URL
@@ -68,14 +61,10 @@ class Banner extends Model
      */
     public function getTitleAttribute(): string
     {
-        $countryName = $this->country
-            ? (app()->getLocale() === 'ar' ? $this->country->name_ar : $this->country->name_en)
-            : 'N/A';
-
         $languageName = $this->language === 'ar'
             ? (app()->getLocale() === 'ar' ? 'العربية' : 'Arabic')
             : (app()->getLocale() === 'ar' ? 'الإنجليزية' : 'English');
 
-        return "{$countryName} - {$languageName}";
+        return $languageName;
     }
 }

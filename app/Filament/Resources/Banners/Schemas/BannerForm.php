@@ -8,6 +8,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 
 class BannerForm
 {
@@ -20,14 +21,6 @@ class BannerForm
             ->components([
                 Section::make($isArabic ? 'معلومات البانر' : 'Banner Information')
                     ->schema([
-                        Select::make('country_id')
-                            ->label($isArabic ? 'البلد' : 'Country')
-                            ->relationship('country', $isArabic ? 'name_ar' : 'name_en',
-                                fn ($query) => $query->whereIn('code', ['KSA', 'UAE', 'EGY']))
-                            ->searchable(['name_en', 'name_ar', 'code'])
-                            ->preload()
-                            ->required(),
-
                         Select::make('language')
                             ->label($isArabic ? 'اللغة' : 'Language')
                             ->options([
@@ -46,6 +39,13 @@ class BannerForm
                             ->downloadable()
                             ->openable()
                             ->required()
+                            ->columnSpanFull(),
+
+                        TextInput::make('link')
+                            ->label($isArabic ? 'الرابط' : 'Link')
+                            ->url()
+                            ->placeholder($isArabic ? 'https://example.com' : 'https://example.com')
+                            ->maxLength(500)
                             ->columnSpanFull(),
 
                         Toggle::make('is_active')
