@@ -45,5 +45,10 @@ return [
         'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
     ],
 
+    'exchangerate' => [
+        'api_key' => env('EXCHANGERATE_API_KEY', '826eb98e5751d5255c4edfe1'),
+        'base_url' => env('EXCHANGERATE_BASE_URL', 'https://v6.exchangerate-api.com/v6'),
+    ],
+
 
 ];

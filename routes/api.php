@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\PackingTipController;
 use App\Http\Controllers\Api\AiSuggestionController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\GeminiController;
+use App\Http\Controllers\Api\CurrencyController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -156,5 +157,13 @@ Route::middleware('auth:sanctum')->prefix('gemini')->group(function () {
 Route::prefix('gemini')->group(function () {
     Route::get('/events', [GeminiController::class, 'events']);
     Route::post('/events', [GeminiController::class, 'events']);
+});
+
+// Currency Exchange (Public - No authentication required)
+Route::prefix('currency')->group(function () {
+    Route::post('/convert', [CurrencyController::class, 'convert']);
+    Route::get('/latest', [CurrencyController::class, 'latest']);
+    Route::get('/currencies', [CurrencyController::class, 'currencies']);
+    Route::get('/historical', [CurrencyController::class, 'historical']);
 });
 
