@@ -5,7 +5,7 @@ namespace App\Http\Resources\VendorService;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-class VendorServiceResource extends JsonResource
+class VendorServiceIndexResource extends JsonResource
 {
     public function toArray($request)
     {
@@ -18,21 +18,10 @@ class VendorServiceResource extends JsonResource
             'address' => $this->address,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
-            'country' => $this->country ? [
-                'id' => $this->country->id,
-                'name_en' => $this->country->name_en,
-                'name_ar' => $this->country->name_ar,
-                'code' => $this->country->code,
-            ] : null,
-            'commercial_register' => $this->commercial_register
-                ? $this->getFullUrl($this->commercial_register)
-                : null,
             'images' => $this->images
                 ? collect($this->images)->map(fn ($img) => $this->getFullUrl($img))
                 : [],
             'status' => $this->getLocalizedStatus(),
-            'created_at' => $this->created_at?->toDateTimeString(),
-            'updated_at' => $this->updated_at?->toDateTimeString(),
         ];
     }
 
@@ -69,3 +58,5 @@ class VendorServiceResource extends JsonResource
         return $translations[$status][$locale] ?? $this->status;
     }
 }
+
+

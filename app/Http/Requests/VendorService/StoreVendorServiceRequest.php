@@ -21,6 +21,7 @@ class StoreVendorServiceRequest extends FormRequest
             'address' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'country_id' => 'nullable|exists:countries,id',
             'commercial_register' => 'nullable|file',
             'images' => ['nullable', 'array'],
             'images.*' => ['file', 'image', 'max:5120'],

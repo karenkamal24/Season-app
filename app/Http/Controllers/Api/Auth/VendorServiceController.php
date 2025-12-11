@@ -8,6 +8,7 @@ use App\Http\Requests\VendorService\StoreVendorServiceRequest;
 use App\Http\Requests\VendorService\UpdateVendorServiceRequest;
 use App\Http\Resources\VendorService\VendorServiceResource;
 use App\Http\Resources\VendorService\VendorServiceListResource;
+use App\Http\Resources\VendorService\VendorServiceIndexResource;
 use App\Utils\ApiResponse;
 use App\Models\ServiceType;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class VendorServiceController extends Controller
         $this->vendorServiceService = $vendorServiceService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $vendorServices = $this->vendorServiceService->getMyServices();
 
@@ -34,7 +35,7 @@ class VendorServiceController extends Controller
         );
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $vendorService = $this->vendorServiceService->show($id);
 
@@ -115,6 +116,48 @@ class VendorServiceController extends Controller
             Response::HTTP_OK,
             LangHelper::msg('service_types_retrieved'),
             $data
+        );
+    }
+
+    public function getByCountryCode(Request $request)
+    {
+        $countryCode = $request->header('Accept-Country');
+
+        if (!$countryCode) {
+            return ApiResponse::send(
+                Response::HTTP_BAD_REQUEST,
+                LangHelper::msg('emergency_missing_header') ?? 'Missing Accept-Country header'
+            );
+        }
+
+        $vendorServices = $this->vendorServiceService->getByCountryCode($countryCode);
+
+        return ApiResponse::send(
+            Response::HTTP_OK,
+            LangHelper::msg('vendor_services_retrieved'),
+            VendorServiceResource::collection($vendorServices)
+        );
+    }
+
+    public function getAllApproved(Request $request)
+    {
+        $vendorServices = $this->vendorServiceService->getAllApprovedServices($request);
+
+        return ApiResponse::send(
+            Response::HTTP_OK,
+            LangHelper::msg('vendor_services_retrieved'),
+            VendorServiceIndexResource::collection($vendorServices)
+        );
+    }
+
+    public function getOneApproved(Request $request, $id)
+    {
+        $vendorService = $this->vendorServiceService->getOneApproved($id, $request);
+
+        return ApiResponse::send(
+            Response::HTTP_OK,
+            LangHelper::msg('vendor_service_details'),
+            new VendorServiceIndexResource($vendorService)
         );
     }
 }

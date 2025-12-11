@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\VendorService;
 use App\Models\Setting;
+use App\Models\Country;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Helpers\LangHelper;
 
@@ -145,16 +147,85 @@ class VendorServiceService
         // Delete all images associated with this service
         if (!empty($service->images)) {
             foreach ($service->images as $image) {
-                \Storage::disk('public')->delete($image);
+                Storage::disk('public')->delete($image);
             }
         }
 
         // Delete commercial register if exists
         if ($service->commercial_register) {
-            \Storage::disk('public')->delete($service->commercial_register);
+            Storage::disk('public')->delete($service->commercial_register);
         }
 
         // Permanently delete the service
         $service->delete();
+    }
+
+    public function getAllApprovedServices($request = null)
+    {
+        $query = VendorService::where('status', 'approved')
+            ->with(['country', 'serviceType']);
+
+        // Filter by Accept-Country header if provided (required)
+        if ($request && $request->hasHeader('Accept-Country')) {
+            $countryCode = strtoupper($request->header('Accept-Country'));
+            $country = Country::where('code', $countryCode)->first();
+            if ($country) {
+                $query->where('country_id', $country->id);
+            } else {
+                // If country code is invalid, return empty collection
+                return collect([]);
+            }
+        } else {
+            // If Accept-Country header is missing, return empty collection
+            return collect([]);
+        }
+
+        // Filter by service_type_id if provided
+        if ($request && $request->has('service_type_id')) {
+            $query->where('service_type_id', $request->service_type_id);
+        }
+
+        return $query->latest()->get();
+    }
+
+    public function getByCountryCode($countryCode)
+    {
+        $country = Country::where('code', strtoupper($countryCode))->first();
+
+        if (!$country) {
+            return collect([]);
+        }
+
+        return VendorService::where('country_id', $country->id)
+            ->where('status', 'approved')
+            ->with(['country', 'serviceType', 'user'])
+            ->latest()
+            ->get();
+    }
+
+    public function getOneApproved($id, $request = null): VendorService
+    {
+        $query = VendorService::where('status', 'approved')
+            ->where('id', $id)
+            ->with(['country', 'serviceType']);
+
+        // Filter by Accept-Country header if provided
+        if ($request && $request->hasHeader('Accept-Country')) {
+            $countryCode = strtoupper($request->header('Accept-Country'));
+            $country = Country::where('code', $countryCode)->first();
+            if ($country) {
+                $query->where('country_id', $country->id);
+            } else {
+                throw new HttpException(404, LangHelper::msg('vendor_service_not_found'));
+            }
+        }
+
+        $service = $query->first();
+
+        if (!$service) {
+            throw new HttpException(404, LangHelper::msg('vendor_service_not_found'));
+        }
+
+        return $service;
     }
 }

@@ -49,11 +49,20 @@ Route::middleware('auth:sanctum')
         Route::get('/', [ProfileController::class, 'show']);
         Route::put('/', [ProfileController::class, 'update']);
     });
-//vendor
+//service types
+Route::get('service-types', [VendorServiceController::class, 'indexServiceType']);
+
+//vendor services (public endpoints - returns all approved services, uses Accept-Country header and service_type_id filter)
+Route::prefix('vendor-services')->group(function () {
+    Route::get('/', [VendorServiceController::class, 'getAllApproved']);
+    Route::get('/{id}', [VendorServiceController::class, 'getOneApproved']);
+});
+
+//vendor (authenticated endpoints)
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('vendor-services')->group(function () {
-        Route::get('/', [VendorServiceController::class, 'index']);
-        Route::get('/{id}', [VendorServiceController::class, 'show']);
+        Route::get('/my-services', [VendorServiceController::class, 'index']);
+        Route::get('/my-services/{id}', [VendorServiceController::class, 'show']);
         Route::post('/', [VendorServiceController::class, 'store']);
         Route::put('/{id}', [VendorServiceController::class, 'update']);
         Route::delete('/{id}', [VendorServiceController::class, 'destroy']);
@@ -61,8 +70,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}/forceDelete', [VendorServiceController::class, 'forceDelete']);
     });
 });
-//service types
-Route::get('service-types', [VendorServiceController::class, 'indexServiceType']);
 //emergency
 Route::get('/emergency', [EmergencyController::class, 'show']);
 

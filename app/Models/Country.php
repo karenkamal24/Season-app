@@ -20,4 +20,9 @@ class Country extends Model
     {
         return $this->hasOne(EmergencyNumber::class);
     }
+
+    public function vendorServices()
+    {
+        return $this->hasMany(VendorService::class);
+    }
 }

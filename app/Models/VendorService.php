@@ -17,6 +17,7 @@ class VendorService extends Model
         'address',
         'latitude',
         'longitude',
+        'country_id',
         'commercial_register',
         'images',
         'status',
@@ -34,6 +35,11 @@ class VendorService extends Model
     public function serviceType()
     {
         return $this->belongsTo(ServiceType::class);
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
     }
 protected static function booted()
 {
@@ -63,7 +69,7 @@ public function getImagesAttribute($value)
                 return $path;
             }
 
-           
+
             return asset('storage/' . $path);
         })
         ->values()
