@@ -22,6 +22,17 @@ class BannerInfolist
                     ->schema([
                         ImageEntry::make('image')
                             ->label($isArabic ? 'صورة البانر' : 'Banner Image')
+                            ->getStateUsing(function ($record) {
+                                if (!$record->image) {
+                                    return null;
+                                }
+
+                                if (str_starts_with($record->image, 'http')) {
+                                    return $record->image;
+                                }
+
+                                return asset('storage/' . $record->image);
+                            })
                             ->hiddenLabel()
                             ->extraAttributes(['style' => 'width: 100%; max-width: 100%; height: auto;'])
                             ->columnSpanFull(),

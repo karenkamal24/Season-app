@@ -23,6 +23,17 @@ class BannersTable
             ->columns([
                 ImageColumn::make('image')
                     ->label($isArabic ? 'الصورة' : 'Image')
+                    ->getStateUsing(function ($record) {
+                        if (!$record->image) {
+                            return null;
+                        }
+
+                        if (str_starts_with($record->image, 'http')) {
+                            return $record->image;
+                        }
+
+                        return asset('storage/' . $record->image);
+                    })
                     ->circular()
                     ->size(50),
 
