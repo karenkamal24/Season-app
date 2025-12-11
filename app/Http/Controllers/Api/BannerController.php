@@ -20,15 +20,15 @@ class BannerController extends Controller
     }
 
     /**
-     * Get active banner by language from headers
+     * Get active banners by language from headers
      */
     public function index(Request $request)
     {
         $language = $request->header('Accept-Language', 'ar');
 
-        $banner = $this->bannerService->getActiveByLanguage($language);
+        $banners = $this->bannerService->getActiveByLanguage($language);
 
-        if (!$banner) {
+        if ($banners->isEmpty()) {
             return ApiResponse::send(
                 Response::HTTP_NOT_FOUND,
                 LangHelper::msg('banner_not_found')
@@ -38,7 +38,7 @@ class BannerController extends Controller
         return ApiResponse::send(
             Response::HTTP_OK,
             LangHelper::msg('banner_fetched'),
-            new BannerResource($banner)
+            BannerResource::collection($banners)
         );
     }
 }

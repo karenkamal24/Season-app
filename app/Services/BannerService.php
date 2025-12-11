@@ -9,22 +9,22 @@ use App\Helpers\LangHelper;
 class BannerService
 {
     /**
-     * Get active banner by language
+     * Get active banners by language
      */
-    public function getActiveByLanguage(?string $language): ?Banner
+    public function getActiveByLanguage(?string $language)
     {
         if (!$language) {
-            return null;
+            return collect([]);
         }
 
         $language = strtolower($language);
         if (!in_array($language, ['en', 'ar'])) {
-            return null;
+            return collect([]);
         }
 
         return Banner::where('language', $language)
             ->where('is_active', true)
-            ->first();
+            ->get();
     }
 
     /**
