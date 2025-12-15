@@ -18,10 +18,11 @@ class CategoryAppsTemplateExport implements FromCollection, WithHeadings, WithSt
     public function headings(): array
     {
         return [
-            'name_ar',    
-            'name_en',     
-            'url',        
-            'is_active',   
+            'name_ar',
+            'name_en',
+            'icon',
+            'url',
+            'is_active',
         ];
     }
 

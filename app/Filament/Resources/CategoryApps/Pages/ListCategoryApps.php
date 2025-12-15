@@ -14,7 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as ExcelManager;
 
 class ListCategoryApps extends ListRecords
 {
@@ -23,7 +23,7 @@ class ListCategoryApps extends ListRecords
     protected function getHeaderActions(): array
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return [
             CreateAction::make(),
             Action::make('download_template')
@@ -31,7 +31,7 @@ class ListCategoryApps extends ListRecords
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(function () {
-                    return Excel::download(new CategoryAppsTemplateExport(), 'category_apps_template.xlsx');
+                    return ExcelManager::download(new CategoryAppsTemplateExport(), 'category_apps_template.xlsx');
                 }),
             Action::make('import')
                 ->label($isArabic ? 'استيراد من Excel' : 'Import from Excel')
@@ -43,10 +43,11 @@ class ListCategoryApps extends ListRecords
                         ->options(Category::all()->pluck('name_ar', 'id'))
                         ->searchable()
                         ->required(),
-                    Select::make('country_id')
-                        ->label($isArabic ? 'الدولة' : 'Country')
+                    Select::make('country_ids')
+                        ->label($isArabic ? 'الدول' : 'Countries')
                         ->options(Country::all()->pluck('name_ar', 'id'))
                         ->searchable()
+                        ->multiple()
                         ->required(),
                     FileUpload::make('file')
                         ->label($isArabic ? 'ملف Excel' : 'Excel File')
@@ -55,8 +56,8 @@ class ListCategoryApps extends ListRecords
                 ])
                 ->action(function (array $data) use ($isArabic) {
                     try {
-                        Excel::import(new CategoryAppsImport($data['category_id'], $data['country_id']), $data['file']);
-                        
+                        ExcelManager::import(new CategoryAppsImport($data['category_id'], $data['country_ids']), $data['file']);
+
                         Notification::make()
                             ->title($isArabic ? 'تم الاستيراد بنجاح' : 'Import Successful')
                             ->success()
