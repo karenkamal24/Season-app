@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\Country;
 use App\Models\City;
 
@@ -13,6 +14,12 @@ class CountriesSeeder extends Seeder
      */
     public function run(): void
     {
+        // Clear old data - disable foreign key checks first
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        City::truncate();
+        Country::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
         $data = [
             // Saudi Arabia - السعودية
             [

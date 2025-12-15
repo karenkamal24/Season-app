@@ -15,7 +15,15 @@ class CityController extends Controller
     public function index(Request $request)
     {
         $lang = strtolower($request->header('Accept-Language', 'en'));
-        $cities = City::with('country')->get();
+
+        $query = City::with('country');
+
+        // Filter by country_id if provided
+        if ($request->has('country_id')) {
+            $query->where('country_id', $request->country_id);
+        }
+
+        $cities = $query->get();
 
         return ApiResponse::send(
             Response::HTTP_OK,
