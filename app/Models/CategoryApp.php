@@ -11,7 +11,6 @@ class CategoryApp extends Model
 
     protected $fillable = [
         'category_id',
-        'country_id',
         'name_ar',
         'name_en',
         'icon',
@@ -28,9 +27,9 @@ class CategoryApp extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function country()
+    public function countries()
     {
-        return $this->belongsTo(Country::class);
+        return $this->belongsToMany(Country::class, 'category_app_country');
     }
 
     public function getLocalizedNameAttribute(): string

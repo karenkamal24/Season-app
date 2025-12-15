@@ -32,10 +32,11 @@ class CategoryAppsTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('country.name_ar')
-                    ->label($isArabic ? 'الدولة' : 'Country')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('countries.name_ar')
+                    ->label($isArabic ? 'الدول' : 'Countries')
+                    ->badge()
+                    ->separator(',')
+                    ->searchable(),
 
                 TextColumn::make('name_ar')
                     ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')

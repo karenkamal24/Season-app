@@ -23,7 +23,7 @@ class Country extends Model
 
     public function categoryApps()
     {
-        return $this->hasMany(CategoryApp::class);
+        return $this->belongsToMany(CategoryApp::class, 'category_app_country');
     }
 
     public function vendorServices()

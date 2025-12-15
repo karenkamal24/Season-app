@@ -18,7 +18,7 @@ class CategoryAppController extends Controller
 
     /**
      * Get category apps
-     * Uses Accept-Language and Accept-Country headers
+     * Uses Accept-Language and Accept-Country headers (single country code)
      * Requires category_id filter
      */
     public function index(Request $request)
@@ -59,6 +59,7 @@ class CategoryAppController extends Controller
 
     /**
      * Get single category app by ID
+     * Uses Accept-Country header (single country code)
      */
     public function show(Request $request, $id)
     {
@@ -68,6 +69,14 @@ class CategoryAppController extends Controller
         // Set locale
         if (in_array($lang, ['ar', 'en'])) {
             app()->setLocale($lang);
+        }
+
+        // Validate country code is provided
+        if (!$countryCode) {
+            return ApiResponse::send(
+                Response::HTTP_BAD_REQUEST,
+                LangHelper::msg('country_code_required')
+            );
         }
 
         $categoryApp = $this->categoryAppService->getCategoryAppById($id, $countryCode);

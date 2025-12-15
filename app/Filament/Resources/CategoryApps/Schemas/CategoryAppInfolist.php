@@ -28,12 +28,16 @@ class CategoryAppInfolist
                         ->label($isArabic ? 'التصنيف (إنجليزي)' : 'Category (English)')
                         ->placeholder('-'),
 
-                    TextEntry::make('country.name_ar')
-                        ->label($isArabic ? 'الدولة (عربي)' : 'Country (Arabic)')
+                    TextEntry::make('countries.name_ar')
+                        ->label($isArabic ? 'الدول (عربي)' : 'Countries (Arabic)')
+                        ->badge()
+                        ->separator(',')
                         ->placeholder('-'),
 
-                    TextEntry::make('country.name_en')
-                        ->label($isArabic ? 'الدولة (إنجليزي)' : 'Country (English)')
+                    TextEntry::make('countries.name_en')
+                        ->label($isArabic ? 'الدول (إنجليزي)' : 'Countries (English)')
+                        ->badge()
+                        ->separator(',')
                         ->placeholder('-'),
 
                     TextEntry::make('name_ar')

@@ -27,9 +27,10 @@ class CategoryAppForm
                         ->preload()
                         ->required(),
 
-                    Select::make('country_id')
-                        ->label($isArabic ? 'الدولة' : 'Country')
-                        ->relationship('country', $isArabic ? 'name_ar' : 'name_en')
+                    Select::make('countries')
+                        ->label($isArabic ? 'الدول' : 'Countries')
+                        ->relationship('countries', $isArabic ? 'name_ar' : 'name_en')
+                        ->multiple()
                         ->searchable()
                         ->preload()
                         ->required(),
