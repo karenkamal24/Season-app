@@ -68,6 +68,13 @@ class VendorServiceForm
                         ->numeric()
                         ->step('any')
                         ->label($isArabic ? 'خط الطول' : 'Longitude'),
+
+                    Select::make('country_id')
+                        ->label($isArabic ? 'الدولة' : 'Country')
+                        ->relationship('country', $isArabic ? 'name_ar' : 'name_en')
+                        ->searchable()
+                        ->preload()
+                        ->native(false),
                 ])
                 ->columns(2),
 

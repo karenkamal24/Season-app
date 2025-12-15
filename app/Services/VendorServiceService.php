@@ -38,7 +38,7 @@ class VendorServiceService
         }
 
 
-        return VendorService::create([
+        $vendorService = VendorService::create([
             'user_id'             => $user->id,
             'service_type_id'     => $request->service_type_id,
             'name'                => $request->name,
@@ -47,23 +47,32 @@ class VendorServiceService
             'address'             => $request->address,
             'latitude'            => $request->latitude,
             'longitude'           => $request->longitude,
+            'country_id'          => $request->country_id,
             'commercial_register' => $commercialPath,
             'images'              => $images,
             'status'              => 'pending',
         ]);
+
+        // Load the country relationship for the response
+        $vendorService->load(['country', 'serviceType']);
+
+        return $vendorService;
     }
 
     public function getMyServices()
     {
         return Auth::user()
             ->vendor_services()
+            ->with(['country', 'serviceType'])
             ->latest()
             ->get();
     }
 
     public function show($id): VendorService
     {
-        $service = VendorService::where('user_id', Auth::id())->find($id);
+        $service = VendorService::where('user_id', Auth::id())
+            ->with(['country', 'serviceType'])
+            ->find($id);
 
         if (!$service) {
             throw new HttpException(404, LangHelper::msg('vendor_service_not_found'));
@@ -101,6 +110,9 @@ class VendorServiceService
 
         $service->update($data);
 
+        // Load the country relationship for the response
+        $service->load(['country', 'serviceType']);
+
         return $service;
     }
 
@@ -133,7 +145,7 @@ class VendorServiceService
             throw new HttpException(403, LangHelper::msg('vendor_service_already_active'));
         }
 
-        return $service->refresh();
+        return $service->refresh()->load(['country', 'serviceType']);
     }
 
     public function forceDelete($id): void

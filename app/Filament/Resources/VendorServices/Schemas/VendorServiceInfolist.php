@@ -13,7 +13,7 @@ class VendorServiceInfolist
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema->components([
             Section::make($isArabic ? 'التفاصيل' : 'Details')
                 ->description($isArabic ? 'تفاصيل خدمة البائع الرئيسية' : 'Main vendor service details')
@@ -61,6 +61,10 @@ class VendorServiceInfolist
 
                     TextEntry::make('longitude')
                         ->label($isArabic ? 'خط الطول' : 'Longitude')
+                        ->placeholder('-'),
+
+                    TextEntry::make($isArabic ? 'country.name_ar' : 'country.name_en')
+                        ->label($isArabic ? 'الدولة' : 'Country')
                         ->placeholder('-'),
                 ]),
 
