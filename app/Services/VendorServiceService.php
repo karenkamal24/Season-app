@@ -62,6 +62,7 @@ class VendorServiceService
     /**
      * Get all vendor services for the authenticated user
      * Returns all services regardless of status (pending, approved, rejected, disabled)
+     * No country filter - returns all services for the user from all countries
      */
     public function getMyServices()
     {
