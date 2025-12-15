@@ -14,7 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Maatwebsite\Excel\Excel as ExcelManager;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ListCategoryApps extends ListRecords
 {
@@ -31,7 +31,7 @@ class ListCategoryApps extends ListRecords
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action(function () {
-                    return ExcelManager::download(new CategoryAppsTemplateExport(), 'category_apps_template.xlsx');
+                    return Excel::download(new CategoryAppsTemplateExport(), 'category_apps_template.xlsx');
                 }),
             Action::make('import')
                 ->label($isArabic ? 'استيراد من Excel' : 'Import from Excel')
@@ -56,7 +56,7 @@ class ListCategoryApps extends ListRecords
                 ])
                 ->action(function (array $data) use ($isArabic) {
                     try {
-                        ExcelManager::import(new CategoryAppsImport($data['category_id'], $data['country_ids']), $data['file']);
+                        Excel::import(new CategoryAppsImport($data['category_id'], $data['country_ids']), $data['file']);
 
                         Notification::make()
                             ->title($isArabic ? 'تم الاستيراد بنجاح' : 'Import Successful')
