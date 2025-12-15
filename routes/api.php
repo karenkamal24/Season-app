@@ -52,11 +52,6 @@ Route::middleware('auth:sanctum')
 //service types
 Route::get('service-types', [VendorServiceController::class, 'indexServiceType']);
 
-//vendor services (public endpoints - returns all approved services, uses Accept-Country header and service_type_id filter)
-Route::prefix('vendor-services')->group(function () {
-    Route::get('/', [VendorServiceController::class, 'getAllApproved']);
-    Route::get('/{id}', [VendorServiceController::class, 'getOneApproved']);
-});
 
 //vendor (authenticated endpoints)
 Route::middleware('auth:sanctum')->group(function () {
@@ -73,6 +68,11 @@ Route::middleware('auth:sanctum')->group(function () {
 //emergency
 Route::get('/emergency', [EmergencyController::class, 'show']);
 
+//vendor services (public endpoints - returns all approved services, uses Accept-Country header and service_type_id filter)
+Route::prefix('vendor-services')->group(function () {
+    Route::get('/', [VendorServiceController::class, 'getAllApproved']);
+    Route::get('/{id}', [VendorServiceController::class, 'getOneApproved']);
+});
 
 Route::prefix('Location')->group(function () {
     Route::get('/countries', [CountryController::class, 'index']);
