@@ -21,6 +21,11 @@ class Country extends Model
         return $this->hasOne(EmergencyNumber::class);
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
     public function vendorServices()
     {
         return $this->hasMany(VendorService::class);
