@@ -13,9 +13,6 @@ class CategoriesSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get all countries
-        $countries = Country::all();
-
         // Define categories based on the image
         $categories = [
             [
@@ -105,7 +102,7 @@ class CategoriesSeeder extends Seeder
         ];
 
         foreach ($categories as $categoryData) {
-            $category = Category::updateOrCreate(
+            Category::updateOrCreate(
                 [
                     'name_ar' => $categoryData['name_ar'],
                 ],
@@ -115,9 +112,6 @@ class CategoriesSeeder extends Seeder
                     'is_active' => $categoryData['is_active'],
                 ]
             );
-
-            // Attach category to all countries
-            $category->countries()->sync($countries->pluck('id'));
         }
     }
 }

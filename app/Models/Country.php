@@ -21,9 +21,9 @@ class Country extends Model
         return $this->hasOne(EmergencyNumber::class);
     }
 
-    public function categories()
+    public function categoryApps()
     {
-        return $this->belongsToMany(Category::class);
+        return $this->hasMany(CategoryApp::class);
     }
 
     public function vendorServices()

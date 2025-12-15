@@ -20,12 +20,6 @@ class Category extends Model
         'is_active' => 'boolean',
     ];
 
-    // Countries relationship (many-to-many)
-    public function countries()
-    {
-        return $this->belongsToMany(Country::class);
-    }
-
     // Category apps relationship
     public function categoryApps()
     {
@@ -35,6 +29,19 @@ class Category extends Model
     public function getLocalizedNameAttribute(): string
     {
         return app()->getLocale() === 'ar' ? $this->name_ar : $this->name_en;
+    }
+
+    public function getIconUrlAttribute(): ?string
+    {
+        if (!$this->icon) {
+            return null;
+        }
+
+        if (str_starts_with($this->icon, 'http')) {
+            return $this->icon;
+        }
+
+        return asset('storage/' . $this->icon);
     }
 }
 

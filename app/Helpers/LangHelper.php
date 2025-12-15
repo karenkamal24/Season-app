@@ -738,6 +738,40 @@ class LangHelper
                 'ar' => 'تم حذف البانر بنجاح.'
             ],
 
+            // Digital Directory Messages
+            'categories_fetched' => [
+                'en' => 'Categories retrieved successfully.',
+                'ar' => 'تم جلب التصنيفات بنجاح.'
+            ],
+            'category_fetched' => [
+                'en' => 'Category retrieved successfully.',
+                'ar' => 'تم جلب التصنيف بنجاح.'
+            ],
+            'category_not_found' => [
+                'en' => 'Category not found.',
+                'ar' => 'التصنيف غير موجود.'
+            ],
+            'category_apps_fetched' => [
+                'en' => 'Category apps retrieved successfully.',
+                'ar' => 'تم جلب تطبيقات التصنيفات بنجاح.'
+            ],
+            'category_app_fetched' => [
+                'en' => 'Category app retrieved successfully.',
+                'ar' => 'تم جلب تطبيق التصنيف بنجاح.'
+            ],
+            'category_app_not_found' => [
+                'en' => 'Category app not found.',
+                'ar' => 'تطبيق التصنيف غير موجود.'
+            ],
+            'country_code_required' => [
+                'en' => 'Accept-Country header is required.',
+                'ar' => 'رأس Accept-Country مطلوب.'
+            ],
+            'category_id_required' => [
+                'en' => 'Category ID is required as query parameter.',
+                'ar' => 'معرف التصنيف مطلوب كمعامل في الاستعلام.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;

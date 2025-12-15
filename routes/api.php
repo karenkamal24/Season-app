@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\AiSuggestionController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\GeminiController;
 use App\Http\Controllers\Api\CurrencyController;
+use App\Http\Controllers\Api\DigitalDirectory\CategoryController;
+use App\Http\Controllers\Api\DigitalDirectory\CategoryAppController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -172,5 +174,18 @@ Route::prefix('currency')->group(function () {
     Route::get('/latest', [CurrencyController::class, 'latest']);
     Route::get('/currencies', [CurrencyController::class, 'currencies']);
     Route::get('/historical', [CurrencyController::class, 'historical']);
+});
+
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index']);
+    Route::get('/{id}', [CategoryController::class, 'show']);
+});
+
+
+// Digital Directory (Public - No authentication required)
+Route::prefix('digital-directory')->group(function () {
+    // Category Apps - uses Accept-Language and Accept-Country headers, requires category_id filter
+    Route::get('/category-apps', [CategoryAppController::class, 'index']);
+    Route::get('/category-apps/{id}', [CategoryAppController::class, 'show']);
 });
 

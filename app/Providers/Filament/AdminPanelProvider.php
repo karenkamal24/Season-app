@@ -33,18 +33,19 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('web')
             ->colors([
                 'primary' => [
-                    50 => '#092C4C',
-                    100 => '#092C4C',
+                    50 => '#E6EEF5',
+                    100 => '#C2D7E8',
                     200 => '#092C4C',
                     300 => '#092C4C',
-                    400 => '#092C4C',
-                    500 => '#092C4C',
-                    600 => '#092C4C',
-                    700 => '#092C4C',
-                    800 => '#092C4C',
-                    900 => '#092C4C',
+                    400 => '#568FC1',
+                    500 => '#092C4C', // اللون الأساسي
+                    600 => '#082743',
+                    700 => '#07223A',
+                    800 => '#061D31',
+                    900 => '#051828',
                 ],
             ])
+
             ->brandLogo(asset('images/logo.png'))
             ->favicon(asset('images/logo.png'))
             ->userMenuItems([

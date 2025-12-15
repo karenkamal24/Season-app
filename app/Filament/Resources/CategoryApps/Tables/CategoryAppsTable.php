@@ -24,10 +24,16 @@ class CategoryAppsTable
                 ImageColumn::make('icon')
                     ->label($isArabic ? 'الأيقونة' : 'Icon')
                     ->circular()
-                    ->size(50),
+                    ->size(50)
+                    ->getStateUsing(fn($record) => $record->icon_url),
 
                 TextColumn::make('category.name_ar')
                     ->label($isArabic ? 'التصنيف' : 'Category')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('country.name_ar')
+                    ->label($isArabic ? 'الدولة' : 'Country')
                     ->searchable()
                     ->sortable(),
 

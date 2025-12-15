@@ -20,16 +20,6 @@ class CategoryForm
             Section::make($isArabic ? 'معلومات التصنيف' : 'Category Information')
                 ->description($isArabic ? 'المعلومات الأساسية عن التصنيف' : 'Basic information about the category')
                 ->schema([
-                    Select::make('countries')
-                        ->label($isArabic ? 'الدول' : 'Countries')
-                        ->relationship('countries', $isArabic ? 'name_ar' : 'name_en')
-                        ->multiple()
-                        ->searchable()
-                        ->preload()
-                        ->native(false)
-                        ->getOptionLabelFromRecordUsing(fn($record) => $isArabic ? $record->name_ar : $record->name_en)
-                        ->required(),
-
                     TextInput::make('name_ar')
                         ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                         ->required()
@@ -52,6 +42,7 @@ class CategoryForm
                 ->schema([
                     FileUpload::make('icon')
                         ->label($isArabic ? 'أيقونة التصنيف' : 'Category Icon')
+                        ->disk('public')
                         ->directory('categories/icons')
                         ->image()
                         ->preserveFilenames()

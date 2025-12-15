@@ -28,6 +28,14 @@ class CategoryAppInfolist
                         ->label($isArabic ? 'التصنيف (إنجليزي)' : 'Category (English)')
                         ->placeholder('-'),
 
+                    TextEntry::make('country.name_ar')
+                        ->label($isArabic ? 'الدولة (عربي)' : 'Country (Arabic)')
+                        ->placeholder('-'),
+
+                    TextEntry::make('country.name_en')
+                        ->label($isArabic ? 'الدولة (إنجليزي)' : 'Country (English)')
+                        ->placeholder('-'),
+
                     TextEntry::make('name_ar')
                         ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                         ->placeholder('-'),
@@ -49,7 +57,8 @@ class CategoryAppInfolist
                         ->label($isArabic ? 'أيقونة التطبيق' : 'App Icon')
                         ->hiddenLabel()
                         ->width('100px')
-                        ->height('100px'),
+                        ->height('100px')
+                        ->getStateUsing(fn($record) => $record->icon_url),
 
                     TextEntry::make('url')
                         ->label($isArabic ? 'رابط التطبيق' : 'App URL')

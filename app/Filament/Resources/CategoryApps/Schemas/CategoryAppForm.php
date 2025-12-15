@@ -27,6 +27,13 @@ class CategoryAppForm
                         ->preload()
                         ->required(),
 
+                    Select::make('country_id')
+                        ->label($isArabic ? 'الدولة' : 'Country')
+                        ->relationship('country', $isArabic ? 'name_ar' : 'name_en')
+                        ->searchable()
+                        ->preload()
+                        ->required(),
+
                     TextInput::make('name_ar')
                         ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
                         ->maxLength(255),
@@ -47,6 +54,7 @@ class CategoryAppForm
                 ->schema([
                     FileUpload::make('icon')
                         ->label($isArabic ? 'أيقونة التطبيق' : 'App Icon')
+                        ->disk('public')
                         ->directory('category_apps/icons')
                         ->image()
                         ->preserveFilenames()

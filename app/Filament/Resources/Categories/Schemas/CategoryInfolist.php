@@ -20,11 +20,6 @@ class CategoryInfolist
                 ->description($isArabic ? 'تفاصيل التصنيف الرئيسية' : 'Main category details')
                 ->inlineLabel()
                 ->components([
-                    TextEntry::make('countries.name_ar')
-                        ->label($isArabic ? 'الدول' : 'Countries')
-                        ->badge()
-                        ->separator(','),
-
                     TextEntry::make('name_ar')
                         ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name'),
 
@@ -44,7 +39,8 @@ class CategoryInfolist
                         ->label($isArabic ? 'أيقونة التصنيف' : 'Category Icon')
                         ->hiddenLabel()
                         ->width('100px')
-                        ->height('100px'),
+                        ->height('100px')
+                        ->getStateUsing(fn($record) => $record->icon_url),
                 ]),
 
             Section::make($isArabic ? 'التواريخ' : 'Dates')

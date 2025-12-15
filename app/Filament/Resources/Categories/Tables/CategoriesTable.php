@@ -24,12 +24,8 @@ class CategoriesTable
                 ImageColumn::make('icon')
                     ->label($isArabic ? 'الأيقونة' : 'Icon')
                     ->circular()
-                    ->size(50),
-
-                TextColumn::make('countries.name_ar')
-                    ->label($isArabic ? 'الدول' : 'Countries')
-                    ->badge()
-                    ->separator(','),
+                    ->size(50)
+                    ->getStateUsing(fn($record) => $record->icon_url),
 
                 TextColumn::make('name_ar')
                     ->label($isArabic ? 'الاسم (عربي)' : 'Arabic Name')
