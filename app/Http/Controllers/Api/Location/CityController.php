@@ -15,12 +15,16 @@ class CityController extends Controller
     public function index(Request $request)
     {
         $lang = strtolower($request->header('Accept-Language', 'en'));
+        $countryCode = $request->header('Accept-Country');
 
         $query = City::with('country');
 
-        // Filter by country_id if provided
-        if ($request->has('country_id')) {
-            $query->where('country_id', $request->country_id);
+        // Filter by Accept-Country header if provided
+        if ($countryCode) {
+            $countryCode = strtoupper($countryCode);
+            $query->whereHas('country', function ($q) use ($countryCode) {
+                $q->where('code', $countryCode);
+            });
         }
 
         $cities = $query->get();
