@@ -59,10 +59,13 @@ class VendorServiceService
         return $vendorService;
     }
 
+    /**
+     * Get all vendor services for the authenticated user
+     * Returns all services regardless of status (pending, approved, rejected, disabled)
+     */
     public function getMyServices()
     {
-        return Auth::user()
-            ->vendor_services()
+        return VendorService::where('user_id', Auth::id())
             ->with(['country', 'serviceType'])
             ->latest()
             ->get();
