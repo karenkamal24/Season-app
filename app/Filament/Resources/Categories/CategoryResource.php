@@ -9,6 +9,7 @@ use App\Filament\Resources\Categories\Pages\ViewCategory;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
 use App\Filament\Resources\Categories\Schemas\CategoryInfolist;
 use App\Filament\Resources\Categories\Tables\CategoriesTable;
+use App\Helpers\LanguageHelper;
 use App\Models\Category;
 use BackedEnum;
 use Filament\Resources\Resource;

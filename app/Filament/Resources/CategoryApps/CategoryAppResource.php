@@ -31,7 +31,7 @@ class CategoryAppResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return app()->getLocale() === 'ar' ? 'تطبيقات التصنيفات' : 'Category Apps';
+        return app()->getLocale() === 'ar' ? 'تطبيقات ' : ' Apps';
     }
 
     public static function getModelLabel(): string
@@ -41,7 +41,7 @@ class CategoryAppResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return app()->getLocale() === 'ar' ? 'تطبيقات التصنيفات' : 'Category Apps';
+        return app()->getLocale() === 'ar' ? 'تطبيقات ' : ' Apps';
     }
 
     public static function form(Schema $schema): Schema
