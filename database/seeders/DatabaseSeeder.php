@@ -23,5 +23,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ItemsSeeder::class);
         $this->call(PackingTipsSeeder::class);
         $this->call(CategoriesSeeder::class);
+        $this->call(GeographicalCategoriesSeeder::class);
     }
 }

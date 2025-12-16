@@ -44,6 +44,7 @@ class User extends Authenticatable implements FilamentUser
         'birth_date',
         'gender',
         'is_vendor',
+        'is_seller',
         'last_active_at',
         'locale',
     ];
@@ -65,6 +66,7 @@ class User extends Authenticatable implements FilamentUser
         'trips' => 'integer',
         'last_otp_expire' => 'datetime',
         'is_vendor' => 'boolean',
+        'is_seller' => 'boolean',
         'last_active_at' => 'datetime',
     ];
 

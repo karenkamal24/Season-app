@@ -772,6 +772,16 @@ class LangHelper
                 'ar' => 'معرف التصنيف مطلوب كمعامل في الاستعلام.'
             ],
 
+            // Geographical Guide Messages
+            'geographical_guide_created' => [
+                'en' => 'Geographical guide created successfully.',
+                'ar' => 'تم إنشاء الدليل الجغرافي بنجاح.'
+            ],
+            'geographical_guides_fetched' => [
+                'en' => 'Geographical guides fetched successfully.',
+                'ar' => 'تم جلب الأدلة الجغرافية بنجاح.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;

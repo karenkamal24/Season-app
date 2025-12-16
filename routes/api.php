@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\GeminiController;
 use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\DigitalDirectory\CategoryController;
 use App\Http\Controllers\Api\DigitalDirectory\CategoryAppController;
+use App\Http\Controllers\Api\GeographicalGuide\GeographicalGuideController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -187,5 +188,13 @@ Route::prefix('digital-directory')->group(function () {
     // Category Apps - uses Accept-Language and Accept-Country headers, requires category_id filter
     Route::get('/category-apps', [CategoryAppController::class, 'index']);
     Route::get('/category-apps/{id}', [CategoryAppController::class, 'show']);
+});
+
+// Geographical Guide
+Route::prefix('geographical-guides')->group(function () {
+    Route::get('/', [GeographicalGuideController::class, 'index']); // Public endpoint with filters
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [GeographicalGuideController::class, 'store']);
+    });
 });
 

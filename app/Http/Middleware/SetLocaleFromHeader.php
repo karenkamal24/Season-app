@@ -9,10 +9,15 @@ class SetLocaleFromHeader
 {
     public function handle(Request $request, Closure $next)
     {
-        $lang = $request->header('Accept-Language');
+        $headerLang = $request->header('Accept-Language');
 
-        if (in_array($lang, ['ar', 'en'])) {
-            app()->setLocale($lang);
+        if ($headerLang) {
+            // Extract language code (handle formats like 'en', 'en-US', 'ar-SA', etc.)
+            $lang = strtolower(explode('-', $headerLang)[0]);
+
+            if (in_array($lang, ['ar', 'en'])) {
+                app()->setLocale($lang);
+            }
         }
 
         return $next($request);
