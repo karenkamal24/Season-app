@@ -19,3 +19,5 @@ class EditGeographicalCategory extends EditRecord
     }
 }
 
+
+

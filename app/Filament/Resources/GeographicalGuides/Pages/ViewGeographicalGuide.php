@@ -18,3 +18,5 @@ class ViewGeographicalGuide extends ViewRecord
     }
 }
 
+
+

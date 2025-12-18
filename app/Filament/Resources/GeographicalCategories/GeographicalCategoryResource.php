@@ -70,3 +70,5 @@ class GeographicalCategoryResource extends Resource
     }
 }
 
+
+

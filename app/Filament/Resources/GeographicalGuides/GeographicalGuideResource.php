@@ -70,3 +70,5 @@ class GeographicalGuideResource extends Resource
     }
 }
 
+
+

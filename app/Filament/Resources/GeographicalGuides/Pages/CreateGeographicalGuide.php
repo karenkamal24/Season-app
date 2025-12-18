@@ -10,3 +10,5 @@ class CreateGeographicalGuide extends CreateRecord
     protected static string $resource = GeographicalGuideResource::class;
 }
 
+
+

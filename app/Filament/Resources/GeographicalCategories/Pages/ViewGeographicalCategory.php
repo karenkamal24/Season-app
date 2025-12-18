@@ -18,3 +18,5 @@ class ViewGeographicalCategory extends ViewRecord
     }
 }
 
+
+

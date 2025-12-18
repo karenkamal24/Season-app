@@ -10,3 +10,5 @@ class CreateGeographicalSubCategory extends CreateRecord
     protected static string $resource = GeographicalSubCategoryResource::class;
 }
 
+
+
