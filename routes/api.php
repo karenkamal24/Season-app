@@ -24,6 +24,8 @@ use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\DigitalDirectory\CategoryController;
 use App\Http\Controllers\Api\DigitalDirectory\CategoryAppController;
 use App\Http\Controllers\Api\GeographicalGuide\GeographicalGuideController;
+use App\Http\Controllers\Api\GeographicalGuide\GeographicalCategoryController;
+use App\Http\Controllers\Api\GeographicalGuide\GeographicalSubCategoryController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -196,5 +198,17 @@ Route::prefix('geographical-guides')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [GeographicalGuideController::class, 'store']);
     });
+});
+
+// Geographical Categories
+Route::prefix('geographical-categories')->group(function () {
+    Route::get('/', [GeographicalCategoryController::class, 'index']); // Public endpoint
+    Route::get('/{id}', [GeographicalCategoryController::class, 'show']); // Public endpoint
+});
+
+// Geographical Sub-Categories
+Route::prefix('geographical-sub-categories')->group(function () {
+    Route::get('/', [GeographicalSubCategoryController::class, 'index']); // Public endpoint, optional ?geographical_category_id={id}
+    Route::get('/{id}', [GeographicalSubCategoryController::class, 'show']); // Public endpoint
 });
 

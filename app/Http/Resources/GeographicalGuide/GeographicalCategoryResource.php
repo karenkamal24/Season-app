@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\GeographicalGuide;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CityResource extends JsonResource
+class GeographicalCategoryResource extends JsonResource
 {
     public function toArray($request): array
     {
@@ -30,7 +30,10 @@ class CityResource extends JsonResource
             'name_ar' => $this->name_ar,
             'name_en' => $this->name_en,
             'name' => $isArabic ? $this->name_ar : $this->name_en,
-            'country_id' => $this->country_id,
+            'icon' => $this->icon_url,
+            'is_active' => $this->is_active,
+            'sub_categories' => GeographicalSubCategoryResource::collection($this->whenLoaded('subCategories')),
         ];
     }
 }
+

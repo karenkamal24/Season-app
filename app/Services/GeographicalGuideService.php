@@ -68,10 +68,10 @@ class GeographicalGuideService
             'website' => $request->website,
             'commercial_register' => $commercialRegisterPath,
             'is_active' => true,
-            'status' => $request->status ?? 'pending',
+            'status' => 'pending', // Always set to pending for trader submissions - admin must approve
         ]);
 
-        // Update user is_seller to true
+        // Update user is_seller to true (mark user as trader/seller)
         $user->update(['is_seller' => true]);
 
         return $geographicalGuide->load(['user', 'category', 'subCategory', 'country', 'city']);
@@ -85,6 +85,15 @@ class GeographicalGuideService
         $query = GeographicalGuide::with(['user', 'category', 'subCategory', 'country', 'city'])
             ->where('is_active', true)
             ->where('status', 'approved'); // Only show approved guides
+
+        // Filter by country code from Accept-Country header if provided
+        $countryCode = $request->header('Accept-Country');
+        if ($countryCode) {
+            $countryCode = strtoupper($countryCode);
+            $query->whereHas('country', function ($q) use ($countryCode) {
+                $q->where('code', $countryCode);
+            });
+        }
 
         // Filter by city_id if provided
         if ($request->has('city_id') && $request->city_id) {

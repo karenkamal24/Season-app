@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Exception;
 use Illuminate\Http\Client\ConnectionException;
 
@@ -119,6 +120,25 @@ class GeminiService
             throw new Exception('Gemini API key is not configured');
         }
 
+        // 💡 Cache key يعتمد على country و language
+        $cacheKey = "gemini_events_{$country}_{$language}";
+        
+        // 💡 محاولة جلب البيانات من Cache أولاً (cache لمدة 12 ساعة)
+        return Cache::remember($cacheKey, 43200, function () use ($country, $language) {
+            return $this->fetchEventsFromGemini($country, $language);
+        });
+    }
+
+    /**
+     * Fetch events from Gemini API (internal method)
+     *
+     * @param string $country
+     * @param string $language
+     * @return array
+     * @throws Exception
+     */
+    private function fetchEventsFromGemini(string $country, string $language = 'en'): array
+    {
         // 💡 التعديل 1: تحديد تاريخ اليوم الحالي لضمان البحث عن أحداث مستقبلية
         $today = date('Y-m-d');
 
@@ -217,10 +237,12 @@ Return ONLY the JSON response, nothing else.";
                 ],
             ];
 
-            // زيادة مهلة الاتصال والرد إلى 30 ثانية
-            $response = Http::timeout(30)->withHeaders([
-                'Content-Type' => 'application/json',
-            ])->post("{$url}?key={$this->apiKey}", $payload);
+            // تقليل timeout إلى 15 ثانية مع retry
+            $response = Http::timeout(15)
+                ->retry(2, 100) // retry مرتين مع انتظار 100ms بين كل محاولة
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])->post("{$url}?key={$this->apiKey}", $payload);
 
             if ($response->failed()) {
                 $error = $response->json();
@@ -260,14 +282,13 @@ Return ONLY the JSON response, nothing else.";
                     'json_error_code' => json_last_error(),
                 ]);
 
-                // إرجاع استجابة بديلة بدلاً من طرح خطأ 500
+                // إرجاع استجابة بديلة بنفس الشكل الأصلي
                 return [
                     'country' => $country,
                     'language' => $language,
                     'generated_at' => date('Y-m-d'),
                     'events' => [],
-                    'note' => 'No upcoming events found',
-                    'error' => 'Failed to parse response from Gemini API, check logs for details.'
+                    'note' => 'No upcoming events found'
                 ];
             }
 

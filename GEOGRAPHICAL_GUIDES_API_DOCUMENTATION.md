@@ -1,501 +1,581 @@
 # 📍 Geographical Guides API Documentation
-
-## نظرة عامة / Overview
-
-نظام الدليل الجغرافي يسمح للمستخدمين بإضافة خدمات ومعلومات جغرافية مع إمكانية الفلترة والبحث.
-
-The Geographical Guide system allows users to add geographical services and information with filtering and search capabilities.
+## الأدلة الجغرافية - Season App
 
 ---
 
-## 🔐 Authentication
+## 🎯 Overview
 
-### Endpoints التي تحتاج Authentication:
-- `POST /api/geographical-guides` - إنشاء دليل جغرافي جديد
-
-### Endpoints العامة (Public):
-- `GET /api/geographical-guides` - جلب الأدلة الجغرافية مع الفلترة
+نظام كامل للأدلة الجغرافية يسمح للمستخدمين (التجار) بإنشاء خدمات جغرافية والبحث عنها حسب:
+- ✅ الدولة والمدينة
+- ✅ التصنيف والتصنيف الفرعي
+- ✅ البحث والفلترة المتقدمة
 
 ---
 
-## 📋 Endpoints
+## 🚀 API Endpoints
 
-### 1. إنشاء دليل جغرافي جديد / Create New Geographical Guide
-
-**Endpoint:** `POST /api/geographical-guides`
-
-**Authentication:** Required (Bearer Token)
-
-**Headers:**
+### Base URL
 ```
-Authorization: Bearer {token}
-Accept-Language: ar | en
-Content-Type: multipart/form-data
+http://your-domain.com/api
 ```
 
-**Request Body (Form Data):**
+### Headers
+جميع الـ endpoints تدعم:
+- `Accept-Language: ar` أو `en` (اختياري - الافتراضي: en)
+- `Accept-Country: KSA` (مطلوب في بعض الـ endpoints - كود الدولة)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `geographical_category_id` | integer | ✅ Yes | معرف التصنيف الجغرافي |
-| `geographical_sub_category_id` | integer | ❌ No | معرف التصنيف الفرعي |
-| `service_name` | string | ✅ Yes | اسم الخدمة (max: 255) |
-| `description` | string | ❌ No | الوصف (max: 1000) |
-| `phone_1` | string | ❌ No | رقم الهاتف الأول (max: 20) |
-| `phone_2` | string | ❌ No | رقم الهاتف الثاني (max: 20) |
-| `country_id` | integer | ✅ Yes | معرف الدولة |
-| `city_id` | integer | ✅ Yes | معرف المدينة |
-| `address` | string | ❌ No | العنوان (max: 500) |
-| `latitude` | decimal | ❌ No | خط العرض (-90 to 90) |
-| `longitude` | decimal | ❌ No | خط الطول (-180 to 180) |
-| `website` | string | ❌ No | الموقع الإلكتروني (URL) |
-| `commercial_register` | file | ❌ No | السجل التجاري (PDF, JPG, JPEG, PNG, max: 5MB) |
-| `status` | string | ❌ No | الحالة (pending, approved, rejected) - Default: pending |
+---
 
-**Example Request (Postman):**
+## 📋 1. Get Cities by Country
+
+### Endpoint
 ```
-POST {{url}}/api/geographical-guides
-Headers:
-  Authorization: Bearer {your_token}
-  Accept-Language: ar
-
-Body (form-data):
-  geographical_category_id: 1
-  geographical_sub_category_id: 1
-  service_name: مطعم الشام
-  description: مطعم يقدم الأكلات الشامية الأصيلة
-  phone_1: +966501234567
-  phone_2: +966501234568
-  country_id: 1
-  city_id: 1
-  address: شارع الملك فهد، الرياض
-  latitude: 24.7136
-  longitude: 46.6753
-  website: https://example.com
-  commercial_register: [File Upload]
+GET /api/Location/cities
 ```
 
-**Success Response (201 Created):**
+### Headers
+```
+Accept-Country: KSA
+Accept-Language: ar
+```
+
+### Response
 ```json
 {
-    "status": 201,
-    "message": "تم إنشاء الدليل الجغرافي بنجاح.",
-    "meta": null,
-    "data": {
-        "id": 1,
-        "user": {
-            "id": 1,
-            "name": "Ahmed Ali",
-            "email": "ahmed@example.com"
-        },
-        "category": {
-            "id": 1,
-            "name_ar": "المطاعم والمقاهي",
-            "name_en": "Restaurants & Cafes",
-            "name": "المطاعم والمقاهي",
-            "icon": null
-        },
-        "sub_category": {
-            "id": 1,
-            "name_ar": "مطاعم عربية",
-            "name_en": "Arabic Restaurants",
-            "name": "مطاعم عربية"
-        },
-        "service_name": "مطعم الشام",
-        "description": "مطعم يقدم الأكلات الشامية الأصيلة",
-        "phone_1": "+966501234567",
-        "phone_2": "+966501234568",
-        "country": {
-            "id": 1,
-            "name_ar": "السعودية",
-            "name_en": "Saudi Arabia",
-            "name": "السعودية",
-            "code": "KSA"
-        },
-        "city": {
-            "id": 1,
-            "name_ar": "الرياض",
-            "name_en": "Riyadh",
-            "name": "الرياض"
-        },
-        "address": "شارع الملك فهد، الرياض",
-        "latitude": "24.71360000",
-        "longitude": "46.67530000",
-        "website": "https://example.com",
-        "commercial_register": "http://example.com/storage/geographical_guides/commercial_registers/abc123.pdf",
-        "is_active": true,
-        "status": "قيد المراجعة",
-        "created_at": "2025-12-15 23:55:37",
-        "updated_at": "2025-12-15 23:55:37"
+  "status": 200,
+  "message": "تم جلب المدن بنجاح",
+  "data": [
+    {
+      "id": 1,
+      "name_ar": "الرياض",
+      "name_en": "Riyadh",
+      "name": "الرياض",
+      "country_id": 1
+    },
+    {
+      "id": 2,
+      "name_ar": "جدة",
+      "name_en": "Jeddah",
+      "name": "جدة",
+      "country_id": 1
     }
+  ]
 }
 ```
 
-**Notes:**
-- `status` في الـ response يعرض الترجمة حسب `Accept-Language` header:
-  - `ar` → "قيد المراجعة" / "موافق عليها" / "مرفوضة"
-  - `en` → "Pending" / "Approved" / "Rejected"
-- عند إنشاء دليل جغرافي جديد، يتم تحديث `is_seller` للمستخدم إلى `true` تلقائياً
-- الملفات المرفوعة يتم حفظها في `storage/app/public/geographical_guides/commercial_registers/`
+**Note:** إذا لم يتم إرسال `Accept-Country` header، سيتم إرجاع جميع المدن.
 
 ---
 
-### 2. جلب الأدلة الجغرافية / Get Geographical Guides
+## 📋 2. Get Geographical Categories
 
-**Endpoint:** `GET /api/geographical-guides`
-
-**Authentication:** Not Required (Public)
-
-**Headers:**
+### Endpoint
 ```
-Accept-Language: ar | en
+GET /api/geographical-categories
 ```
 
-**Query Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `city_id` | integer | ❌ No | فلترة حسب المدينة |
-| `geographical_category_id` | integer | ❌ No | فلترة حسب التصنيف |
-| `geographical_sub_category_id` | integer | ❌ No | فلترة حسب التصنيف الفرعي |
-
-**Important Notes:**
-- ✅ يتم جلب فقط الأدلة التي `status = 'approved'` و `is_active = true`
-- ✅ يمكن استخدام الفلاتر معاً أو منفصلة
-- ✅ جميع الحقول اختيارية
-
-**Example Requests:**
-
-1. **جلب جميع الأدلة الموافق عليها:**
+### Headers (Optional)
 ```
-GET {{url}}/api/geographical-guides
-Headers:
-  Accept-Language: ar
+Accept-Language: ar
 ```
 
-2. **فلترة حسب المدينة:**
-```
-GET {{url}}/api/geographical-guides?city_id=1
-Headers:
-  Accept-Language: ar
-```
-
-3. **فلترة حسب التصنيف:**
-```
-GET {{url}}/api/geographical-guides?geographical_category_id=1
-Headers:
-  Accept-Language: en
-```
-
-4. **فلترة متعددة:**
-```
-GET {{url}}/api/geographical-guides?city_id=1&geographical_category_id=1&geographical_sub_category_id=1
-Headers:
-  Accept-Language: ar
-```
-
-**Success Response (200 OK):**
+### Response
 ```json
 {
-    "status": 200,
-    "message": "تم جلب الأدلة الجغرافية بنجاح.",
-    "meta": null,
-    "data": [
+  "status": 200,
+  "message": "Geographical categories fetched successfully",
+  "data": [
+    {
+      "id": 1,
+      "name_ar": "المطاعم والمقاهي",
+      "name_en": "Restaurants & Cafes",
+      "name": "المطاعم والمقاهي",
+      "icon": "http://example.com/storage/icons/restaurant.png",
+      "is_active": true,
+      "sub_categories": [
         {
-            "id": 1,
-            "user": {
-                "id": 1,
-                "name": "Ahmed Ali",
-                "email": "ahmed@example.com"
-            },
-            "category": {
-                "id": 1,
-                "name_ar": "المطاعم والمقاهي",
-                "name_en": "Restaurants & Cafes",
-                "name": "المطاعم والمقاهي",
-                "icon": null
-            },
-            "sub_category": {
-                "id": 1,
-                "name_ar": "مطاعم عربية",
-                "name_en": "Arabic Restaurants",
-                "name": "مطاعم عربية"
-            },
-            "service_name": "مطعم الشام",
-            "description": "مطعم يقدم الأكلات الشامية الأصيلة",
-            "phone_1": "+966501234567",
-            "phone_2": "+966501234568",
-            "country": {
-                "id": 1,
-                "name_ar": "السعودية",
-                "name_en": "Saudi Arabia",
-                "name": "السعودية",
-                "code": "KSA"
-            },
-            "city": {
-                "id": 1,
-                "name_ar": "الرياض",
-                "name_en": "Riyadh",
-                "name": "الرياض"
-            },
-            "address": "شارع الملك فهد، الرياض",
-            "latitude": "24.71360000",
-            "longitude": "46.67530000",
-            "website": "https://example.com",
-            "commercial_register": "http://example.com/storage/geographical_guides/commercial_registers/abc123.pdf",
-            "is_active": true,
-            "status": "موافق عليها",
-            "created_at": "2025-12-15 23:55:37",
-            "updated_at": "2025-12-15 23:55:37"
+          "id": 1,
+          "geographical_category_id": 1,
+          "name_ar": "مطاعم عربية",
+          "name_en": "Arabic Restaurants",
+          "name": "مطاعم عربية",
+          "is_active": true
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
----
-
-## 📊 Status Values
-
-### Status في قاعدة البيانات:
-- `pending` - قيد المراجعة
-- `approved` - موافق عليها
-- `rejected` - مرفوضة
-
-### Status في Response (حسب Accept-Language):
-
-**Arabic (Accept-Language: ar):**
-- `pending` → "قيد المراجعة"
-- `approved` → "موافق عليها"
-- `rejected` → "مرفوضة"
-
-**English (Accept-Language: en):**
-- `pending` → "Pending"
-- `approved` → "Approved"
-- `rejected` → "Rejected"
-
----
-
-## 🔍 Filtering Logic
-
-### GET /api/geographical-guides
-
-**Default Filters (Applied Automatically):**
-- ✅ `is_active = true`
-- ✅ `status = 'approved'`
-
-**Optional Filters (Query Parameters):**
-- `city_id` - فلترة حسب المدينة
-- `geographical_category_id` - فلترة حسب التصنيف
-- `geographical_sub_category_id` - فلترة حسب التصنيف الفرعي
-
-**Example Filter Combinations:**
+### Get Single Category
 ```
-# جميع الأدلة الموافق عليها في مدينة معينة
-?city_id=1
-
-# جميع الأدلة في تصنيف معين
-?geographical_category_id=1
-
-# أدلة محددة في تصنيف فرعي
-?geographical_category_id=1&geographical_sub_category_id=1
-
-# أدلة في مدينة وتصنيف معين
-?city_id=1&geographical_category_id=1
+GET /api/geographical-categories/{id}
 ```
 
 ---
 
-## ⚠️ Error Responses
+## 📋 3. Get Geographical Sub-Categories
 
-### 422 Validation Error:
+### Endpoint
+```
+GET /api/geographical-sub-categories
+```
+
+### Query Parameters (Optional)
+- `geographical_category_id` - Filter by category ID
+
+### Example
+```
+GET /api/geographical-sub-categories?geographical_category_id=1
+```
+
+### Response
 ```json
 {
-    "status": 422,
-    "message": "التصنيف مطلوب",
-    "meta": null,
-    "data": []
+  "status": 200,
+  "message": "Geographical sub-categories fetched successfully",
+  "data": [
+    {
+      "id": 1,
+      "geographical_category_id": 1,
+      "name_ar": "مطاعم عربية",
+      "name_en": "Arabic Restaurants",
+      "name": "مطاعم عربية",
+      "is_active": true
+    }
+  ]
 }
 ```
 
-### 401 Unauthorized:
-```json
-{
-    "status": 401,
-    "message": "Unauthenticated.",
-    "meta": null,
-    "data": []
-}
+### Get Single Sub-Category
 ```
-
-### 404 Not Found:
-```json
-{
-    "status": 404,
-    "message": "Resource not found",
-    "meta": null,
-    "data": []
-}
+GET /api/geographical-sub-categories/{id}
 ```
 
 ---
 
-## 📝 Validation Rules
+## 📋 4. Get Geographical Guides (Search/Filter)
 
-### POST /api/geographical-guides
+### Endpoint
+```
+GET /api/geographical-guides
+```
 
-| Field | Rules |
-|-------|-------|
-| `geographical_category_id` | required, exists:geographical_categories,id |
-| `geographical_sub_category_id` | nullable, exists:geographical_sub_categories,id |
-| `service_name` | required, string, max:255 |
-| `description` | nullable, string, max:1000 |
-| `phone_1` | nullable, string, max:20 |
-| `phone_2` | nullable, string, max:20 |
-| `country_id` | required, exists:countries,id |
-| `city_id` | required, exists:cities,id |
-| `address` | nullable, string, max:500 |
-| `latitude` | nullable, numeric, between:-90,90 |
-| `longitude` | nullable, numeric, between:-180,180 |
-| `website` | nullable, url, max:255 |
-| `commercial_register` | nullable, file, mimes:pdf,jpg,jpeg,png, max:5120 |
+### Headers
+```
+Accept-Country: KSA
+Accept-Language: ar
+```
 
-### GET /api/geographical-guides
+### Query Parameters (All Optional)
+- `city_id` - Filter by city ID
+- `geographical_category_id` - Filter by category ID
+- `geographical_sub_category_id` - Filter by sub-category ID
 
-| Parameter | Rules |
-|-----------|-------|
-| `city_id` | nullable, exists:cities,id |
-| `geographical_category_id` | nullable, exists:geographical_categories,id |
-| `geographical_sub_category_id` | nullable, exists:geographical_sub_categories,id |
+### Example Request
+```
+GET /api/geographical-guides?city_id=1&geographical_category_id=1&geographical_sub_category_id=1
+Headers:
+  Accept-Country: KSA
+  Accept-Language: ar
+```
+
+### Response
+```json
+{
+  "status": 200,
+  "message": "تم جلب الأدلة الجغرافية بنجاح.",
+  "meta": null,
+  "data": [
+    {
+      "id": 1,
+      "user": {
+        "id": 1,
+        "name": "Ahmed Ali",
+        "email": "ahmed@example.com"
+      },
+      "category": {
+        "id": 1,
+        "name_ar": "المطاعم والمقاهي",
+        "name_en": "Restaurants & Cafes",
+        "name": "المطاعم والمقاهي",
+        "icon": "http://example.com/storage/icons/restaurant.png"
+      },
+      "sub_category": {
+        "id": 1,
+        "name_ar": "مطاعم عربية",
+        "name_en": "Arabic Restaurants",
+        "name": "مطاعم عربية"
+      },
+      "service_name": "مطعم الشام",
+      "description": "مطعم يقدم الأكلات الشامية الأصيلة",
+      "phone_1": "+966501234567",
+      "phone_2": "+966501234568",
+      "country": {
+        "id": 1,
+        "name_ar": "السعودية",
+        "name_en": "Saudi Arabia",
+        "name": "السعودية",
+        "code": "KSA"
+      },
+      "city": {
+        "id": 1,
+        "name_ar": "الرياض",
+        "name_en": "Riyadh",
+        "name": "الرياض"
+      },
+      "address": "شارع الملك فهد، الرياض",
+      "latitude": "24.71360000",
+      "longitude": "46.67530000",
+      "website": "https://example.com",
+      "commercial_register": "http://example.com/storage/geographical_guides/commercial_registers/abc123.pdf",
+      "is_active": true,
+      "status": "موافق عليها",
+      "created_at": "2025-12-15 23:55:37",
+      "updated_at": "2025-12-15 23:55:37"
+    }
+  ]
+}
+```
+
+**Note:** 
+- يتم إرجاع الأدلة الموافق عليها فقط (`status: approved`)
+- إذا تم إرسال `Accept-Country` header، سيتم فلترة النتائج حسب الدولة
+- يمكن استخدام أي مجموعة من الفلاتر (city_id, category_id, sub_category_id)
 
 ---
 
-## 🎯 Use Cases
+## 📋 5. Create Geographical Guide (Trader/Service Provider)
 
-### 1. إضافة مطعم جديد:
-```bash
+### Endpoint
+```
 POST /api/geographical-guides
-- geographical_category_id: 1 (المطاعم والمقاهي)
-- geographical_sub_category_id: 1 (مطاعم عربية)
-- service_name: مطعم الشام
-- country_id: 1
-- city_id: 1
 ```
 
-### 2. البحث عن مطاعم في مدينة معينة:
-```bash
-GET /api/geographical-guides?city_id=1&geographical_category_id=1
+### Authentication
+**Required:** `Authorization: Bearer TOKEN`
+
+### Headers
+```
+Authorization: Bearer YOUR_TOKEN
+Content-Type: multipart/form-data
+Accept-Language: ar
 ```
 
-### 3. البحث عن خدمات في تصنيف فرعي:
-```bash
-GET /api/geographical-guides?geographical_category_id=1&geographical_sub_category_id=1
+### Request Body (Form Data)
+```json
+{
+  "geographical_category_id": 1,              // Required
+  "geographical_sub_category_id": 1,          // Optional
+  "service_name": "مطعم الشام",                // Required, max:255
+  "description": "مطعم يقدم الأكلات الشامية",  // Optional, max:1000
+  "phone_1": "+966501234567",                 // Optional, max:20
+  "phone_2": "+966501234568",                 // Optional, max:20
+  "country_id": 1,                            // Required
+  "city_id": 1,                               // Required
+  "address": "شارع الملك فهد، الرياض",         // Optional, max:500
+  "latitude": "24.71360000",                  // Optional, numeric, -90 to 90
+  "longitude": "46.67530000",                 // Optional, numeric, -180 to 180
+  "website": "https://example.com",           // Optional, valid URL, max:255
+  "commercial_register": "file"                // Optional, file (PDF, JPG, JPEG, PNG), max:5MB
+}
+```
+
+### Validation Rules
+- `geographical_category_id`: required, exists in geographical_categories
+- `geographical_sub_category_id`: optional, must belong to the selected category
+- `service_name`: required, string, max:255
+- `description`: optional, string, max:1000
+- `phone_1`, `phone_2`: optional, string, max:20
+- `country_id`: required, exists in countries
+- `city_id`: required, must belong to the selected country
+- `address`: optional, string, max:500
+- `latitude`: optional, numeric, between -90 and 90
+- `longitude`: optional, numeric, between -180 and 180
+- `website`: optional, valid URL, max:255
+- `commercial_register`: optional, file, mimes:pdf,jpg,jpeg,png, max:5120KB
+
+### Response (Success)
+```json
+{
+  "status": 201,
+  "message": "تم إنشاء الدليل الجغرافي بنجاح",
+  "data": {
+    "id": 1,
+    "user": {
+      "id": 1,
+      "name": "Ahmed Ali",
+      "email": "ahmed@example.com"
+    },
+    "category": {
+      "id": 1,
+      "name_ar": "المطاعم والمقاهي",
+      "name_en": "Restaurants & Cafes",
+      "name": "المطاعم والمقاهي",
+      "icon": null
+    },
+    "sub_category": {
+      "id": 1,
+      "name_ar": "مطاعم عربية",
+      "name_en": "Arabic Restaurants",
+      "name": "مطاعم عربية"
+    },
+    "service_name": "مطعم الشام",
+    "description": "مطعم يقدم الأكلات الشامية الأصيلة",
+    "phone_1": "+966501234567",
+    "phone_2": "+966501234568",
+    "country": {
+      "id": 1,
+      "name_ar": "السعودية",
+      "name_en": "Saudi Arabia",
+      "name": "السعودية",
+      "code": "KSA"
+    },
+    "city": {
+      "id": 1,
+      "name_ar": "الرياض",
+      "name_en": "Riyadh",
+      "name": "الرياض"
+    },
+    "address": "شارع الملك فهد، الرياض",
+    "latitude": "24.71360000",
+    "longitude": "46.67530000",
+    "website": "https://example.com",
+    "commercial_register": "http://example.com/storage/geographical_guides/commercial_registers/abc123.pdf",
+    "is_active": true,
+    "status": "قيد المراجعة",
+    "created_at": "2025-12-15 23:55:37",
+    "updated_at": "2025-12-15 23:55:37"
+  }
+}
+```
+
+### Important Notes
+- ✅ بعد إنشاء الدليل، يتم تحديث `is_seller` للمستخدم إلى `true` تلقائياً
+- ✅ الحالة (`status`) تكون دائماً `pending` (قيد المراجعة) - يحتاج موافقة من الإدارة
+- ✅ الدليل لن يظهر في نتائج البحث حتى يتم الموافقة عليه (`status: approved`)
+- ✅ يتم التحقق تلقائياً من أن المدينة تنتمي للدولة المحددة
+- ✅ يتم التحقق تلقائياً من أن التصنيف الفرعي ينتمي للتصنيف المحدد
+
+### Error Response
+```json
+{
+  "status": 422,
+  "message": "المدينة المحددة لا تنتمي إلى الدولة المحددة",
+  "data": []
+}
 ```
 
 ---
 
-## 🔗 Related Endpoints
+## 🔄 Typical Flow for Mobile App
 
-### Categories:
-- للحصول على التصنيفات الجغرافية، استخدم endpoints التصنيفات الموجودة في النظام
+### Step 1: Get Cities
+```
+GET /api/Location/cities
+Headers: Accept-Country: KSA
+```
+→ User selects a city
 
-### Countries & Cities:
-- للحصول على الدول والمدن، استخدم endpoints الدول والمدن الموجودة في النظام
+### Step 2: Get Categories
+```
+GET /api/geographical-categories
+```
+→ User selects a category
+
+### Step 3: Get Sub-Categories (Optional)
+```
+GET /api/geographical-sub-categories?geographical_category_id=1
+```
+→ User selects a sub-category (optional)
+
+### Step 4: Search Guides
+```
+GET /api/geographical-guides?city_id=1&geographical_category_id=1&geographical_sub_category_id=1
+Headers: 
+  Accept-Country: KSA
+  Accept-Language: ar
+```
+→ Display results to user
+
+### Step 5: Create Guide (Trader)
+```
+POST /api/geographical-guides
+Headers: 
+  Authorization: Bearer TOKEN
+  Content-Type: multipart/form-data
+Body: Form data with all required fields
+```
+→ Guide created with status "pending"
 
 ---
 
-## 📌 Important Notes
+## 📱 Mobile Integration Example
 
-1. **Status Management:**
-   - عند إنشاء دليل جديد، الحالة الافتراضية هي `pending`
-   - فقط الأدلة التي `status = 'approved'` تظهر في endpoint الجلب
-   - يمكن للمسؤولين تغيير الحالة من لوحة التحكم (Filament)
+### Flutter/Dart Example
 
-2. **File Upload:**
-   - الملفات المرفوعة يتم حفظها في `storage/app/public/geographical_guides/commercial_registers/`
-   - تأكد من وجود `storage:link` (run: `php artisan storage:link`)
-   - الصيغ المدعومة: PDF, JPG, JPEG, PNG
-   - الحد الأقصى للحجم: 5 ميجابايت
+```dart
+// 1. Get cities by country
+Future<List<City>> getCities(String countryCode) async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/Location/cities'),
+    headers: {
+      'Accept-Country': countryCode,
+      'Accept-Language': 'ar',
+    },
+  );
+  // Parse response...
+}
 
-3. **Language Support:**
-   - جميع النصوص في الـ response تتغير حسب `Accept-Language` header
-   - القيم المدعومة: `ar`, `en`
-   - القيمة الافتراضية: `en`
+// 2. Get categories
+Future<List<Category>> getCategories() async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/geographical-categories'),
+    headers: {'Accept-Language': 'ar'},
+  );
+  // Parse response...
+}
 
-4. **User Status:**
-   - عند إنشاء دليل جغرافي، يتم تحديث `is_seller` للمستخدم إلى `true` تلقائياً
+// 3. Search guides
+Future<List<GeographicalGuide>> searchGuides({
+  String? countryCode,
+  int? cityId,
+  int? categoryId,
+  int? subCategoryId,
+}) async {
+  final queryParams = <String, String>{};
+  if (cityId != null) queryParams['city_id'] = cityId.toString();
+  if (categoryId != null) queryParams['geographical_category_id'] = categoryId.toString();
+  if (subCategoryId != null) queryParams['geographical_sub_category_id'] = subCategoryId.toString();
+  
+  final uri = Uri.parse('$baseUrl/api/geographical-guides')
+      .replace(queryParameters: queryParams);
+  
+  final response = await http.get(
+    uri,
+    headers: {
+      if (countryCode != null) 'Accept-Country': countryCode,
+      'Accept-Language': 'ar',
+    },
+  );
+  // Parse response...
+}
+
+// 4. Create guide (trader)
+Future<GeographicalGuide> createGuide({
+  required String token,
+  required int categoryId,
+  int? subCategoryId,
+  required String serviceName,
+  String? description,
+  String? phone1,
+  String? phone2,
+  required int countryId,
+  required int cityId,
+  String? address,
+  double? latitude,
+  double? longitude,
+  String? website,
+  File? commercialRegister,
+}) async {
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse('$baseUrl/api/geographical-guides'),
+  );
+  
+  request.headers.addAll({
+    'Authorization': 'Bearer $token',
+    'Accept-Language': 'ar',
+  });
+  
+  request.fields.addAll({
+    'geographical_category_id': categoryId.toString(),
+    if (subCategoryId != null) 'geographical_sub_category_id': subCategoryId.toString(),
+    'service_name': serviceName,
+    if (description != null) 'description': description,
+    if (phone1 != null) 'phone_1': phone1,
+    if (phone2 != null) 'phone_2': phone2,
+    'country_id': countryId.toString(),
+    'city_id': cityId.toString(),
+    if (address != null) 'address': address,
+    if (latitude != null) 'latitude': latitude.toString(),
+    if (longitude != null) 'longitude': longitude.toString(),
+    if (website != null) 'website': website,
+  });
+  
+  if (commercialRegister != null) {
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'commercial_register',
+        commercialRegister.path,
+      ),
+    );
+  }
+  
+  final response = await request.send();
+  // Parse response...
+}
+```
+
+---
+
+## ⚠️ Important Notes
+
+1. **Country Code Format**: Use uppercase (e.g., `KSA`, `UAE`, `EGY`)
+2. **Language Support**: All endpoints support `Accept-Language: ar` or `en`
+3. **Status Values**: 
+   - `pending` = قيد المراجعة (Pending)
+   - `approved` = موافق عليها (Approved)
+   - `rejected` = مرفوضة (Rejected)
+4. **File Upload**: Commercial register file must be PDF, JPG, JPEG, or PNG (max 5MB)
+5. **Coordinates**: Latitude (-90 to 90), Longitude (-180 to 180)
+6. **Approval Process**: New guides require admin approval before appearing in search results
 
 ---
 
 ## 🧪 Testing Examples
 
-### Postman Collection:
+### cURL Examples
 
-**1. Create Geographical Guide:**
-```
-POST {{url}}/api/geographical-guides
-Method: POST
-Headers:
-  Authorization: Bearer {{token}}
-  Accept-Language: ar
-Body (form-data):
-  geographical_category_id: 1
-  geographical_sub_category_id: 1
-  service_name: مطعم الشام
-  description: مطعم يقدم الأكلات الشامية
-  phone_1: +966501234567
-  country_id: 1
-  city_id: 1
-  address: شارع الملك فهد
-  latitude: 24.7136
-  longitude: 46.6753
-  website: https://example.com
-  commercial_register: [Select File]
-```
+```bash
+# 1. Get cities
+curl -X GET "http://localhost:8000/api/Location/cities" \
+  -H "Accept-Country: KSA" \
+  -H "Accept-Language: ar"
 
-**2. Get All Approved Guides:**
-```
-GET {{url}}/api/geographical-guides
-Method: GET
-Headers:
-  Accept-Language: ar
-```
+# 2. Get categories
+curl -X GET "http://localhost:8000/api/geographical-categories" \
+  -H "Accept-Language: ar"
 
-**3. Filter by City:**
-```
-GET {{url}}/api/geographical-guides?city_id=1
-Method: GET
-Headers:
-  Accept-Language: en
-```
+# 3. Search guides
+curl -X GET "http://localhost:8000/api/geographical-guides?city_id=1&geographical_category_id=1" \
+  -H "Accept-Country: KSA" \
+  -H "Accept-Language: ar"
 
-**4. Filter by Category:**
-```
-GET {{url}}/api/geographical-guides?geographical_category_id=1
-Method: GET
-Headers:
-  Accept-Language: ar
-```
-
-**5. Multiple Filters:**
-```
-GET {{url}}/api/geographical-guides?city_id=1&geographical_category_id=1&geographical_sub_category_id=1
-Method: GET
-Headers:
-  Accept-Language: ar
+# 4. Create guide
+curl -X POST "http://localhost:8000/api/geographical-guides" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept-Language: ar" \
+  -F "geographical_category_id=1" \
+  -F "geographical_sub_category_id=1" \
+  -F "service_name=مطعم الشام" \
+  -F "description=مطعم يقدم الأكلات الشامية" \
+  -F "phone_1=+966501234567" \
+  -F "country_id=1" \
+  -F "city_id=1" \
+  -F "address=شارع الملك فهد" \
+  -F "latitude=24.7136" \
+  -F "longitude=46.6753" \
+  -F "website=https://example.com" \
+  -F "commercial_register=@/path/to/file.pdf"
 ```
 
 ---
 
 ## 📞 Support
 
-للمساعدة أو الاستفسارات، يرجى التواصل مع فريق الدعم الفني.
-
-For support or inquiries, please contact the technical support team.
+For any questions or issues, please contact the backend team.
 
 ---
 
-**Last Updated:** December 15, 2025
-**Version:** 1.0.0
-
-
-
+**Last Updated:** December 2025

@@ -149,15 +149,6 @@ class GeminiController extends Controller
                 $language = 'ar';
             }
 
-            // Log for debugging
-            Log::debug('Gemini Events Language Detection', [
-                'Accept-Language_header' => $request->header('Accept-Language'),
-                'accept-language_header' => $request->header('accept-language'),
-                'language_header' => $request->header('language'),
-                'final_language' => $language,
-                'all_headers' => $request->headers->all(),
-            ]);
-
             // Get country code from Accept-Country header (e.g., EGY, KSA, UAE)
             $countryCode = $request->header('Accept-Country');
 
