@@ -10,6 +10,7 @@ use App\Http\Requests\GeographicalGuide\UpdateGeographicalGuideRequest;
 use App\Http\Resources\GeographicalGuide\GeographicalGuideResource;
 use App\Utils\ApiResponse;
 use App\Helpers\LangHelper;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exception;
 
@@ -73,7 +74,7 @@ class GeographicalGuideController extends Controller
     /**
      * Get all geographical guides for authenticated user (my services)
      */
-    public function myServices()
+    public function myServices(Request $request)
     {
         try {
             $geographicalGuides = $this->geographicalGuideService->getMyServices();

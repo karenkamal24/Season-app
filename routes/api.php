@@ -198,6 +198,7 @@ Route::prefix('geographical-guides')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [GeographicalGuideController::class, 'store']);
         Route::get('/my-services', [GeographicalGuideController::class, 'myServices']); // Get user's own guides - MUST be before /{id}
+        Route::get('/my-service', [GeographicalGuideController::class, 'myServices']); // Alias for my-services (singular) - MUST be before /{id}
         Route::put('/{id}', [GeographicalGuideController::class, 'update']); // Update guide
         Route::delete('/{id}', [GeographicalGuideController::class, 'destroy']); // Delete guide
     });

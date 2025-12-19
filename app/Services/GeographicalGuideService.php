@@ -119,7 +119,16 @@ class GeographicalGuideService
      */
     public function getMyServices()
     {
-        return GeographicalGuide::where('user_id', Auth::id())
+        $userId = Auth::id();
+
+        if (!$userId) {
+            throw new HttpException(401, LanguageHelper::isArabic()
+                ? 'يجب تسجيل الدخول أولاً'
+                : 'Unauthenticated. Please login first'
+            );
+        }
+
+        return GeographicalGuide::where('user_id', $userId)
             ->with(['user', 'category', 'subCategory', 'country', 'city'])
             ->latest()
             ->get();
@@ -215,14 +224,14 @@ class GeographicalGuideService
 
         // Handle commercial register file upload
         $data = $request->validated();
-        
+
         if ($request->hasFile('commercial_register')) {
             try {
                 // Delete old file if exists
                 if ($guide->commercial_register && Storage::disk('public')->exists($guide->commercial_register)) {
                     Storage::disk('public')->delete($guide->commercial_register);
                 }
-                
+
                 $file = $request->file('commercial_register');
                 if ($file && $file->isValid()) {
                     $data['commercial_register'] = $file->store('geographical_guides/commercial_registers', 'public');
