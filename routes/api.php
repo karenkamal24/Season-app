@@ -197,8 +197,8 @@ Route::prefix('geographical-guides')->group(function () {
     Route::get('/', [GeographicalGuideController::class, 'index']); // Public endpoint with filters
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [GeographicalGuideController::class, 'store']);
-        Route::get('/my-services', [GeographicalGuideController::class, 'myServices']); // Get user's own guides - MUST be before /{id}
-        Route::get('/my-service', [GeographicalGuideController::class, 'myServices']); // Alias for my-services (singular) - MUST be before /{id}
+        Route::get('/my-services', [GeographicalGuideController::class, 'myServices']); // Get all user's own guides
+        Route::get('/my-services/{id}', [GeographicalGuideController::class, 'showMyService']); // Alias - MUST be before /{id}
         Route::put('/{id}', [GeographicalGuideController::class, 'update']); // Update guide
         Route::delete('/{id}', [GeographicalGuideController::class, 'destroy']); // Delete guide
     });

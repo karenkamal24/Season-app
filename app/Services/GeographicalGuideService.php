@@ -135,6 +135,35 @@ class GeographicalGuideService
     }
 
     /**
+     * Get single geographical guide by ID for authenticated user (from my-services)
+     * Returns guide regardless of status (pending, approved, rejected)
+     */
+    public function showMyService($id): GeographicalGuide
+    {
+        $userId = Auth::id();
+        
+        if (!$userId) {
+            throw new HttpException(401, LanguageHelper::isArabic()
+                ? 'يجب تسجيل الدخول أولاً'
+                : 'Unauthenticated. Please login first'
+            );
+        }
+
+        $guide = GeographicalGuide::where('user_id', $userId)
+            ->with(['user', 'category', 'subCategory', 'country', 'city'])
+            ->find($id);
+
+        if (!$guide) {
+            throw new HttpException(404, LanguageHelper::isArabic()
+                ? 'الدليل الجغرافي غير موجود'
+                : 'Geographical guide not found'
+            );
+        }
+
+        return $guide;
+    }
+
+    /**
      * Get single geographical guide by ID
      * If user is authenticated and viewing their own guide, can view any status
      * Otherwise, only approved guides are visible

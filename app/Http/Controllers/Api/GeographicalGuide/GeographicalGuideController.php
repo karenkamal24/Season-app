@@ -96,6 +96,31 @@ class GeographicalGuideController extends Controller
     }
 
     /**
+     * Get single geographical guide from my-services
+     * Returns user's own guide regardless of status
+     */
+    public function showMyService($id)
+    {
+        try {
+            $geographicalGuide = $this->geographicalGuideService->showMyService($id);
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('geographical_guide_fetched') ?? 'Geographical guide fetched successfully',
+                new GeographicalGuideResource($geographicalGuide)
+            );
+        } catch (Exception $e) {
+            $statusCode = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : Response::HTTP_BAD_REQUEST;
+
+            return ApiResponse::send(
+                $statusCode,
+                $e->getMessage(),
+                []
+            );
+        }
+    }
+
+    /**
      * Get single geographical guide by ID
      * Public endpoint - shows approved guides
      * If authenticated and viewing own guide, can view any status
