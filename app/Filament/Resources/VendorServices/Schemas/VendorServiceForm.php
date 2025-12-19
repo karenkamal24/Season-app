@@ -91,11 +91,46 @@ class VendorServiceForm
                     FileUpload::make('images')
                         ->label($isArabic ? 'صور الخدمة' : 'Service Images')
                         ->directory('vendor_services/images')
+                        ->disk('public')
                         ->multiple()
                         ->reorderable()
                         ->image()
                         ->downloadable()
-                        ->imageEditor(),
+                        ->imageEditor()
+                        ->getStateUsing(function ($record) {
+                            // الحصول على القيم الأصلية من قاعدة البيانات مباشرة
+                            // متجاوزين الـ accessor الذي يحول المسارات إلى URLs
+                            if ($record && $record->exists) {
+                                $rawValue = $record->getRawOriginal('images');
+                                if (is_null($rawValue)) {
+                                    return [];
+                                }
+                                $images = is_array($rawValue) ? $rawValue : json_decode($rawValue, true);
+                                return is_array($images) ? array_filter($images) : [];
+                            }
+                            return [];
+                        })
+                        ->dehydratedStateUsing(function ($state) {
+                            // عند الحفظ، نتأكد من أن القيم مسارات نسبية فقط
+                            if (is_array($state)) {
+                                return array_map(function ($file) {
+                                    // إذا كان URL كامل، نحوله إلى مسار نسبي
+                                    if (is_string($file) && str_starts_with($file, asset('storage/'))) {
+                                        return str_replace(asset('storage/'), '', $file);
+                                    }
+                                    if (is_string($file) && str_starts_with($file, 'http')) {
+                                        // استخراج المسار من URL
+                                        $path = parse_url($file, PHP_URL_PATH);
+                                        if ($path && str_starts_with($path, '/storage/')) {
+                                            return str_replace('/storage/', '', $path);
+                                        }
+                                    }
+                                    // إذا كان مسار نسبي، نعيده كما هو
+                                    return $file;
+                                }, array_filter($state));
+                            }
+                            return $state;
+                        }),
 
                     Select::make('status')
                         ->label($isArabic ? 'الحالة' : 'Status')
