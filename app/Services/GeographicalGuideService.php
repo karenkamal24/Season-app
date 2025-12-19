@@ -181,6 +181,8 @@ class GeographicalGuideService
             );
         }
 
+
+
         // Validate city belongs to country if both are being updated
         if ($request->has('city_id') && $request->has('country_id')) {
             $city = \App\Models\City::find($request->city_id);
@@ -241,8 +243,8 @@ class GeographicalGuideService
             }
         }
 
-        // If guide is approved and being edited, set status back to pending for admin review
-        if ($guide->status === 'approved') {
+        // If guide was rejected, set status back to pending after update
+        if ($guide->status === 'rejected') {
             $data['status'] = 'pending';
         }
 
@@ -264,6 +266,8 @@ class GeographicalGuideService
                 : 'Geographical guide not found'
             );
         }
+
+
 
         // Delete commercial register file if exists
         if ($guide->commercial_register && Storage::disk('public')->exists($guide->commercial_register)) {
