@@ -195,8 +195,12 @@ Route::prefix('digital-directory')->group(function () {
 // Geographical Guide
 Route::prefix('geographical-guides')->group(function () {
     Route::get('/', [GeographicalGuideController::class, 'index']); // Public endpoint with filters
+    Route::get('/{id}', [GeographicalGuideController::class, 'show']); // Public endpoint - get single guide (for viewing details)
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [GeographicalGuideController::class, 'store']);
+        Route::get('/my-services', [GeographicalGuideController::class, 'myServices']); // Get user's own guides
+        Route::put('/{id}', [GeographicalGuideController::class, 'update']); // Update guide
+        Route::delete('/{id}', [GeographicalGuideController::class, 'destroy']); // Delete guide
     });
 });
 

@@ -115,6 +115,28 @@ class GeographicalGuideInfolist
                         ->label($isArabic ? 'خط الطول (Longitude)' : 'Longitude')
                         ->placeholder('-')
                         ->suffix('°'),
+
+                    TextEntry::make('location_map')
+                        ->label($isArabic ? 'عرض الموقع على الخريطة' : 'View Location on Map')
+                        ->formatStateUsing(function ($record) use ($isArabic) {
+                            if ($record->latitude && $record->longitude) {
+                                return $isArabic
+                                    ? 'افتح على Google Maps'
+                                    : 'Open on Google Maps';
+                            }
+                            return '-';
+                        })
+                        ->url(function ($record) {
+                            if ($record->latitude && $record->longitude) {
+                                return "https://www.google.com/maps?q={$record->latitude},{$record->longitude}";
+                            }
+                            return null;
+                        })
+                        ->openUrlInNewTab()
+                        ->icon('heroicon-o-map-pin')
+                        ->color('primary')
+                        ->placeholder('-')
+                        ->columnSpanFull(),
                 ]),
 
             Section::make($isArabic ? 'معلومات إضافية' : 'Additional Information')
@@ -122,6 +144,26 @@ class GeographicalGuideInfolist
                 ->components([
                     TextEntry::make('commercial_register')
                         ->label($isArabic ? 'السجل التجاري' : 'Commercial Register')
+                        ->formatStateUsing(function ($record) use ($isArabic) {
+                            if ($record->commercial_register) {
+                                return $isArabic
+                                    ? 'تحميل السجل التجاري'
+                                    : 'Download Commercial Register';
+                            }
+                            return '-';
+                        })
+                        ->url(function ($record) {
+                            if ($record->commercial_register) {
+                                if (str_starts_with($record->commercial_register, 'http')) {
+                                    return $record->commercial_register;
+                                }
+                                return asset('storage/' . $record->commercial_register);
+                            }
+                            return null;
+                        })
+                        ->openUrlInNewTab()
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('success')
                         ->placeholder('-'),
 
                     IconEntry::make('is_active')
