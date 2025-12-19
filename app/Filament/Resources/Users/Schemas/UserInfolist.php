@@ -15,7 +15,7 @@ class UserInfolist
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema
             ->components([
                 Section::make($isArabic ? 'المعلومات الشخصية' : 'Personal Information')
@@ -109,33 +109,6 @@ class UserInfolist
                                     ->label($isArabic ? 'نوع الحساب' : 'Account Type')
                                     ->formatStateUsing(fn($state) => $state ? ($isArabic ? 'بائع' : 'Vendor') : ($isArabic ? 'مستخدم' : 'User'))
                                     ->color(fn($state) => $state ? 'danger' : 'success'),
-                            ]),
-                    ])
-                    ->columnSpanFull(),
-
-                Section::make($isArabic ? 'الإحصائيات' : 'Statistics')
-                    ->schema([
-                        Grid::make(3)
-                            ->schema([
-                                TextEntry::make('request')
-                                    ->label($isArabic ? 'إجمالي الطلبات' : 'Total Requests')
-                                    ->numeric()
-                                    ->badge()
-                                    ->color('info'),
-
-                                TextEntry::make('coins')
-                                    ->label($isArabic ? 'رصيد النقاط' : 'Coins Balance')
-                                    ->numeric()
-                                    ->badge()
-                                    ->color('warning')
-                                    ->icon('heroicon-m-currency-dollar'),
-
-                                TextEntry::make('trips')
-                                    ->label($isArabic ? 'إجمالي الرحلات' : 'Total Trips')
-                                    ->numeric()
-                                    ->badge()
-                                    ->color('success')
-                                    ->icon('heroicon-m-map'),
                             ]),
                     ])
                     ->columnSpanFull(),
