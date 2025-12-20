@@ -57,6 +57,7 @@ class CategoryAppForm
                         ->label($isArabic ? 'أيقونة التطبيق' : 'App Icon')
                         ->disk('public')
                         ->directory('category_apps/icons')
+                        ->visibility('public')
                         ->image()
                         ->preserveFilenames()
                         ->downloadable()
