@@ -68,6 +68,7 @@ class GeographicalGuideService
             'longitude' => $request->longitude,
             'website' => $request->website,
             'commercial_register' => $commercialRegisterPath,
+            'establishment_number' => $request->establishment_number,
             'is_active' => true,
             'status' => 'pending', // Always set to pending for trader submissions - admin must approve
         ]);
@@ -272,6 +273,7 @@ class GeographicalGuideService
             'latitude',
             'longitude',
             'website',
+            'establishment_number',
         ];
 
         foreach ($allowedFields as $field) {

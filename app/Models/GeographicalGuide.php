@@ -24,6 +24,7 @@ class GeographicalGuide extends Model
         'longitude',
         'website',
         'commercial_register',
+        'establishment_number',
         'is_active',
         'status',
     ];

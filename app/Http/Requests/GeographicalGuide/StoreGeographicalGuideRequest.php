@@ -29,6 +29,7 @@ class StoreGeographicalGuideRequest extends FormRequest
             'longitude' => 'nullable|numeric|between:-180,180',
             'website' => 'nullable|url|max:255',
             'commercial_register' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'establishment_number' => 'nullable|string|max:255',
         ];
     }
 
@@ -59,6 +60,7 @@ class StoreGeographicalGuideRequest extends FormRequest
             'commercial_register.file' => $isArabic ? 'السجل التجاري يجب أن يكون ملفاً' : 'Commercial register must be a file',
             'commercial_register.mimes' => $isArabic ? 'السجل التجاري يجب أن يكون بصيغة PDF, JPG, JPEG, أو PNG' : 'Commercial register must be a PDF, JPG, JPEG, or PNG file',
             'commercial_register.max' => $isArabic ? 'حجم ملف السجل التجاري لا يمكن أن يتجاوز 5 ميجابايت' : 'Commercial register file size cannot exceed 5MB',
+            'establishment_number.max' => $isArabic ? 'رقم المنشأة لا يمكن أن يكون أكثر من 255 حرف' : 'Establishment number cannot exceed 255 characters',
         ];
     }
 }

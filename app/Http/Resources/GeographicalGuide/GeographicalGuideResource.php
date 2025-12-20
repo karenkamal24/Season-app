@@ -70,6 +70,7 @@ class GeographicalGuideResource extends JsonResource
             'commercial_register' => $this->commercial_register
                 ? $this->getCommercialRegisterUrl()
                 : null,
+            'establishment_number' => $this->establishment_number,
             'is_active' => $this->is_active,
             'status' => $this->getStatusLabel($isArabic),
             'created_at' => $this->created_at?->toDateTimeString(),

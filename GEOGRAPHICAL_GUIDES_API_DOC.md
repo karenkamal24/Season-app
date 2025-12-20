@@ -232,3 +232,4 @@ curl -X DELETE "https://api.example.com/api/geographical-guides/1" \
 **Last Updated:** December 2025
 
 
+
