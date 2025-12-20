@@ -47,13 +47,14 @@ class BannersTable
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('link')
-                    ->label($isArabic ? 'الرابط' : 'Link')
-                    ->url(fn($record) => $record->link)
-                    ->openUrlInNewTab()
+                TextColumn::make('route')
+                    ->label($isArabic ? 'مسار التطبيق' : 'App Route')
+                    ->badge()
+                    ->color('info')
                     ->limit(30)
                     ->toggleable()
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->searchable(),
 
                 IconColumn::make('is_active')
                     ->label($isArabic ? 'نشط' : 'Active')

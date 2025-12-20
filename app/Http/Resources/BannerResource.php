@@ -12,7 +12,7 @@ class BannerResource extends JsonResource
         return [
             'id' => $this->id,
             'image' => $this->getImageUrl(),
-            'link' => $this->link,
+            'route' => $this->route,
             'language' => $this->language ?? 'ar',
             'is_active' => (bool) $this->is_active,
             'created_at' => $this->created_at?->toDateTimeString(),

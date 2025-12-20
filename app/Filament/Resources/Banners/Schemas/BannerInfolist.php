@@ -51,11 +51,11 @@ class BannerInfolist
                             ->badge()
                             ->color('success'),
 
-                        TextEntry::make('link')
-                            ->label($isArabic ? 'الرابط' : 'Link')
-                            ->url(fn($record) => $record->link)
-                            ->openUrlInNewTab()
-                            ->placeholder('-'),
+                        TextEntry::make('route')
+                            ->label($isArabic ? 'مسار التطبيق' : 'App Route')
+                            ->placeholder('-')
+                            ->badge()
+                            ->color('info'),
 
                         TextEntry::make('is_active')
                             ->label($isArabic ? 'نشط' : 'Active')

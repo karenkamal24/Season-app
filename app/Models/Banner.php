@@ -12,7 +12,7 @@ class Banner extends Model
     protected $fillable = [
         'language',
         'image',
-        'link',
+        'route',
         'is_active',
     ];
 
