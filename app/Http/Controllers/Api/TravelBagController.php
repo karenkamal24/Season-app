@@ -395,6 +395,77 @@ class TravelBagController extends Controller
     }
 
     /**
+     * Set travel date - يحدد موعد سفر ويوقف التذكير اليومي
+     * POST /api/travel-bag/travel-date
+     * body: { "bag_type_id": 2, "date": "2025-02-15", "time": "08:30", "timezone": "Africa/Cairo" }
+     *
+     * هذا الـ endpoint يختلف عن setReminder:
+     * - يلغي التذكير اليومي تلقائياً
+     * - ينشئ تذكير واحد (once) لميعاد السفر
+     * - التذكير يبعت فقط لو الشنطة ready (ممتلئة)
+     */
+    public function setTravelDate(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'bag_type_id' => ['required', 'integer', 'min:1'],
+                'date' => ['required', 'date_format:Y-m-d'],
+                'time' => ['required', 'date_format:H:i'],
+                'timezone' => ['nullable', 'string'],
+            ]);
+
+            $result = $this->travelBagService->setTravelDate(
+                (int) $validated['bag_type_id'],
+                $validated['date'],
+                $validated['time'],
+                $validated['timezone'] ?? null,
+            );
+
+            // Get bag type name based on locale
+            $locale = app()->getLocale();
+            $bagTypeName = $locale === 'ar'
+                ? ($result['travel_bag']->bagType->name_ar ?? '')
+                : ($result['travel_bag']->bagType->name_en ?? '');
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('travel_date_set'),
+                [
+                    'bag_type_id' => $result['travel_bag']->bag_type_id,
+                    'bag_name' => $bagTypeName,
+                    'travel_date' => $validated['date'],
+                    'travel_time' => $validated['time'],
+                    'reminder' => [
+                        'reminder_id' => $result['reminder']->id,
+                        'title' => $result['reminder']->title,
+                        'date' => $result['reminder']->date->format('Y-m-d'),
+                        'time' => $result['reminder']->time,
+                        'recurrence' => $result['reminder']->recurrence,
+                        'status' => $result['reminder']->status,
+                    ],
+                    'bag_status' => $result['travel_bag']->is_ready ? 'ready' : 'not_ready',
+                    'message' => $result['travel_bag']->is_ready
+                        ? (LangHelper::msg('travel_date_set_bag_ready') ?? 'تم تحديد موعد السفر. الشنطة جاهزة وسيتم إرسال التذكير في الموعد المحدد.')
+                        : (LangHelper::msg('travel_date_set_bag_not_ready') ?? 'تم تحديد موعد السفر. سيتم إرسال التذكير فقط عندما تكون الشنطة جاهزة (ممتلئة).'),
+                ]
+            );
+        } catch (NotFoundHttpException $e) {
+            return ApiResponse::send(
+                Response::HTTP_NOT_FOUND,
+                $e->getMessage()
+            );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::send(
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                LangHelper::msg('validation_failed'),
+                $e->errors()
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::error(LangHelper::msg('travel_date_set_failed') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Set travel reminder (date/time) for a travel bag
      * POST /api/travel-bag/reminder
      * body: { "bag_type_id": 2, "date": "2025-02-15", "time": "08:30", "timezone": "Africa/Cairo" }

@@ -28,7 +28,6 @@ class BannerForm
                                 'ar' => $isArabic ? 'العربية' : 'Arabic',
                             ])
                             ->required(),
-
                             FileUpload::make('image')
                             ->label($isArabic ? 'صورة البانر' : 'Banner Image')
                             ->disk('public')
@@ -38,10 +37,21 @@ class BannerForm
                             ->imageEditor()
                             ->imagePreviewHeight('250')
                             ->maxSize(5120)
-                            ->required()
-                            ->columnSpanFull(),
-
-
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                            ->downloadable()
+                            ->openable()
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->columnSpanFull()
+                            // الحلول المهمة
+                            ->deletable(true)
+                            ->preserveFilenames(false)
+                            // ده الأهم: متحاولش تحمل الصورة القديمة في Edit
+                            ->afterStateHydrated(function (FileUpload $component, $state) {
+                                // خلي الـ state فاضي في Edit عشان ميحاولش يحمل الصورة
+                                if (request()->routeIs('filament.*.resources.*.edit')) {
+                                    $component->state(null);
+                                }
+                            }),
                         Select::make('route')
                             ->label($isArabic ? 'مسار التطبيق' : 'App Route')
                             ->options(self::getRoutes())

@@ -372,6 +372,65 @@ class TravelBagService
     }
 
     /**
+     * Set travel date - يحدد موعد سفر ويوقف التذكير اليومي
+     * التذكير يبعت فقط لو الشنطة ready (ممتلئة)
+     */
+    public function setTravelDate(int $bagTypeId, string $date, string $time, ?string $timezone = null): array
+    {
+        $user = Auth::user();
+        $travelBag = $this->getOrCreateBagByType($bagTypeId);
+        $userLang = $user->preferred_language ?? app()->getLocale() ?? 'ar';
+
+        // Cancel previous active once-reminders for this bag
+        Reminder::where('user_id', $user->id)
+            ->where('travel_bag_id', $travelBag->id)
+            ->where('recurrence', 'once')
+            ->where('status', 'active')
+            ->update(['status' => 'cancelled']);
+
+        // بمجرد ما يحدد ميعاد سفر للشنطة، نوقف الريمايندر اليومي
+        // اللي بيقول "شنطة السفر لسه مش كاملة"
+        $this->cancelNotFullReminder($travelBag);
+
+        // العنوان والنص حسب لغة المستخدم
+        if ($userLang === 'en') {
+            $title = 'Trip reminder for your travel bag';
+            $notes = "Your trip is scheduled on {$date} at {$time}. This reminder will be sent only when your bag is ready (full).";
+        } else {
+            $title = 'تذكير برحلتك لهذه الحقيبة';
+            $notes = "رحلتك مجدولة بتاريخ {$date} الساعة {$time}. سيتم إرسال هذا التذكير فقط عندما تكون الشنطة جاهزة (ممتلئة).";
+        }
+
+        $reminder = Reminder::create([
+            'user_id' => $user->id,
+            'travel_bag_id' => $travelBag->id,
+            'title' => $title,
+            'date' => $date,
+            'time' => $time,
+            'timezone' => $timezone ?: 'Africa/Cairo',
+            'recurrence' => 'once',
+            'notes' => $notes,
+            'status' => 'active',
+        ]);
+
+        // أول ما يحدد موعد سفر، الشنطة تبقى ready تلقائياً
+        $travelBag->status = 'ready';
+        $travelBag->save();
+
+        // Reload bag with reminder relation
+        $travelBag->load([
+            'bagItems.item.category',
+            'bagType',
+            'tripReminder',
+        ]);
+
+        return [
+            'travel_bag' => $travelBag,
+            'reminder' => $reminder,
+        ];
+    }
+
+    /**
      * Set travel reminder (date/time) for a specific bag type
      * and link it to the travel bag.
      */
@@ -434,6 +493,19 @@ class TravelBagService
      */
     protected function updateBagStatusBasedOnWeight(TravelBag $travelBag): void
     {
+        // لو الشنطة ready بسبب موعد سفر (في reminder مربوط بيها)، ما نغيرش الحالة
+        $hasTravelDateReminder = Reminder::where('travel_bag_id', $travelBag->id)
+            ->where('recurrence', 'once')
+            ->where('status', 'active')
+            ->exists();
+
+        if ($hasTravelDateReminder && $travelBag->status === 'ready') {
+            // الشنطة جاهزة بسبب موعد السفر، ما نغيرش الحالة
+            // بس نتأكد إن التذكير اليومي ملغى
+            $this->cancelNotFullReminder($travelBag);
+            return;
+        }
+
         // Determine status from weight
         $status = $travelBag->is_ready ? 'ready' : 'not_ready';
 

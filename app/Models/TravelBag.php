@@ -64,10 +64,17 @@ class TravelBag extends Model
     }
 
     /**
-     * Determine if bag is ready based on weight
+     * Determine if bag is ready based on weight or status
+     * If status is 'ready', bag is considered ready even if weight is not full
      */
     public function getIsReadyAttribute(): bool
     {
+        // لو الـ status = 'ready' (محدد من travel-date endpoint)، الشنطة جاهزة
+        if ($this->status === 'ready') {
+            return true;
+        }
+        
+        // غير كده، الشنطة جاهزة لو الوزن كامل
         return $this->current_weight >= $this->max_weight;
     }
 }

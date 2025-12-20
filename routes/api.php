@@ -127,7 +127,8 @@ Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
     Route::put('/items/{item_id}/quantity', [TravelBagController::class, 'updateItemQuantity']);
     Route::delete('/items/{item_id}', [TravelBagController::class, 'removeItem']);
     Route::get('/reminder', [TravelBagController::class, 'getReminder']); // Get travel bag reminder
-    Route::post('/reminder', [TravelBagController::class, 'setReminder']); // Set travel bag reminder
+    Route::post('/travel-date', [TravelBagController::class, 'setTravelDate']); // Set travel date (new endpoint - يلغي التذكير اليومي ويبعت فقط لو الشنطة ready)
+    Route::post('/reminder', [TravelBagController::class, 'setReminder']); // Set travel bag reminder (old endpoint)
 });
 
 // Item Management

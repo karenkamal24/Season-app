@@ -70,6 +70,20 @@ class SendReminders extends Command
                             $diff = abs($currentDateTime->diffInMinutes($reminderDateTime));
 
                             if ($diff <= $toleranceMinutes || $currentDateTime->greaterThanOrEqualTo($reminderDateTime)) {
+                                // لو التذكير مربوط بشنطة سفر، تحقق من حالة الشنطة
+                                if ($reminder->travel_bag_id) {
+                                    $travelBag = \App\Models\TravelBag::find($reminder->travel_bag_id);
+                                    if ($travelBag) {
+                                        // التذكير يبعت فقط لو الشنطة ready
+                                        // (إما status = 'ready' أو الوزن كامل)
+                                        if (!$travelBag->is_ready) {
+                                            Log::info("Skipping reminder #{$reminder->id} - travel bag #{$travelBag->id} is not ready yet (status: {$travelBag->status}, current_weight: {$travelBag->current_weight}, max_weight: {$travelBag->max_weight})");
+                                            continue; // تخطي هذا التذكير
+                                        }
+                                        Log::info("Travel bag #{$travelBag->id} is ready (status: {$travelBag->status}), will send reminder #{$reminder->id}");
+                                    }
+                                }
+                                
                                 $shouldSend = true;
                                 $reminder->status = 'completed';
                                 Log::info("Sending reminder #{$reminder->id}");
