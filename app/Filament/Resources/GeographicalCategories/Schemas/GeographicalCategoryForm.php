@@ -43,6 +43,7 @@ class GeographicalCategoryForm
                         ->label($isArabic ? 'أيقونة التصنيف' : 'Category Icon')
                         ->disk('public')
                         ->directory('geographical_categories/icons')
+                        ->visibility('public')
                         ->image()
                         ->preserveFilenames()
                         ->downloadable()

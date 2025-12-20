@@ -29,17 +29,18 @@ class BannerForm
                             ])
                             ->required(),
 
-                        FileUpload::make('image')
+                            FileUpload::make('image')
                             ->label($isArabic ? 'صورة البانر' : 'Banner Image')
-                            ->disk('public')                // important
-                            ->directory('banners')          // saved inside storage/app/public/banners
-                            ->visibility('public')          // allow public access
+                            ->disk('public')
+                            ->directory('banners')
+                            ->visibility('public')
                             ->image()
                             ->imageEditor()
-                            ->downloadable()
-                            ->openable()
+                            ->imagePreviewHeight('250')
+                            ->maxSize(5120)
                             ->required()
                             ->columnSpanFull(),
+
 
                         Select::make('route')
                             ->label($isArabic ? 'مسار التطبيق' : 'App Route')

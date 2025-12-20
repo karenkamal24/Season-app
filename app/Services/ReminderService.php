@@ -11,7 +11,8 @@ class ReminderService
 {
     public function getAllReminders(User $user, array $filters = [])
     {
-        $query = Reminder::where('user_id', $user->id);
+        $query = Reminder::where('user_id', $user->id)
+            ->whereNull('travel_bag_id'); // استثناء تذكيرات الشنطة
 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -32,6 +33,7 @@ class ReminderService
     {
         return Reminder::where('user_id', $user->id)
             ->where('status', 'active')
+            ->whereNull('travel_bag_id') // استثناء تذكيرات الشنطة
             ->count();
     }
 

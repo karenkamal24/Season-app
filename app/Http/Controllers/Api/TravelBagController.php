@@ -305,6 +305,96 @@ class TravelBagController extends Controller
     }
 
     /**
+     * Get travel bag reminder
+     * GET /api/travel-bag/reminder?bag_type_id={id}
+     */
+    public function getReminder(Request $request)
+    {
+        try {
+            $bagTypeId = $request->query('bag_type_id', 1); // Default to main cargo bag (ID = 1)
+            $travelBag = $this->travelBagService->getOrCreateBagByType((int)$bagTypeId);
+
+            // Get all reminders related to this travel bag (trip reminder + daily reminder)
+            $reminders = \App\Models\Reminder::where('travel_bag_id', $travelBag->id)
+                ->where('status', 'active')
+                ->orderBy('recurrence') // 'once' reminders first, then 'daily'
+                ->get();
+
+            if ($reminders->isEmpty()) {
+                return ApiResponse::send(
+                    Response::HTTP_OK,
+                    LangHelper::msg('travel_bag_reminder_fetched'),
+                    [
+                        'bag_type_id' => $travelBag->bag_type_id,
+                        'bag_name' => app()->getLocale() === 'ar'
+                            ? ($travelBag->bagType->name_ar ?? '')
+                            : ($travelBag->bagType->name_en ?? ''),
+                        'reminders' => [],
+                        'has_reminder' => false,
+                    ]
+                );
+            }
+
+            // Format reminders
+            $formattedReminders = $reminders->map(function ($reminder) {
+                $date = $reminder->date ? $reminder->date->format('Y-m-d') : null;
+
+                $timeValue = $reminder->time;
+                if (is_string($timeValue)) {
+                    if (preg_match('/^(\d{1,2}):(\d{2})/', $timeValue, $matches)) {
+                        $time = $matches[1] . ':' . $matches[2];
+                    } else {
+                        $time = $timeValue;
+                    }
+                } elseif (is_object($timeValue) && method_exists($timeValue, 'format')) {
+                    $time = $timeValue->format('H:i');
+                } else {
+                    $time = null;
+                }
+
+                return [
+                    'reminder_id' => $reminder->id,
+                    'title' => $reminder->title,
+                    'date' => $date,
+                    'time' => $time,
+                    'timezone' => $reminder->timezone ?? 'Africa/Cairo',
+                    'recurrence' => $reminder->recurrence,
+                    'notes' => $reminder->notes,
+                    'status' => $reminder->status,
+                    'last_sent_at' => $reminder->last_sent_at ? $reminder->last_sent_at->toIso8601String() : null,
+                    'created_at' => $reminder->created_at ? $reminder->created_at->toIso8601String() : null,
+                ];
+            });
+
+            // Get bag type name based on locale
+            $locale = app()->getLocale();
+            $bagTypeName = $locale === 'ar'
+                ? ($travelBag->bagType->name_ar ?? '')
+                : ($travelBag->bagType->name_en ?? '');
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('travel_bag_reminder_fetched'),
+                [
+                    'bag_type_id' => $travelBag->bag_type_id,
+                    'bag_name' => $bagTypeName,
+                    'reminders' => $formattedReminders,
+                    'has_reminder' => true,
+                    'trip_reminder' => $formattedReminders->firstWhere('recurrence', 'once'),
+                    'daily_reminder' => $formattedReminders->firstWhere('recurrence', 'daily'),
+                ]
+            );
+        } catch (NotFoundHttpException $e) {
+            return ApiResponse::send(
+                Response::HTTP_NOT_FOUND,
+                $e->getMessage()
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::error(LangHelper::msg('travel_bag_reminder_fetch_failed') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Set travel reminder (date/time) for a travel bag
      * POST /api/travel-bag/reminder
      * body: { "bag_type_id": 2, "date": "2025-02-15", "time": "08:30", "timezone": "Africa/Cairo" }

@@ -84,6 +84,7 @@ class VendorServiceForm
                     FileUpload::make('commercial_register')
                         ->label($isArabic ? 'السجل التجاري' : 'Commercial Register')
                         ->directory('vendor_services/registers')
+                        ->visibility('public')
                         ->preserveFilenames()
                         ->downloadable()
                         ->openable(),
@@ -92,6 +93,7 @@ class VendorServiceForm
                         ->label($isArabic ? 'صور الخدمة' : 'Service Images')
                         ->directory('vendor_services/images')
                         ->disk('public')
+                        ->visibility('public')
                         ->multiple()
                         ->reorderable()
                         ->image()

@@ -44,6 +44,7 @@ class CategoryForm
                         ->label($isArabic ? 'أيقونة التصنيف' : 'Category Icon')
                         ->disk('public')
                         ->directory('categories/icons')
+                        ->visibility('public')
                         ->image()
                         ->preserveFilenames()
                         ->downloadable()

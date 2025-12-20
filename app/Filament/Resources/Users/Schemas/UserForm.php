@@ -18,7 +18,7 @@ class UserForm
     public static function configure(Schema $schema): Schema
     {
         $isArabic = LanguageHelper::isArabic();
-        
+
         return $schema
             ->components([
                 Section::make($isArabic ? 'المعلومات الشخصية' : 'Personal Information')
@@ -64,6 +64,7 @@ class UserForm
                                     ->label($isArabic ? 'صورة الملف الشخصي' : 'Profile Picture')
                                     ->image()
                                     ->directory('avatars')
+                                    ->visibility('public')
                                     ->columnSpanFull(),
                             ]),
                     ])
