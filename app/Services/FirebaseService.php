@@ -169,21 +169,24 @@ class FirebaseService
                 'notification' => [
                     'title' => $title,
                     'body' => $body,
+                    'sound' => 'default', // Required for alarm sound to play
                 ],
                 'data' => $this->convertDataToStrings($data),
                 'android' => [
                     'priority' => 'high',
                     'notification' => [
-                        'channel_id' => 'safety_radius_alarm_channel',
-                        'sound' => 'default',
-                        'priority' => 'max',
+                        'channel_id' => 'safety_radius_alarm_channel', // Required channel for alarm
+                        'sound' => 'default', // Required for Android alarm sound
+                        'priority' => 'max', // Maximum priority for alarm
+                        'default_sound' => true, // Use default system sound
+                        'default_vibrate_timings' => true, // Use default vibration pattern
                     ]
                 ],
                 'apns' => [
                     'payload' => [
                         'aps' => [
-                            'sound' => 'default',
-                            'interruption-level' => 'critical',
+                            'sound' => 'default', // Required for iOS alarm sound
+                            'interruption-level' => 'critical', // Critical level for alarm
                             'alert' => [
                                 'title' => $title,
                                 'body' => $body,
