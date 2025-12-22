@@ -17,7 +17,7 @@ class UpdateGroupRequest extends FormRequest
         return [
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'safety_radius' => 'sometimes|integer|min:50|max:5000',
+            'safety_radius' => 'sometimes|integer|min:10|max:5000',
             'notifications_enabled' => 'sometimes|boolean',
         ];
     }

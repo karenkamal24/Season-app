@@ -117,6 +117,7 @@ class GroupService
         $member = GroupMember::where('group_id', $groupId)
             ->where('user_id', $userId)
             ->where('status', 'active')
+            ->with('user')
             ->firstOrFail();
 
         // Calculate distance from group center (owner's location)
@@ -145,15 +146,24 @@ class GroupService
             'is_within_radius' => $isWithinRadius,
         ]);
 
+        // Track previous state to detect transition
+        $wasInRange = $member->is_within_radius === true;
+        $isNowInRange = $isWithinRadius;
+        
         // Update member status
-        $wasOutOfRange = !$member->is_within_radius;
         $updateData = [
             'is_within_radius' => $isWithinRadius,
             'out_of_range_count' => !$isWithinRadius ? $member->out_of_range_count + 1 : $member->out_of_range_count,
             'last_location_update' => now(),
         ];
 
-        // Handle notifications based on status
+        // Detect transition: was IN range → now OUT of range (Safety Radius Alarm for admin only)
+        if ($wasInRange && !$isNowInRange && $group->notifications_enabled) {
+            // Member just went out of range - send alarm to group owner/admin only
+            $this->sendSafetyRadiusAlarm($group, $member, $distance);
+        }
+
+        // Handle repeated notifications for all members (existing logic)
         if (!$isWithinRadius && $group->notifications_enabled) {
             // Member is OUT OF RANGE
             $shouldSendNotification = false;
@@ -226,6 +236,77 @@ class GroupService
         $distance = $earthRadius * $c;
 
         return round($distance, 2);
+    }
+
+    /**
+     * Send safety radius alarm notification to group owner/admin only
+     * This is triggered when a member transitions from "in range" to "out of range"
+     */
+    protected function sendSafetyRadiusAlarm($group, $outOfRangeMember, $distance)
+    {
+        $owner = $group->owner;
+        
+        if (!$owner || !$owner->fcm_token) {
+            // Owner doesn't have FCM token registered
+            Log::warning('Cannot send safety radius alarm: Owner has no FCM token', [
+                'group_id' => $group->id,
+                'owner_id' => $owner?->id,
+            ]);
+            return;
+        }
+
+        $firebaseService = app(FirebaseService::class);
+
+        try {
+            // Get owner's preferred language
+            $ownerLang = $owner->preferred_language ?? 'ar';
+
+            // Prepare notification content based on language
+            $title = $ownerLang === 'en'
+                ? '🚨 Safety Alert'
+                : '🚨 تنبيه أمان';
+
+            $body = $ownerLang === 'en'
+                ? "{$outOfRangeMember->user->name} is outside the safety radius!"
+                : "{$outOfRangeMember->user->name} خارج نطاق الأمان!";
+
+            // Prepare data payload according to requirements
+            $data = [
+                'type' => 'safety_radius_alert',
+                'notification_type' => 'safety_radius_alert',
+                'group_id' => (string) $group->id,
+                'member_id' => (string) $outOfRangeMember->id,
+                'member_name' => $outOfRangeMember->user->name,
+                'is_admin' => 'true',
+                'is_owner' => 'true',
+                'for_admin' => 'true',
+                'distance' => (string) $distance,
+                'safety_radius' => (string) $group->safety_radius,
+                'group_name' => $group->name,
+                'timestamp' => now()->toIso8601String(),
+            ];
+
+            $firebaseService->sendSafetyRadiusAlarm(
+                $owner->fcm_token,
+                $title,
+                $body,
+                $data
+            );
+
+            Log::info('Safety radius alarm sent to group owner', [
+                'group_id' => $group->id,
+                'owner_id' => $owner->id,
+                'member_id' => $outOfRangeMember->id,
+                'member_name' => $outOfRangeMember->user->name,
+                'distance' => $distance,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send safety radius alarm: ' . $e->getMessage(), [
+                'group_id' => $group->id,
+                'owner_id' => $owner->id,
+                'member_id' => $outOfRangeMember->id,
+            ]);
+        }
     }
 
     /**

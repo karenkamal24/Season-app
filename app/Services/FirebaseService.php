@@ -158,6 +158,47 @@ class FirebaseService
     }
 
     /**
+     * Send safety radius alarm notification (for group admin only)
+     * This is a special notification with maximum priority and alarm channel
+     */
+    public function sendSafetyRadiusAlarm($fcmToken, $title, $body, $data = [])
+    {
+        $message = [
+            'message' => [
+                'token' => $fcmToken,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => $this->convertDataToStrings($data),
+                'android' => [
+                    'priority' => 'high',
+                    'notification' => [
+                        'channel_id' => 'safety_radius_alarm_channel',
+                        'sound' => 'default',
+                        'priority' => 'max',
+                    ]
+                ],
+                'apns' => [
+                    'payload' => [
+                        'aps' => [
+                            'sound' => 'default',
+                            'interruption-level' => 'critical',
+                            'alert' => [
+                                'title' => $title,
+                                'body' => $body,
+                            ],
+                            'badge' => 1,
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        return $this->sendMessage($message);
+    }
+
+    /**
      * Send custom message with full control
      */
     public function sendCustomMessage($message)

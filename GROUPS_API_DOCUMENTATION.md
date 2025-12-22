@@ -88,7 +88,7 @@ POST /api/groups
 **Validation Rules:**
 - `name`: required, string, max:255
 - `description`: nullable, string, max:1000
-- `safety_radius`: nullable, integer, min:50, max:5000 (default: 100)
+- `safety_radius`: nullable, integer, min:10, max:5000 (default: 100)
 - `notifications_enabled`: nullable, boolean (default: true)
 
 **Response:**
@@ -575,7 +575,7 @@ created_at, updated_at
 ## ⚙️ Configuration
 
 ### Safety Radius Options:
-- Minimum: 50 meters
+- Minimum: 10 meters
 - Maximum: 5000 meters
 - Default: 100 meters
 

@@ -207,7 +207,7 @@ curl -X POST http://localhost:8000/api/groups/1/sos \
 ## ⚙️ Configuration
 
 ### Safety Radius
-- Min: 50 meters
+- Min: 10 meters
 - Max: 5000 meters
 - Default: 100 meters
 

@@ -469,8 +469,8 @@ class LangHelper
                 'ar' => 'وصف المجموعة يجب أن لا يتجاوز 1000 حرف.'
             ],
             'group_safety_radius_min' => [
-                'en' => 'Safety radius must be at least 50 meters.',
-                'ar' => 'نطاق الأمان يجب أن يكون 50 متر على الأقل.'
+                'en' => 'Safety radius must be at least 10 meters.',
+                'ar' => 'نطاق الأمان يجب أن يكون 10 متر على الأقل.'
             ],
             'group_safety_radius_max' => [
                 'en' => 'Safety radius must not exceed 5000 meters.',

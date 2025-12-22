@@ -17,7 +17,7 @@ class CreateGroupRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'safety_radius' => 'nullable|integer|min:50|max:5000',
+            'safety_radius' => 'nullable|integer|min:10|max:5000',
             'notifications_enabled' => 'nullable|boolean',
         ];
     }
