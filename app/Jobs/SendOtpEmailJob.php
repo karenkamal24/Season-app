@@ -12,12 +12,12 @@ use Illuminate\Queue\SerializesModels;
 class SendOtpEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, SendMailTrait;
-    
+
     /**
      * عدد المحاولات في حالة الفشل
      */
     public $tries = 3;
-    
+
     /**
      * timeout للـ job (ثواني)
      */
@@ -36,6 +36,23 @@ class SendOtpEmailJob implements ShouldQueue
 
     public function handle(): void
     {
-        $this->sendEmail($this->email, $this->subject, $this->body);
+        try {
+            $result = $this->sendEmail($this->email, $this->subject, $this->body);
+
+            if ($result['status'] !== 200) {
+                // Throw exception to trigger retry
+                throw new \Exception($result['error'] ?? 'Failed to send email');
+            }
+        } catch (\Exception $e) {
+            throw $e; // Re-throw to trigger queue retry mechanism
+        }
+    }
+
+    /**
+     * Handle a job failure.
+     */
+    public function failed(\Throwable $exception): void
+    {
+        // Job failed after all retries
     }
 }

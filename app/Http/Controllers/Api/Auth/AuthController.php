@@ -35,11 +35,22 @@ class AuthController extends Controller
      */
     public function verifyOtp(VerifyOtpRequest $request)
     {
+        Log::info('🔐 === Verify OTP Request Received ===', [
+            'email' => $request->email ?? 'not provided',
+            'otp_provided' => $request->otp ?? 'not provided',
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+
         try {
             $result = $this->authService->verifyOtp(
                 $request->email,
                 $request->otp
             );
+
+            Log::info('✅ Verify OTP completed successfully', [
+                'email' => $request->email ?? 'not provided',
+                'user_id' => $result['user']->id ?? 'N/A',
+            ]);
 
             return response()->json([
                 'message'  => LangHelper::msg('login_success'),
@@ -48,6 +59,13 @@ class AuthController extends Controller
                 'userInfo' => new UserResource($result['user']),
             ], 200);
         } catch (Exception $e) {
+            Log::error('❌ Verify OTP failed', [
+                'email' => $request->email ?? 'not provided',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
             return ApiResponse::badRequest($e->getMessage());
         }
     }
@@ -57,10 +75,25 @@ class AuthController extends Controller
      */
     public function resendOtp(ResendOtpRequest $request)
     {
+        Log::info('🔄 === Resend OTP Request Received ===', [
+            'email' => $request->email,
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+
         try {
             $this->authService->resendOtp($request->email);
+
+            Log::info('✅ Resend OTP completed successfully', [
+                'email' => $request->email,
+            ]);
+
             return ApiResponse::success(LangHelper::msg('otp_resent'), []);
         } catch (Exception $e) {
+            Log::error('❌ Resend OTP failed', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
+
             return ApiResponse::badRequest($e->getMessage());
         }
     }
@@ -70,8 +103,18 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request)
     {
+        Log::info('🔑 === Login Request Received ===', [
+            'email' => $request->email ?? 'not provided',
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+
         try {
             $result = $this->authService->login($request->validated());
+
+            Log::info('✅ Login completed successfully', [
+                'email' => $request->email ?? 'not provided',
+                'user_id' => $result['user']->id ?? 'N/A',
+            ]);
 
             return response()->json([
                 'message'  => LangHelper::msg('login_success'),
@@ -80,6 +123,13 @@ class AuthController extends Controller
                 'userInfo' => new UserResource($result['user']),
             ], 200);
         } catch (Exception $e) {
+            Log::error('❌ Login failed', [
+                'email' => $request->email ?? 'not provided',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
             return ApiResponse::badRequest($e->getMessage());
         }
     }

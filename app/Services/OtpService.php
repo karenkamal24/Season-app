@@ -5,18 +5,25 @@ namespace App\Services;
 use App\Models\User;
 use App\Jobs\SendOtpEmailJob;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Helpers\LangHelper;
 use Exception;
 
 class OtpService
 {
-    protected int $otpTtl = 10;
+    protected int $otpTtl;
+
+    public function __construct()
+    {
+        $this->otpTtl = (int) config('otp.ttl', 10);
+    }
 
     public function sendOtp(User $user, string $purpose = 'verification'): void
     {
-        $otp = random_int(1000, 9999);
+        $otpLength = (int) config('otp.length', 4);
+        $min = (int) str_pad('1', $otpLength, '0');
+        $max = (int) str_repeat('9', $otpLength);
+        $otp = random_int($min, $max);
         $expiresAt = now()->addMinutes($this->otpTtl);
 
         $user->update([
@@ -31,11 +38,8 @@ class OtpService
 
         $body = LangHelper::msg('otp_sent') . "<br><b>{$otp}</b> — expires in {$this->otpTtl} minutes.";
 
-        // إرسال OTP في queue منفصل للسرعة - response فوري بدون انتظار
         SendOtpEmailJob::dispatch($user->email, $subject, $body)
             ->onQueue('emails');
-
-        Log::info("{$purpose} OTP {$otp} queued for {$user->email}");
     }
 
     public function verify(User $user, string $otp): bool
@@ -44,11 +48,17 @@ class OtpService
             throw new Exception(LangHelper::msg('otp_not_generated'));
         }
 
-        if (Carbon::now()->gt(Carbon::parse($user->last_otp_expire))) {
+        $expiresAt = Carbon::parse($user->last_otp_expire);
+        $now = Carbon::now();
+        $isExpired = $now->gt($expiresAt);
+
+        if ($isExpired) {
             throw new Exception(LangHelper::msg('otp_expired'));
         }
 
-        if (!Hash::check($otp, $user->last_otp)) {
+        $isValid = Hash::check($otp, $user->last_otp);
+
+        if (!$isValid) {
             throw new Exception(LangHelper::msg('otp_invalid'));
         }
 
