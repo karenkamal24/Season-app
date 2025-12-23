@@ -159,35 +159,30 @@ class FirebaseService
 
     /**
      * Send safety radius alarm notification (for group admin only)
-     * This is a special notification with maximum priority and alarm channel
+     * Uses data-only messages (NO notification object) for full client control
+     * This ensures guaranteed alarm sound playback
      */
     public function sendSafetyRadiusAlarm($fcmToken, $title, $body, $data = [])
     {
+        // Add title and body to data payload (client extracts these for display)
+        $dataWithTitleBody = array_merge($data, [
+            'title' => $title,
+            'body' => $body,
+        ]);
+
         $message = [
             'message' => [
                 'token' => $fcmToken,
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
-                'data' => $this->convertDataToStrings($data),
+                // NO notification object - data-only message for full client control
+                'data' => $this->convertDataToStrings($dataWithTitleBody),
                 'android' => [
-                    'priority' => 'high',
-                    'notification' => [
-                        'channel_id' => 'safety_radius_alarm_channel', // Required channel for alarm
-                        'sound' => 'default', // Required for Android alarm sound
-                        'priority' => 'max', // Maximum priority for alarm
-                    ]
+                    'priority' => 'high', // High priority for immediate delivery
                 ],
                 'apns' => [
                     'payload' => [
                         'aps' => [
                             'sound' => 'default', // Required for iOS alarm sound
                             'interruption-level' => 'critical', // Critical level for alarm
-                            'alert' => [
-                                'title' => $title,
-                                'body' => $body,
-                            ],
                             'badge' => 1,
                         ]
                     ]
