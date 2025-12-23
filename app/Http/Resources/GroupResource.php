@@ -26,7 +26,10 @@ class GroupResource extends JsonResource
             ),
             'out_of_range_count' => $this->out_of_range_count ?? $this->when(
                 $this->relationLoaded('groupMembers'),
-                fn() => $this->groupMembers->where('status', 'active')->where('is_within_radius', false)->count()
+                fn() => $this->groupMembers->where('status', 'active')
+                    ->where('role', '!=', 'owner') // Owner is never out of range
+                    ->where('is_within_radius', false)
+                    ->count()
             ),
             'members' => GroupMemberResource::collection($this->whenLoaded('groupMembers')),
             'active_sos_alerts' => GroupSosAlertResource::collection($this->whenLoaded('activeSosAlerts')),

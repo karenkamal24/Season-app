@@ -10,6 +10,10 @@ class GroupMemberResource extends JsonResource
     public function toArray(Request $request): array
     {
         if ($this->resource instanceof \App\Models\User) {
+            // Owner is always within radius and distance is always 0
+            $isOwner = $this->pivot->role === 'owner';
+            $isWithinRadius = $isOwner ? true : $this->pivot->is_within_radius;
+            
             return [
                 'id' => $this->id,
                 'name' => $this->name,
@@ -22,8 +26,8 @@ class GroupMemberResource extends JsonResource
                 'last_seen' => $this->last_seen,
                 'role' => $this->pivot->role,
                 'status' => $this->pivot->status,
-                'is_within_radius' => $this->pivot->is_within_radius,
-                'out_of_range_count' => $this->pivot->out_of_range_count,
+                'is_within_radius' => $isWithinRadius,
+                'out_of_range_count' => $isOwner ? 0 : $this->pivot->out_of_range_count,
                 'joined_at' => $this->pivot->joined_at,
                 'last_location_update' => $this->pivot->last_location_update,
                 'latest_location' => null,
@@ -39,6 +43,11 @@ class GroupMemberResource extends JsonResource
             $location = $this->locations->first();
         }
 
+        // Owner is always within radius and distance is always 0
+        $isOwner = $this->role === 'owner';
+        $isWithinRadius = $isOwner ? true : $this->is_within_radius;
+        $distanceFromCenter = $isOwner ? 0 : ($location ? (float) ($location->distance_from_center ?? 0) : 0);
+
         return [
             'id' => $user?->id ?? $this->user_id,
             'name' => $user?->name,
@@ -51,14 +60,14 @@ class GroupMemberResource extends JsonResource
             'last_seen' => $user?->last_seen,
             'role' => $this->role,
             'status' => $this->status,
-            'is_within_radius' => $this->is_within_radius,
-            'out_of_range_count' => $this->out_of_range_count,
+            'is_within_radius' => $isWithinRadius,
+            'out_of_range_count' => $isOwner ? 0 : $this->out_of_range_count,
             'joined_at' => $this->joined_at?->toIso8601String(),
             'last_location_update' => $this->last_location_update?->toIso8601String(),
             'latest_location' => $location ? [
                 'latitude' => (float) $location->latitude,
                 'longitude' => (float) $location->longitude,
-                'distance_from_center' => (float) ($location->distance_from_center ?? 0),
+                'distance_from_center' => $distanceFromCenter,
             ] : null,
         ];
     }

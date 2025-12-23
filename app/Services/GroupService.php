@@ -120,21 +120,30 @@ class GroupService
             ->with('user')
             ->firstOrFail();
 
-        // Calculate distance from group center (owner's location)
-        $centerLocation = $this->getGroupCenter($groupId);
+        // Check if user is the owner
+        $isOwner = $member->role === 'owner' || $userId === $group->owner_id;
 
-        if ($centerLocation) {
-            $distance = $this->calculateDistance(
-                $centerLocation['latitude'],
-                $centerLocation['longitude'],
-                $latitude,
-                $longitude
-            );
+        // Owner is always the center - distance is always 0, always within radius
+        if ($isOwner) {
+            $distance = 0;
+            $isWithinRadius = true;
         } else {
-            $distance = 0; // First location becomes center
-        }
+            // Calculate distance from group center (owner's location)
+            $centerLocation = $this->getGroupCenter($groupId);
 
-        $isWithinRadius = $distance <= $group->safety_radius;
+            if ($centerLocation) {
+                $distance = $this->calculateDistance(
+                    $centerLocation['latitude'],
+                    $centerLocation['longitude'],
+                    $latitude,
+                    $longitude
+                );
+            } else {
+                $distance = 0; // First location becomes center (shouldn't happen if owner hasn't set location)
+            }
+
+            $isWithinRadius = $distance <= $group->safety_radius;
+        }
 
         // Create location record
         $location = GroupLocation::create([
@@ -146,46 +155,55 @@ class GroupService
             'is_within_radius' => $isWithinRadius,
         ]);
 
-        // Track previous state to detect transition
-        $wasInRange = $member->is_within_radius === true;
-        $isNowInRange = $isWithinRadius;
-        
         // Update member status
         $updateData = [
             'is_within_radius' => $isWithinRadius,
-            'out_of_range_count' => !$isWithinRadius ? $member->out_of_range_count + 1 : $member->out_of_range_count,
             'last_location_update' => now(),
         ];
 
-        // Detect transition: was IN range → now OUT of range (Safety Radius Alarm for admin only)
-        if ($wasInRange && !$isNowInRange && $group->notifications_enabled) {
-            // Member just went out of range - send alarm to group owner/admin only
-            $this->sendSafetyRadiusAlarm($group, $member, $distance);
-        }
+        // Owner never goes out of range, so skip notification logic
+        if (!$isOwner) {
+            // Track previous state to detect transition
+            $wasInRange = $member->is_within_radius === true;
+            $isNowInRange = $isWithinRadius;
 
-        // Handle repeated notifications for all members (existing logic)
-        if (!$isWithinRadius && $group->notifications_enabled) {
-            // Member is OUT OF RANGE
-            $shouldSendNotification = false;
+            // Update out of range count only for non-owners
+            $updateData['out_of_range_count'] = !$isWithinRadius ? $member->out_of_range_count + 1 : $member->out_of_range_count;
 
-            // Check if we should send notification (first time or 2 minutes passed)
-            if ($member->last_notification_sent_at === null) {
-                // First time out of range
-                $shouldSendNotification = true;
-            } else {
-                // Check if 2 minutes have passed since last notification
-                $minutesSinceLastNotification = now()->diffInMinutes($member->last_notification_sent_at);
-                if ($minutesSinceLastNotification >= 2) {
+            // Detect transition: was IN range → now OUT of range (Safety Radius Alarm for admin only)
+            if ($wasInRange && !$isNowInRange && $group->notifications_enabled) {
+                // Member just went out of range - send alarm to group owner/admin only
+                $this->sendSafetyRadiusAlarm($group, $member, $distance);
+            }
+
+            // Handle repeated notifications for all members (existing logic)
+            if (!$isWithinRadius && $group->notifications_enabled) {
+                // Member is OUT OF RANGE
+                $shouldSendNotification = false;
+
+                // Check if we should send notification (first time or 2 minutes passed)
+                if ($member->last_notification_sent_at === null) {
+                    // First time out of range
                     $shouldSendNotification = true;
+                } else {
+                    // Check if 2 minutes have passed since last notification
+                    $minutesSinceLastNotification = now()->diffInMinutes($member->last_notification_sent_at);
+                    if ($minutesSinceLastNotification >= 2) {
+                        $shouldSendNotification = true;
+                    }
                 }
-            }
 
-            if ($shouldSendNotification) {
-                $this->sendOutOfRangeNotification($group, $member->user, $distance);
-                $updateData['last_notification_sent_at'] = now();
+                if ($shouldSendNotification) {
+                    $this->sendOutOfRangeNotification($group, $member->user, $distance);
+                    $updateData['last_notification_sent_at'] = now();
+                }
+            } else if ($isWithinRadius && $member->last_notification_sent_at !== null) {
+                // Member is BACK IN RANGE - stop notifications
+                $updateData['last_notification_sent_at'] = null;
             }
-        } else if ($isWithinRadius && $member->last_notification_sent_at !== null) {
-            // Member is BACK IN RANGE - stop notifications
+        } else {
+            // Owner: always within radius, reset notification tracking
+            $updateData['out_of_range_count'] = 0;
             $updateData['last_notification_sent_at'] = null;
         }
 
