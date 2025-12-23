@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Helpers\LangHelper;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class GetItemsRequest extends FormRequest
 {
@@ -15,7 +16,10 @@ class GetItemsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => 'required|exists:item_categories,id',
+            'category_id' => [
+                'required',
+                Rule::exists('item_categories', 'id')->where('is_active', true)
+            ],
         ];
     }
 

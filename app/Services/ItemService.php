@@ -24,7 +24,9 @@ class ItemService
      */
     public function getItemsByCategory(int $categoryId)
     {
-        $category = ItemCategory::find($categoryId);
+        $category = ItemCategory::where('id', $categoryId)
+            ->where('is_active', true)
+            ->first();
 
         if (!$category) {
             throw new NotFoundHttpException(LangHelper::msg('category_not_found'));
