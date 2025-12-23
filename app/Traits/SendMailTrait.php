@@ -30,6 +30,8 @@ trait SendMailTrait
             $mail->Password   = config('mail.mailers.smtp.password');
             $mail->SMTPSecure = config('mail.mailers.smtp.encryption') ?: PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port       = config('mail.mailers.smtp.port');
+            $mail->Timeout    = 10; // تقليل timeout للسرعة (ثواني)
+            $mail->SMTPKeepAlive = true; // الحفاظ على الاتصال مفتوحاً
 
             $mail->setFrom(config('mail.from.address'), config('mail.from.name'));
             $mail->addAddress($receiver);

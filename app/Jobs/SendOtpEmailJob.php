@@ -12,12 +12,12 @@ use Illuminate\Queue\SerializesModels;
 class SendOtpEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, SendMailTrait;
-
+    
     /**
      * عدد المحاولات في حالة الفشل
      */
     public $tries = 3;
-
+    
     /**
      * timeout للـ job (ثواني)
      */
