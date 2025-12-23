@@ -78,12 +78,12 @@ class SendReminders extends Command
                                         // (إما status = 'ready' أو الوزن كامل)
                                         if (!$travelBag->is_ready) {
                                             Log::info("Skipping reminder #{$reminder->id} - travel bag #{$travelBag->id} is not ready yet (status: {$travelBag->status}, current_weight: {$travelBag->current_weight}, max_weight: {$travelBag->max_weight})");
-                                            continue; // تخطي هذا التذكير
+                                            continue 2; // تخطي هذا التذكير (2 للحلقة الخارجية)
                                         }
                                         Log::info("Travel bag #{$travelBag->id} is ready (status: {$travelBag->status}), will send reminder #{$reminder->id}");
                                     }
                                 }
-                                
+
                                 $shouldSend = true;
                                 $reminder->status = 'completed';
                                 Log::info("Sending reminder #{$reminder->id}");

@@ -13,6 +13,16 @@ class SendOtpEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, SendMailTrait;
 
+    /**
+     * عدد المحاولات في حالة الفشل
+     */
+    public $tries = 3;
+
+    /**
+     * timeout للـ job (ثواني)
+     */
+    public $timeout = 30;
+
     public string $email;
     public string $subject;
     public string $body;

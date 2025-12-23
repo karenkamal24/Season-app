@@ -31,9 +31,10 @@ class OtpService
 
         $body = LangHelper::msg('otp_sent') . "<br><b>{$otp}</b> — expires in {$this->otpTtl} minutes.";
 
+        // إرسال OTP في الخلفية - response فوري بدون انتظار
         SendOtpEmailJob::dispatch($user->email, $subject, $body);
 
-        Log::info("{$purpose} OTP {$otp} sent to {$user->email}");
+        Log::info("{$purpose} OTP {$otp} queued for {$user->email}");
     }
 
     public function verify(User $user, string $otp): bool

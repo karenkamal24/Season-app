@@ -114,3 +114,5 @@ APP_DEBUG=true
 - في Windows، قد تحتاج صلاحيات Administrator لإنشاء symlink
 - إذا كنت تستخدم IIS، تأكد من إعداد URL Rewrite بشكل صحيح
 
+
+
