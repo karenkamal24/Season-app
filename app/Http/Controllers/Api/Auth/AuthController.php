@@ -11,6 +11,7 @@ use App\Services\AuthService;
 use App\Utils\ApiResponse;
 use App\Http\Resources\Auth\UserResource;
 use App\Helpers\LangHelper;
+use Illuminate\Support\Facades\Log; 
 use Exception;
 
 class AuthController extends Controller

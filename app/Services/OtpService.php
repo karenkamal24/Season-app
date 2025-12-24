@@ -38,8 +38,8 @@ class OtpService
 
         $body = LangHelper::msg('otp_sent') . "<br><b>{$otp}</b> — expires in {$this->otpTtl} minutes.";
 
-        SendOtpEmailJob::dispatch($user->email, $subject, $body)
-            ->onQueue('emails');
+    SendOtpEmailJob::dispatch($user, $otp, $purpose);
+
     }
 
     public function verify(User $user, string $otp): bool

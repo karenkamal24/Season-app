@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /wahb/
+    
+    # Don't rewrite if it's a real file
+    RewriteCond %{REQUEST_FILENAME} !-f
+    # Don't rewrite if it's a real directory
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Rewrite to public/index.php
+    RewriteRule ^(.*)$ public/index.php/$1 [L]
+</IfModule>
