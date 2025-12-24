@@ -24,11 +24,11 @@ class Category extends Model
     protected static function booted()
     {
         static::updating(function ($category) {
-            // Delete old icon file if icon is being changed or deleted
-            if ($category->isDirty('icon')) {
+            // Delete old icon file only if a new icon is being uploaded (not null)
+            if ($category->isDirty('icon') && $category->icon !== null) {
                 $oldIcon = $category->getOriginal('icon');
                 if ($oldIcon && !str_starts_with($oldIcon, 'http')) {
-                    // Only delete if it's a local file (not URL)
+                    // Only delete if it's a local file (not URL) and new icon is not null
                     $filePath = $oldIcon;
                     if (Storage::disk('public')->exists($filePath)) {
                         Storage::disk('public')->delete($filePath);

@@ -7,7 +7,6 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 
@@ -59,14 +58,6 @@ class CategoryForm
                         ->visible(fn ($record) => $record && $record->icon)
                         ->columnSpanFull(),
 
-                    Toggle::make('remove_icon')
-                        ->label($isArabic ? 'حذف الصورة الحالية' : 'Remove Current Icon')
-                        ->helperText($isArabic ? 'قم بتفعيل هذا الخيار لحذف الصورة الحالية' : 'Enable this option to remove the current icon')
-                        ->visible(fn ($record) => $record && $record->icon)
-                        ->default(false)
-                        ->dehydrated()
-                        ->columnSpanFull(),
-
                     FileUpload::make('icon')
                         ->label($isArabic ? 'رفع صورة جديدة' : 'Upload New Icon')
                         ->disk('public')
@@ -78,7 +69,7 @@ class CategoryForm
                         ->openable()
                         ->imageEditor()
                         ->imagePreviewHeight('250')
-                        ->helperText($isArabic ? 'قم برفع صورة جديدة للأيقونة. إذا قمت بتفعيل خيار "حذف الصورة الحالية" أعلاه، سيتم حذف الصورة القديمة تلقائياً.' : 'Upload a new icon image. If you enabled "Remove Current Icon" above, the old image will be deleted automatically.')
+                        ->helperText($isArabic ? 'قم برفع صورة جديدة للأيقونة. إذا لم ترفع صورة جديدة، ستبقى الصورة القديمة كما هي.' : 'Upload a new icon image. If you don\'t upload a new image, the old image will remain unchanged.')
                         ->columnSpanFull(),
                 ]),
         ]);
