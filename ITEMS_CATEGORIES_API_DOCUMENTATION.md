@@ -39,7 +39,7 @@ Authorization: Bearer YOUR_TOKEN
 
 ### 1. الحصول على جميع التصنيفات
 
-**GET** `/api/categories`
+**GET** `/api/items/categories`
 
 يعيد قائمة بجميع تصنيفات العناصر النشطة المتاحة.
 
@@ -104,7 +104,7 @@ Accept-Language: ar|en (اختياري - يحدد لغة النتائج)
 
 ### 2. الحصول على العناصر حسب التصنيف
 
-**GET** `/api/categories/items?category_id={category_id}`
+**GET** `/api/items?category_id={category_id}`
 
 يعيد قائمة بجميع العناصر النشطة في التصنيف المحدد.
 
@@ -212,7 +212,7 @@ Accept-Language: ar|en (اختياري - يحدد لغة النتائج)
 ### مثال 1: الحصول على جميع التصنيفات
 
 ```bash
-curl -X GET "https://seasonksa.com/api/categories" \
+curl -X GET "https://seasonksa.com/api/items/categories" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Accept-Language: ar"
 ```
@@ -238,7 +238,7 @@ curl -X GET "https://seasonksa.com/api/categories" \
 ### مثال 2: الحصول على عناصر تصنيف معين
 
 ```bash
-curl -X GET "https://seasonksa.com/api/categories/items?category_id=1" \
+curl -X GET "https://seasonksa.com/api/items?category_id=1" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Accept-Language: ar"
 ```
@@ -364,14 +364,14 @@ curl -X GET "https://seasonksa.com/api/categories/items?category_id=1" \
 
 ### Get All Categories
 ```
-GET {{base_url}}/api/categories
+GET {{base_url}}/api/items/categories
 Authorization: Bearer {{token}}
 Accept-Language: ar
 ```
 
 ### Get Items by Category
 ```
-GET {{base_url}}/api/categories/items?category_id=1
+GET {{base_url}}/api/items?category_id=1
 Authorization: Bearer {{token}}
 Accept-Language: ar
 ```
@@ -384,10 +384,10 @@ Accept-Language: ar
 
 ```bash
 # 1. Get categories
-GET /api/categories
+GET /api/items/categories
 
 # 2. Get items in a category
-GET /api/categories/items?category_id=1
+GET /api/items?category_id=1
 
 # 3. Add item to travel bag
 POST /api/travel-bag/add-item

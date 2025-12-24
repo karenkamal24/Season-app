@@ -131,10 +131,10 @@ Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
     Route::post('/reminder', [TravelBagController::class, 'setReminder']); // Set travel bag reminder (old endpoint)
 });
 
-// Item Management
-Route::middleware('auth:sanctum')->prefix('categories')->group(function () {
-    Route::get('/', [ItemController::class, 'categories']);
-    Route::get('/items', [ItemController::class, 'index']); // ?category_id={id}
+// Item Management (Bag Items)
+Route::middleware('auth:sanctum')->prefix('items')->group(function () {
+    Route::get('/categories', [ItemController::class, 'categories']);
+    Route::get('/', [ItemController::class, 'index']); // ?category_id={id}
     // Route::get('/{id}', [ItemController::class, 'show']);
 });
 
