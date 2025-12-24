@@ -22,7 +22,7 @@ class EditGeographicalCategory extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // If remove_icon is checked, set icon to null
-        if (isset($data['remove_icon']) && $data['remove_icon']) {
+        if (!empty($data['remove_icon'])) {
             // Delete old file if exists
             if ($this->record->icon && !str_starts_with($this->record->icon, 'http')) {
                 $filePath = $this->record->icon;

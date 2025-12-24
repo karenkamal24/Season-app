@@ -52,15 +52,19 @@ class CategoryForm
                                     : asset('storage/' . $record->icon))
                                 : null,
                             'label' => $isArabic ? 'الصورة الحالية' : 'Current Icon',
+                            'removeFieldName' => 'remove_icon',
+                            'removeButtonText' => $isArabic ? 'حذف الصورة' : 'Remove Image',
+                            'helperText' => $isArabic ? 'انقر على زر "حذف الصورة" أعلاه لحذف الصورة الحالية. سيتم الحذف عند حفظ النموذج.' : 'Click the "Remove Image" button above to delete the current image. It will be deleted when you save the form.',
                         ])
                         ->columnSpanFull(),
 
                     Toggle::make('remove_icon')
                         ->label($isArabic ? 'حذف الصورة الحالية' : 'Remove Current Icon')
-                        ->helperText($isArabic ? 'قم بتفعيل هذا الخيار لحذف الصورة الحالية' : 'Enable this option to remove the current icon')
                         ->visible(fn ($record) => $record && $record->icon)
-                        ->dehydrated(false)
-                        ->columnSpanFull(),
+                        ->default(false)
+                        ->dehydrated()
+                        ->columnSpanFull()
+                        ->hiddenLabel(),
 
                     FileUpload::make('icon')
                         ->label($isArabic ? 'رفع صورة جديدة' : 'Upload New Icon')
