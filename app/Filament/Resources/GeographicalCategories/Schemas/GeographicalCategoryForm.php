@@ -4,8 +4,8 @@ namespace App\Filament\Resources\GeographicalCategories\Schemas;
 
 use App\Helpers\LanguageHelper;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 
@@ -39,23 +39,6 @@ class GeographicalCategoryForm
             Section::make($isArabic ? 'الأيقونة' : 'Icon')
                 ->icon('heroicon-o-photo')
                 ->schema([
-                    ViewField::make('current_icon_preview')
-                        ->label($isArabic ? 'الصورة الحالية' : 'Current Icon')
-                        ->view('filament.forms.components.current-image')
-                        ->viewData(function ($record) {
-                            if (!$record || !$record->icon) {
-                                return ['imageUrl' => null];
-                            }
-                            
-                            $imageUrl = str_starts_with($record->icon, 'http') 
-                                ? $record->icon 
-                                : asset('storage/' . $record->icon);
-                            
-                            return ['imageUrl' => $imageUrl];
-                        })
-                        ->visible(fn ($record) => $record && $record->icon)
-                        ->columnSpanFull(),
-
                     FileUpload::make('icon')
                         ->label($isArabic ? 'رفع صورة جديدة' : 'Upload New Icon')
                         ->disk('public')
