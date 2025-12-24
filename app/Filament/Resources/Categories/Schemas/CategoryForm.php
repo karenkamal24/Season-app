@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Categories\Schemas;
 
 use App\Helpers\LanguageHelper;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -41,20 +41,19 @@ class CategoryForm
             Section::make($isArabic ? 'الأيقونة' : 'Icon')
                 ->icon('heroicon-o-photo')
                 ->schema([
-                    Placeholder::make('current_icon_preview')
+                    ViewField::make('current_icon_preview')
                         ->label($isArabic ? 'الصورة الحالية' : 'Current Icon')
-                        ->content(function ($record) {
+                        ->view('filament.forms.components.current-image')
+                        ->viewData(function ($record) {
                             if (!$record || !$record->icon) {
-                                return null;
+                                return ['imageUrl' => null];
                             }
                             
                             $imageUrl = str_starts_with($record->icon, 'http') 
                                 ? $record->icon 
                                 : asset('storage/' . $record->icon);
                             
-                            return view('filament.forms.components.current-image', [
-                                'imageUrl' => $imageUrl
-                            ])->render();
+                            return ['imageUrl' => $imageUrl];
                         })
                         ->visible(fn ($record) => $record && $record->icon)
                         ->columnSpanFull(),
