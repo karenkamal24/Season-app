@@ -49,7 +49,8 @@ class GeographicalCategoryForm
                         ->downloadable()
                         ->openable()
                         ->imageEditor()
-                        ->helperText($isArabic ? 'صورة أيقونة التصنيف الجغرافي' : 'Geographical category icon image')
+                        ->deletable()
+                        ->helperText($isArabic ? 'صورة أيقونة التصنيف الجغرافي - يمكنك حذف الصورة القديمة وإضافة صورة جديدة' : 'Geographical category icon image - You can delete the old image and upload a new one')
                         ->columnSpanFull(),
                 ]),
         ]);

@@ -50,7 +50,8 @@ class CategoryForm
                         ->downloadable()
                         ->openable()
                         ->imageEditor()
-                        ->helperText($isArabic ? 'صورة أيقونة التصنيف' : 'Category icon image')
+                        ->deletable()
+                        ->helperText($isArabic ? 'صورة أيقونة التصنيف - يمكنك حذف الصورة القديمة وإضافة صورة جديدة' : 'Category icon image - You can delete the old image and upload a new one')
                         ->columnSpanFull(),
                 ]),
         ]);
