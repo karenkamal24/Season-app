@@ -1,9 +1,4 @@
-@php
-    $viewData = $getViewData();
-    $imageUrl = $viewData['imageUrl'] ?? null;
-@endphp
-
-@if($imageUrl)
+@if(isset($imageUrl) && $imageUrl)
     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-center">
             <img 
