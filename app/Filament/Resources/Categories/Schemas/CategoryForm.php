@@ -46,13 +46,25 @@ class CategoryForm
                         ->directory('categories/icons')
                         ->visibility('public')
                         ->image()
-                        ->preserveFilenames(false)
-                        ->downloadable()
-                        ->openable()
                         ->imageEditor()
                         ->imagePreviewHeight('250')
-                        ->helperText($isArabic ? 'قم برفع صورة جديدة للأيقونة. إذا لم ترفع صورة جديدة، ستبقى الصورة القديمة كما هي.' : 'Upload a new icon image. If you don\'t upload a new image, the old image will remain unchanged.')
-                        ->columnSpanFull(),
+                        ->maxSize(5120)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                        ->downloadable()
+                        ->openable()
+                        ->required(fn (string $operation): bool => $operation === 'create')
+                        ->columnSpanFull()
+                        // الحلول المهمة
+                        ->deletable(true)
+                        ->preserveFilenames(false)
+                        // ده الأهم: متحاولش تحمل الصورة القديمة في Edit
+                        ->afterStateHydrated(function (FileUpload $component, $state) {
+                            // خلي الـ state فاضي في Edit عشان ميحاولش يحمل الصورة
+                            if (request()->routeIs('filament.*.resources.*.edit')) {
+                                $component->state(null);
+                            }
+                        })
+                        ->helperText($isArabic ? 'قم برفع صورة جديدة للأيقونة. إذا لم ترفع صورة جديدة، ستبقى الصورة القديمة كما هي.' : 'Upload a new icon image. If you don\'t upload a new image, the old image will remain unchanged.'),
                 ]),
         ]);
     }

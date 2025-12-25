@@ -59,10 +59,24 @@ class CategoryAppForm
                         ->directory('category_apps/icons')
                         ->visibility('public')
                         ->image()
-                        ->preserveFilenames()
+                        ->imageEditor()
+                        ->imagePreviewHeight('250')
+                        ->maxSize(5120)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
                         ->downloadable()
                         ->openable()
-                        ->imageEditor()
+                        ->required(fn (string $operation): bool => $operation === 'create')
+                        ->columnSpanFull()
+                        // الحلول المهمة
+                        ->deletable(true)
+                        ->preserveFilenames(false)
+                        // ده الأهم: متحاولش تحمل الصورة القديمة في Edit
+                        ->afterStateHydrated(function (FileUpload $component, $state) {
+                            // خلي الـ state فاضي في Edit عشان ميحاولش يحمل الصورة
+                            if (request()->routeIs('filament.*.resources.*.edit')) {
+                                $component->state(null);
+                            }
+                        })
                         ->helperText($isArabic ? 'صورة أيقونة التطبيق' : 'App icon image'),
 
                     TextInput::make('url')
