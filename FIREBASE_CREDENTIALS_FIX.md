@@ -1,6 +1,28 @@
 # 🔧 إصلاح خطأ Firebase Credentials
 
-## ❌ الخطأ الحالي
+## ❌ الأخطاء الشائعة
+
+### الخطأ 1: "FIREBASE_CREDENTIALS environment variable is not set"
+
+```
+Exception: FIREBASE_CREDENTIALS environment variable is not set
+```
+
+**الحل:**
+1. تأكد من وجود المتغير في ملف `.env`:
+   ```env
+   FIREBASE_CREDENTIALS=firebase/season-9ede3-firebase-adminsdk-fbsvc-c1b9e2f2e7.json
+   FIREBASE_PROJECT_ID=season-9ede3
+   ```
+
+2. مسح الكاش وإعادة إنشائه:
+   ```bash
+   php artisan config:clear
+   php artisan cache:clear
+   php artisan config:cache
+   ```
+
+### الخطأ 2: "Is a directory"
 
 ```
 file_get_contents(): Read of 12288 bytes failed with errno=21 Is a directory
@@ -44,12 +66,17 @@ FIREBASE_PROJECT_ID=season-9ede3
 
 **ملاحظة مهمة:** المسار يبدأ من `storage/app/` تلقائياً، لا تكتب المسار الكامل!
 
-### الخطوة 4: مسح الكاش
+### الخطوة 4: مسح الكاش (مهم جداً!)
+
+إذا كنت على السيرفر، قم بتنفيذ:
 
 ```bash
 php artisan config:clear
 php artisan cache:clear
+php artisan config:cache
 ```
+
+**ملاحظة مهمة:** إذا كان لديك `config:cache` نشط، يجب إعادة إنشائه بعد تعديل `.env`!
 
 ### الخطوة 5: التحقق من الملف
 

@@ -14,12 +14,18 @@ class FirebaseService
 
     public function __construct()
     {
-        $this->projectId = env('FIREBASE_PROJECT_ID');
-        $credentialsPath = env('FIREBASE_CREDENTIALS');
+        // Use config() instead of env() directly (Laravel best practice)
+        // config/services.php has default values
+        $this->projectId = config('services.firebase.project_id', 'season-9ede3');
+        $credentialsPath = config('services.firebase.credentials', 'firebase/season-9ede3-firebase-adminsdk-fbsvc-c1b9e2f2e7.json');
         
         // Build full path
         if (empty($credentialsPath)) {
-            throw new \Exception('FIREBASE_CREDENTIALS environment variable is not set');
+            throw new \Exception(
+                'FIREBASE_CREDENTIALS is not configured. ' .
+                'Please add FIREBASE_CREDENTIALS=firebase/season-9ede3-firebase-adminsdk-fbsvc-c1b9e2f2e7.json to your .env file ' .
+                'or ensure config/services.php has the correct default value.'
+            );
         }
         
         // Handle both absolute and relative paths
