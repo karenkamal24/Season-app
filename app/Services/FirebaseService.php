@@ -15,7 +15,37 @@ class FirebaseService
     public function __construct()
     {
         $this->projectId = env('FIREBASE_PROJECT_ID');
-        $this->credentialsPath = storage_path('app/' . env('FIREBASE_CREDENTIALS'));
+        $credentialsPath = env('FIREBASE_CREDENTIALS');
+        
+        // Build full path
+        if (empty($credentialsPath)) {
+            throw new \Exception('FIREBASE_CREDENTIALS environment variable is not set');
+        }
+        
+        // Handle both absolute and relative paths
+        if (str_starts_with($credentialsPath, '/') || str_starts_with($credentialsPath, storage_path())) {
+            // Absolute path
+            $this->credentialsPath = $credentialsPath;
+        } else {
+            // Relative path from storage/app/
+            $this->credentialsPath = storage_path('app/' . ltrim($credentialsPath, '/'));
+        }
+        
+        // Validate that the path is a file, not a directory
+        // Check if parent directory exists
+        $parentDir = dirname($this->credentialsPath);
+        if (!is_dir($parentDir)) {
+            Log::warning('Firebase credentials parent directory does not exist', [
+                'parent_dir' => $parentDir,
+                'full_path' => $this->credentialsPath,
+                'env_value' => $credentialsPath,
+            ]);
+        }
+        
+        // If the path exists and is a directory, throw error
+        if (file_exists($this->credentialsPath) && is_dir($this->credentialsPath)) {
+            throw new \Exception("Firebase credentials path is a directory, not a file: {$this->credentialsPath}. Please ensure FIREBASE_CREDENTIALS points to a JSON file, not a directory.");
+        }
     }
 
     /**
@@ -28,6 +58,16 @@ class FirebaseService
                 // Check if credentials file exists
                 if (!file_exists($this->credentialsPath)) {
                     throw new \Exception("Firebase credentials file not found at: {$this->credentialsPath}");
+                }
+                
+                // Double-check it's a file, not a directory
+                if (is_dir($this->credentialsPath)) {
+                    throw new \Exception("Firebase credentials path is a directory, not a file: {$this->credentialsPath}. Please check your FIREBASE_CREDENTIALS environment variable.");
+                }
+                
+                // Verify it's readable
+                if (!is_readable($this->credentialsPath)) {
+                    throw new \Exception("Firebase credentials file is not readable: {$this->credentialsPath}");
                 }
 
                 $client = new GoogleClient();
@@ -52,10 +92,22 @@ class FirebaseService
 
                 return $token['access_token'];
             } catch (\Exception $e) {
-                Log::error('Firebase Access Token Error: ' . $e->getMessage(), [
+                $errorDetails = [
                     'credentials_path' => $this->credentialsPath,
                     'file_exists' => file_exists($this->credentialsPath),
-                ]);
+                    'is_file' => is_file($this->credentialsPath),
+                    'is_dir' => is_dir($this->credentialsPath),
+                    'is_readable' => is_readable($this->credentialsPath),
+                    'env_value' => env('FIREBASE_CREDENTIALS'),
+                ];
+                
+                // If it's a directory, provide helpful error message
+                if (is_dir($this->credentialsPath)) {
+                    Log::error('Firebase credentials path is a directory, not a file', $errorDetails);
+                    throw new \Exception("Firebase credentials path is a directory: {$this->credentialsPath}. Please check your FIREBASE_CREDENTIALS environment variable. It should point to a JSON file, not a directory.");
+                }
+                
+                Log::error('Firebase Access Token Error: ' . $e->getMessage(), $errorDetails);
                 throw $e;
             }
         });
