@@ -101,7 +101,7 @@ class BagController extends Controller
                     $bag->items()->create([
                         'name' => $itemData['name'],
                         'weight' => $itemData['weight'],
-                        'category' => $itemData['category'],
+                        'item_category_id' => $itemData['item_category_id'],
                         'essential' => $itemData['essential'] ?? false,
                         'packed' => $itemData['packed'] ?? false,
                         'notes' => $itemData['notes'] ?? null,
@@ -334,7 +334,7 @@ class BagController extends Controller
 
             $bag = Bag::where('user_id', $user->id)->findOrFail($bagId);
             $item = $bag->items()->findOrFail($itemId);
-            
+
             $item->togglePacked();
 
             return response()->json([

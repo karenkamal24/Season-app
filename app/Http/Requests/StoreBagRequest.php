@@ -36,7 +36,7 @@ class StoreBagRequest extends FormRequest
             'items' => ['sometimes', 'array'],
             'items.*.name' => ['required_with:items', 'string', 'max:255'],
             'items.*.weight' => ['required_with:items', 'numeric', 'min:0', 'max:999.99'],
-            'items.*.category' => ['required_with:items', Rule::in(['ملابس', 'أحذية', 'إلكترونيات', 'أدوية وعناية', 'مستندات', 'أخرى'])],
+            'items.*.item_category_id' => ['required_with:items', 'integer', 'exists:item_categories,id'],
             'items.*.essential' => ['sometimes', 'boolean'],
             'items.*.packed' => ['sometimes', 'boolean'],
             'items.*.notes' => ['nullable', 'string'],

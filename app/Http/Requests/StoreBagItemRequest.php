@@ -25,7 +25,7 @@ class StoreBagItemRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'weight' => ['required', 'numeric', 'min:0', 'max:999.99'],
-            'category' => ['required', Rule::in(['ملابس', 'أحذية', 'إلكترونيات', 'أدوية وعناية', 'مستندات', 'أخرى'])],
+            'item_category_id' => ['required', 'integer', 'exists:item_categories,id'],
             'essential' => ['sometimes', 'boolean'],
             'packed' => ['sometimes', 'boolean'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -44,8 +44,8 @@ class StoreBagItemRequest extends FormRequest
             'name.required' => 'اسم الغرض مطلوب',
             'weight.required' => 'وزن الغرض مطلوب',
             'weight.min' => 'الوزن يجب أن يكون أكبر من صفر',
-            'category.required' => 'فئة الغرض مطلوبة',
-            'category.in' => 'الفئة يجب أن تكون: ملابس، أحذية، إلكترونيات، أدوية وعناية، مستندات، أو أخرى',
+            'item_category_id.required' => 'فئة الغرض مطلوبة',
+            'item_category_id.exists' => 'الفئة المحددة غير موجودة',
             'quantity.min' => 'الكمية يجب أن تكون 1 على الأقل',
         ];
     }

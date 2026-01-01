@@ -219,6 +219,12 @@ Route::prefix('geographical-sub-categories')->group(function () {
     Route::get('/{id}', [GeographicalSubCategoryController::class, 'show']); // Public endpoint
 });
 
+// Item Categories (Public - for Smart Bags)
+Route::prefix('item-categories')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\ItemCategoryController::class, 'index']); // Get all categories
+    Route::get('/{id}', [\App\Http\Controllers\Api\ItemCategoryController::class, 'show']); // Get single category
+});
+
 // Smart Packing Assistant (Bags with AI Analysis)
 Route::middleware('auth:sanctum')->prefix('smart-bags')->group(function () {
     // Bag CRUD

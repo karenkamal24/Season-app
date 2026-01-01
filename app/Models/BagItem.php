@@ -15,7 +15,7 @@ class BagItem extends Model
         'bag_id',
         'name',
         'weight',
-        'category',
+        'item_category_id',
         'essential',
         'packed',
         'notes',
@@ -33,6 +33,11 @@ class BagItem extends Model
     public function bag(): BelongsTo
     {
         return $this->belongsTo(Bag::class);
+    }
+
+    public function itemCategory(): BelongsTo
+    {
+        return $this->belongsTo(ItemCategory::class);
     }
 
     // Accessors
@@ -68,9 +73,9 @@ class BagItem extends Model
         return $query->where('packed', false);
     }
 
-    public function scopeByCategory($query, string $category)
+    public function scopeByCategory($query, int $categoryId)
     {
-        return $query->where('category', $category);
+        return $query->where('item_category_id', $categoryId);
     }
 
     // Events
