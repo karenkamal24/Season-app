@@ -219,3 +219,25 @@ Route::prefix('geographical-sub-categories')->group(function () {
     Route::get('/{id}', [GeographicalSubCategoryController::class, 'show']); // Public endpoint
 });
 
+// Smart Packing Assistant (Bags with AI Analysis)
+Route::middleware('auth:sanctum')->prefix('smart-bags')->group(function () {
+    // Bag CRUD
+    Route::get('/', [\App\Http\Controllers\Api\BagController::class, 'index']); // Get all user bags
+    Route::post('/', [\App\Http\Controllers\Api\BagController::class, 'store']); // Create new bag
+    Route::get('/{bagId}', [\App\Http\Controllers\Api\BagController::class, 'show']); // Get bag details
+    Route::put('/{bagId}', [\App\Http\Controllers\Api\BagController::class, 'update']); // Update bag
+    Route::delete('/{bagId}', [\App\Http\Controllers\Api\BagController::class, 'destroy']); // Delete bag
+    
+    // Bag Items Management
+    Route::post('/{bagId}/items', [\App\Http\Controllers\Api\BagController::class, 'addItem']); // Add item to bag
+    Route::put('/{bagId}/items/{itemId}', [\App\Http\Controllers\Api\BagController::class, 'updateItem']); // Update item
+    Route::delete('/{bagId}/items/{itemId}', [\App\Http\Controllers\Api\BagController::class, 'deleteItem']); // Delete item
+    Route::post('/{bagId}/items/{itemId}/toggle-packed', [\App\Http\Controllers\Api\BagController::class, 'toggleItemPacked']); // Toggle packed status
+    
+    // AI Analysis
+    Route::post('/{bagId}/analyze', [\App\Http\Controllers\Api\BagAnalysisController::class, 'analyze']); // Analyze bag with AI
+    Route::get('/{bagId}/analysis/latest', [\App\Http\Controllers\Api\BagAnalysisController::class, 'latest']); // Get latest analysis
+    Route::get('/{bagId}/analysis/history', [\App\Http\Controllers\Api\BagAnalysisController::class, 'history']); // Get analysis history
+    Route::get('/{bagId}/smart-alert', [\App\Http\Controllers\Api\BagAnalysisController::class, 'smartAlert']); // Get smart alert
+});
+

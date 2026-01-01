@@ -1,0 +1,280 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Bag;
+use App\Models\BagAnalysis;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Exception;
+
+class BagAnalysisService
+{
+    protected GeminiAIService $geminiService;
+
+    public function __construct(GeminiAIService $geminiService)
+    {
+        $this->geminiService = $geminiService;
+    }
+
+    /**
+     * Analyze bag and create analysis record
+     *
+     * @param Bag $bag
+     * @param array $options
+     * @return BagAnalysis
+     * @throws Exception
+     */
+    public function analyzeBag(Bag $bag, array $options = []): BagAnalysis
+    {
+        try {
+            DB::beginTransaction();
+
+            // Prepare bag data for analysis
+            $bagData = $this->prepareBagData($bag, $options);
+
+            // Get analysis from Gemini AI
+            $analysisResult = $this->geminiService->analyzeBag($bagData);
+
+            // Create analysis record
+            $analysis = BagAnalysis::create([
+                'bag_id' => $bag->id,
+                'analysis_id' => $analysisResult['analysis_id'] ?? null,
+                'missing_items' => $analysisResult['missing_items'] ?? [],
+                'extra_items' => $analysisResult['extra_items'] ?? [],
+                'weight_optimization' => $analysisResult['weight_optimization'] ?? [],
+                'additional_suggestions' => $analysisResult['additional_suggestions'] ?? [],
+                'smart_alert' => $analysisResult['smart_alert'] ?? [],
+                'metadata' => $analysisResult['metadata'] ?? [],
+                'confidence_score' => $analysisResult['metadata']['confidence_score'] ?? 0,
+                'processing_time_ms' => $analysisResult['metadata']['processing_time_ms'] ?? 0,
+                'ai_model' => $analysisResult['metadata']['ai_model'] ?? 'gemini-2.0-flash-exp',
+            ]);
+
+            // Mark bag as analyzed
+            $bag->markAsAnalyzed();
+
+            DB::commit();
+
+            return $analysis;
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Bag Analysis Service Error', [
+                'bag_id' => $bag->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Prepare bag data for analysis
+     *
+     * @param Bag $bag
+     * @param array $options
+     * @return array
+     */
+    protected function prepareBagData(Bag $bag, array $options = []): array
+    {
+        $items = $bag->items->map(function ($item) {
+            return [
+                'id' => 'item_' . $item->id,
+                'name' => $item->name,
+                'weight' => (float) $item->weight,
+                'category' => $item->category,
+                'essential' => (bool) $item->essential,
+                'packed' => (bool) $item->packed,
+                'quantity' => $item->quantity,
+            ];
+        })->toArray();
+
+        return [
+            'bagId' => 'bag_' . $bag->id,
+            'userId' => 'user_' . $bag->user_id,
+            'tripDetails' => [
+                'type' => $bag->trip_type,
+                'duration' => $bag->duration,
+                'destination' => $bag->destination,
+                'departureDate' => $bag->departure_date->format('Y-m-d'),
+                'maxWeight' => (float) $bag->max_weight,
+            ],
+            'items' => $items,
+            'totalWeight' => (float) $bag->total_weight,
+            'preferences' => $bag->preferences ?? $options['preferences'] ?? [],
+        ];
+    }
+
+    /**
+     * Check bag completeness for alerts
+     *
+     * @param Bag $bag
+     * @return array
+     */
+    public function checkBagCompleteness(Bag $bag): array
+    {
+        $issues = [];
+
+        // Check medicines
+        $hasMedicines = $bag->items()->where('category', 'أدوية وعناية')->exists();
+        if (!$hasMedicines) {
+            $issues[] = [
+                'category' => 'medicines',
+                'message' => 'حقيبة الأدوية غير مكتملة',
+                'message_en' => 'Medicine bag is incomplete',
+                'action' => 'راجع الأدوية الأساسية',
+                'action_en' => 'Review essential medicines',
+                'severity' => 'high',
+            ];
+        }
+
+        // Check documents for work trips
+        if ($bag->trip_type === 'عمل') {
+            $hasDocuments = $bag->items()->where('category', 'مستندات')->exists();
+            if (!$hasDocuments) {
+                $issues[] = [
+                    'category' => 'documents',
+                    'message' => 'لا توجد وثائق عمل في الحقيبة',
+                    'message_en' => 'No work documents in bag',
+                    'action' => 'راجع المستندات المطلوبة للاجتماعات',
+                    'action_en' => 'Review required documents for meetings',
+                    'severity' => 'high',
+                ];
+            }
+        }
+
+        // Check weight
+        if ($bag->total_weight > $bag->max_weight * 0.95) {
+            $issues[] = [
+                'category' => 'weight',
+                'message' => 'الوزن قريب من الحد الأقصى',
+                'message_en' => 'Weight is close to maximum',
+                'action' => 'راجع الأغراض وقلل الوزن',
+                'action_en' => 'Review items and reduce weight',
+                'severity' => 'medium',
+            ];
+        }
+
+        // Check if all essential items are packed
+        $unpackedEssentials = $bag->items()
+            ->where('essential', true)
+            ->where('packed', false)
+            ->count();
+
+        if ($unpackedEssentials > 0) {
+            $issues[] = [
+                'category' => 'unpacked',
+                'message' => "يوجد {$unpackedEssentials} أغراض ضرورية غير محزومة",
+                'message_en' => "{$unpackedEssentials} essential items are not packed",
+                'action' => 'راجع الأغراض الضرورية وقم بتحزيمها',
+                'action_en' => 'Review essential items and pack them',
+                'severity' => 'high',
+            ];
+        }
+
+        return $issues;
+    }
+
+    /**
+     * Get bags that need alerts
+     *
+     * @param int $hoursThreshold
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getBagsNeedingAlerts(int $hoursThreshold = 24)
+    {
+        return Bag::needsAlert($hoursThreshold)
+            ->with(['user', 'items'])
+            ->get();
+    }
+
+    /**
+     * Generate smart alert for bag
+     *
+     * @param Bag $bag
+     * @return array|null
+     */
+    public function generateSmartAlert(Bag $bag): ?array
+    {
+        $issues = $this->checkBagCompleteness($bag);
+
+        if (empty($issues)) {
+            return null;
+        }
+
+        $hoursRemaining = now()->diffInHours($bag->departure_date, false);
+        $highestSeverity = $this->determineHighestSeverity($issues);
+
+        return [
+            'alert_id' => 'alert_' . time() . '_' . $bag->id,
+            'bag_id' => $bag->id,
+            'hours_remaining' => $hoursRemaining,
+            'time_remaining' => $this->formatTimeRemaining($hoursRemaining),
+            'issues' => $issues,
+            'message' => $this->buildAlertMessage($hoursRemaining, $issues),
+            'severity' => $highestSeverity,
+            'created_at' => now()->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Determine highest severity from issues
+     *
+     * @param array $issues
+     * @return string
+     */
+    protected function determineHighestSeverity(array $issues): string
+    {
+        $severities = collect($issues)->pluck('severity')->toArray();
+
+        if (in_array('high', $severities)) {
+            return 'high';
+        }
+
+        if (in_array('medium', $severities)) {
+            return 'medium';
+        }
+
+        return 'low';
+    }
+
+    /**
+     * Format time remaining
+     *
+     * @param int $hours
+     * @return string
+     */
+    protected function formatTimeRemaining(int $hours): string
+    {
+        if ($hours < 1) {
+            $minutes = now()->diffInMinutes($hours);
+            return "{$minutes} دقيقة";
+        }
+
+        if ($hours < 24) {
+            return "{$hours} ساعات";
+        }
+
+        $days = (int) ceil($hours / 24);
+        return "{$days} يوم";
+    }
+
+    /**
+     * Build alert message
+     *
+     * @param int $hoursRemaining
+     * @param array $issues
+     * @return string
+     */
+    protected function buildAlertMessage(int $hoursRemaining, array $issues): string
+    {
+        $timeFormatted = $this->formatTimeRemaining($hoursRemaining);
+        $firstIssue = $issues[0];
+
+        return "تبقى {$timeFormatted} على الرحلة و{$firstIssue['message']}";
+    }
+}
+

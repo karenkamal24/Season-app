@@ -36,6 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('users:delete-unverified')->everyTenMinutes();
         // Check and send reminders every minute
         $schedule->command('reminders:send')->everyMinute();
+        // Send smart bag alerts every hour
+        $schedule->command('bags:send-alerts --hours=24')->hourly();
+        // Send urgent alerts for bags departing in 6 hours
+        $schedule->command('bags:send-alerts --hours=6')->everyThreeHours();
     })
 
 

@@ -2,31 +2,92 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BagItem extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
-        'travel_bag_id',
-        'item_id',
-        'custom_item_name',
+        'bag_id',
+        'name',
+        'weight',
+        'category',
+        'essential',
+        'packed',
+        'notes',
         'quantity',
-        'custom_weight',
     ];
 
     protected $casts = [
+        'weight' => 'decimal:2',
+        'essential' => 'boolean',
+        'packed' => 'boolean',
         'quantity' => 'integer',
-        'custom_weight' => 'decimal:2',
     ];
 
-    public function travelBag(): BelongsTo
+    // Relationships
+    public function bag(): BelongsTo
     {
-        return $this->belongsTo(TravelBag::class);
+        return $this->belongsTo(Bag::class);
     }
 
-    public function item(): BelongsTo
+    // Accessors
+    public function getTotalWeightAttribute(): float
     {
-        return $this->belongsTo(Item::class);
+        return $this->weight * $this->quantity;
+    }
+
+    // Methods
+    public function togglePacked(): void
+    {
+        $this->update(['packed' => !$this->packed]);
+    }
+
+    public function markAsEssential(): void
+    {
+        $this->update(['essential' => true]);
+    }
+
+    // Scopes
+    public function scopeEssential($query)
+    {
+        return $query->where('essential', true);
+    }
+
+    public function scopePacked($query)
+    {
+        return $query->where('packed', true);
+    }
+
+    public function scopeUnpacked($query)
+    {
+        return $query->where('packed', false);
+    }
+
+    public function scopeByCategory($query, string $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    // Events
+    protected static function booted(): void
+    {
+        static::created(function ($item) {
+            $item->bag->recalculateWeight();
+        });
+
+        static::updated(function ($item) {
+            if ($item->isDirty(['weight', 'quantity'])) {
+                $item->bag->recalculateWeight();
+            }
+        });
+
+        static::deleted(function ($item) {
+            $item->bag->recalculateWeight();
+        });
     }
 }
