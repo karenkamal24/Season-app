@@ -18,6 +18,7 @@ public static function send(
     $data = self::prepareData($data, null);
 
     $response = [
+        'success' => $code >= 200 && $code < 300, // true for 2xx, false otherwise
         'status' => $code,
         'message' => $message,
         'meta' => $meta ?? ($data['meta'] ?? null),

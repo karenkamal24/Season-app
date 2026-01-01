@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\LangHelper;
 
 class BagController extends Controller
 {
@@ -28,7 +29,7 @@ class BagController extends Controller
         $user = Auth::user();
 
         $query = Bag::where('user_id', $user->id)
-            ->with(['items', 'latestAnalysis'])
+            ->with(['items.itemCategory', 'latestAnalysis'])
             ->withCount('items');
 
         // Filter by status
@@ -51,21 +52,13 @@ class BagController extends Controller
         $sortOrder = $request->get('sort_order', 'asc');
         $query->orderBy($sortBy, $sortOrder);
 
-        // Paginate
-        $perPage = $request->get('per_page', 15);
-        $bags = $query->paginate($perPage);
+        // Get all bags
+        $bags = $query->get();
 
         return response()->json([
             'success' => true,
-            'message' => 'Bags retrieved successfully',
-            'message_ar' => 'تم جلب الحقائب بنجاح',
+            'message' => LangHelper::msg('bags_retrieved'),
             'data' => BagResource::collection($bags),
-            'pagination' => [
-                'total' => $bags->total(),
-                'per_page' => $bags->perPage(),
-                'current_page' => $bags->currentPage(),
-                'last_page' => $bags->lastPage(),
-            ],
         ]);
     }
 
@@ -117,9 +110,8 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Bag created successfully',
-                'message_ar' => 'تم إنشاء الحقيبة بنجاح',
-                'data' => new BagResource($bag->load(['items', 'latestAnalysis'])),
+                'message' => LangHelper::msg('bag_created'),
+                'data' => new BagResource($bag->load(['items.itemCategory', 'latestAnalysis'])),
             ], 201);
 
         } catch (\Exception $e) {
@@ -127,8 +119,7 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create bag',
-                'message_ar' => 'فشل في إنشاء الحقيبة',
+                'message' => LangHelper::msg('bag_create_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -145,14 +136,13 @@ class BagController extends Controller
         $user = Auth::user();
 
         $bag = Bag::where('user_id', $user->id)
-            ->with(['items', 'latestAnalysis'])
+            ->with(['items.itemCategory', 'latestAnalysis'])
             ->withCount('items')
             ->findOrFail($id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Bag retrieved successfully',
-            'message_ar' => 'تم جلب الحقيبة بنجاح',
+            'message' => LangHelper::msg('bag_retrieved'),
             'data' => new BagResource($bag),
         ]);
     }
@@ -175,16 +165,14 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Bag updated successfully',
-                'message_ar' => 'تم تحديث الحقيبة بنجاح',
-                'data' => new BagResource($bag->load(['items', 'latestAnalysis'])),
+                'message' => LangHelper::msg('bag_updated'),
+                'data' => new BagResource($bag->load(['items.itemCategory', 'latestAnalysis'])),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update bag',
-                'message_ar' => 'فشل في تحديث الحقيبة',
+                'message' => LangHelper::msg('bag_update_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -206,15 +194,13 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Bag deleted successfully',
-                'message_ar' => 'تم حذف الحقيبة بنجاح',
+                'message' => LangHelper::msg('bag_deleted'),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete bag',
-                'message_ar' => 'فشل في حذف الحقيبة',
+                'message' => LangHelper::msg('bag_delete_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -238,16 +224,14 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Item added successfully',
-                'message_ar' => 'تم إضافة الغرض بنجاح',
+                'message' => LangHelper::msg('item_added'),
                 'data' => new SmartBagItemResource($item),
             ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to add item',
-                'message_ar' => 'فشل في إضافة الغرض',
+                'message' => LangHelper::msg('item_add_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -273,16 +257,14 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Item updated successfully',
-                'message_ar' => 'تم تحديث الغرض بنجاح',
+                'message' => LangHelper::msg('item_updated'),
                 'data' => new SmartBagItemResource($item),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update item',
-                'message_ar' => 'فشل في تحديث الغرض',
+                'message' => LangHelper::msg('item_update_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -306,15 +288,13 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Item deleted successfully',
-                'message_ar' => 'تم حذف الغرض بنجاح',
+                'message' => LangHelper::msg('item_deleted'),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete item',
-                'message_ar' => 'فشل في حذف الغرض',
+                'message' => LangHelper::msg('item_delete_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -339,16 +319,14 @@ class BagController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Item packed status updated',
-                'message_ar' => 'تم تحديث حالة التحزيم',
+                'message' => LangHelper::msg('item_packed_updated'),
                 'data' => new SmartBagItemResource($item),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to toggle packed status',
-                'message_ar' => 'فشل في تغيير حالة التحزيم',
+                'message' => LangHelper::msg('item_packed_toggle_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }

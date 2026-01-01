@@ -14,11 +14,12 @@ class BagResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $lang = app()->getLocale();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'trip_type' => $this->trip_type,
-            'trip_type_en' => $this->getTripTypeInEnglish($this->trip_type),
+            'trip_type' => $lang === 'ar' ? $this->trip_type : $this->getTripTypeInEnglish($this->trip_type),
             'duration' => $this->duration,
             'destination' => $this->destination,
             'departure_date' => $this->departure_date->format('Y-m-d'),
@@ -28,9 +29,8 @@ class BagResource extends JsonResource
             'remaining_weight' => $this->remaining_weight,
             'is_overweight' => $this->is_overweight,
             'days_until_departure' => $this->days_until_departure,
-            'status' => $this->status,
-            'status_en' => $this->getStatusInEnglish($this->status),
-            'preferences' => $this->preferences,
+            'status' => $lang === 'ar' ? $this->getStatusInArabic($this->status) : $this->getStatusInEnglish($this->status),
+            // 'preferences' => $this->preferences,
             'is_analyzed' => $this->is_analyzed,
             'last_analyzed_at' => $this->last_analyzed_at?->toIso8601String(),
             'items_count' => $this->whenCounted('items'),
@@ -72,6 +72,24 @@ class BagResource extends JsonResource
             'in_progress' => 'In Progress',
             'completed' => 'Completed',
             'cancelled' => 'Cancelled',
+        ];
+
+        return $statuses[$status] ?? $status;
+    }
+
+    /**
+     * Get status in Arabic
+     *
+     * @param string $status
+     * @return string
+     */
+    protected function getStatusInArabic(string $status): string
+    {
+        $statuses = [
+            'draft' => 'مسودة',
+            'in_progress' => 'قيد التجهيز',
+            'completed' => 'مكتملة',
+            'cancelled' => 'ملغاة',
         ];
 
         return $statuses[$status] ?? $status;

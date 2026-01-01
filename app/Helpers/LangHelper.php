@@ -569,6 +569,70 @@ class LangHelper
                 'en' => 'All travel bags retrieved successfully.',
                 'ar' => 'تم جلب جميع حقائب السفر بنجاح.'
             ],
+            'bags_retrieved' => [
+                'en' => 'Bags retrieved successfully',
+                'ar' => 'تم جلب الحقائب بنجاح'
+            ],
+            'bag_retrieved' => [
+                'en' => 'Bag retrieved successfully',
+                'ar' => 'تم جلب الحقيبة بنجاح'
+            ],
+            'bag_created' => [
+                'en' => 'Bag created successfully',
+                'ar' => 'تم إنشاء الحقيبة بنجاح'
+            ],
+            'bag_updated' => [
+                'en' => 'Bag updated successfully',
+                'ar' => 'تم تحديث الحقيبة بنجاح'
+            ],
+            'bag_deleted' => [
+                'en' => 'Bag deleted successfully',
+                'ar' => 'تم حذف الحقيبة بنجاح'
+            ],
+            'bag_create_failed' => [
+                'en' => 'Failed to create bag',
+                'ar' => 'فشل في إنشاء الحقيبة'
+            ],
+            'bag_update_failed' => [
+                'en' => 'Failed to update bag',
+                'ar' => 'فشل في تحديث الحقيبة'
+            ],
+            'bag_delete_failed' => [
+                'en' => 'Failed to delete bag',
+                'ar' => 'فشل في حذف الحقيبة'
+            ],
+            'item_added' => [
+                'en' => 'Item added successfully',
+                'ar' => 'تم إضافة الغرض بنجاح'
+            ],
+            'item_updated' => [
+                'en' => 'Item updated successfully',
+                'ar' => 'تم تحديث الغرض بنجاح'
+            ],
+            'item_deleted' => [
+                'en' => 'Item deleted successfully',
+                'ar' => 'تم حذف الغرض بنجاح'
+            ],
+            'item_packed_updated' => [
+                'en' => 'Item packed status updated',
+                'ar' => 'تم تحديث حالة التحزيم'
+            ],
+            'item_add_failed' => [
+                'en' => 'Failed to add item',
+                'ar' => 'فشل في إضافة الغرض'
+            ],
+            'item_update_failed' => [
+                'en' => 'Failed to update item',
+                'ar' => 'فشل في تحديث الغرض'
+            ],
+            'item_delete_failed' => [
+                'en' => 'Failed to delete item',
+                'ar' => 'فشل في حذف الغرض'
+            ],
+            'item_packed_toggle_failed' => [
+                'en' => 'Failed to toggle packed status',
+                'ar' => 'فشل في تغيير حالة التحزيم'
+            ],
             'travel_bag_fetch_failed' => [
                 'en' => 'Failed to retrieve travel bag.',
                 'ar' => 'فشل جلب حقيبة السفر.'

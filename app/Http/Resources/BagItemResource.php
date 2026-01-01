@@ -16,58 +16,35 @@ class BagItemResource extends JsonResource
     {
         $lang = app()->getLocale();
 
-        // Check if this is a custom item or regular item
-        $isCustomItem = $this->item_id === null && $this->custom_item_name !== null;
+        // Calculate weight
+        $weight = $this->weight;
+        $totalWeight = $weight * $this->quantity;
 
-        if ($isCustomItem) {
-            // Custom item
-            $weight = $this->custom_weight;
-            $totalWeight = $weight * $this->quantity;
-
-            return [
-                'item_id' => null,
-                'custom_item_name' => $this->custom_item_name,
-                'name' => $this->custom_item_name,
-                'category' => null,
-                'quantity' => $this->quantity,
-                'weight_per_item' => round($weight, 2),
-                'total_weight' => round($totalWeight, 2),
-                'is_custom' => true,
-            ];
-        } else {
-            // Regular item - check if item relationship exists
-            if (!$this->item) {
-                // Fallback if item doesn't exist (shouldn't happen, but handle gracefully)
-                return [
-                    'item_id' => $this->item_id,
-                    'custom_item_name' => null,
-                    'name' => 'Unknown Item',
-                    'category' => null,
-                    'quantity' => $this->quantity,
-                    'weight_per_item' => round($this->custom_weight ?? 0, 2),
-                    'total_weight' => round(($this->custom_weight ?? 0) * $this->quantity, 2),
-                    'is_custom' => false,
-                ];
-            }
-
-            $weight = $this->custom_weight ?? $this->item->default_weight;
-            $totalWeight = $weight * $this->quantity;
-
-            return [
-                'item_id' => $this->item_id,
-                'custom_item_name' => null,
-                'name' => $lang === 'ar' ? $this->item->name_ar : $this->item->name_en,
-                'category' => $this->item->category ? (
-                    $lang === 'ar'
-                        ? ($this->item->category->name_ar ?? null)
-                        : ($this->item->category->name_en ?? null)
-                ) : null,
-                'quantity' => $this->quantity,
-                'weight_per_item' => round($weight, 2),
-                'total_weight' => round($totalWeight, 2),
-                'is_custom' => false,
+        // Get category information
+        $category = null;
+        if ($this->itemCategory) {
+            $category = [
+                'id' => $this->itemCategory->id,
+                'name' => $lang === 'ar' ? $this->itemCategory->name_ar : $this->itemCategory->name_en,
+                'icon' => $this->itemCategory->icon,
+                'icon_color' => $this->itemCategory->icon_color,
             ];
         }
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'weight' => round($weight, 2),
+            'quantity' => $this->quantity,
+            'total_weight' => round($totalWeight, 2),
+            'item_category_id' => $this->item_category_id,
+            'category' => $category,
+            'essential' => $this->essential,
+            'packed' => $this->packed,
+            'notes' => $this->notes,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
     }
 }
 
