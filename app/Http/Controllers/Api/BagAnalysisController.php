@@ -44,20 +44,6 @@ class BagAnalysisController extends Controller
                 ], 422);
             }
 
-            // Check if already analyzed recently (unless force reanalysis)
-            if ($bag->is_analyzed && 
-                $bag->last_analyzed_at && 
-                $bag->last_analyzed_at->diffInHours(now()) < 24 &&
-                !$request->boolean('force_reanalysis')
-            ) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Bag was analyzed recently. Use force_reanalysis=true to reanalyze.',
-                    'message_ar' => 'تم تحليل الحقيبة مؤخراً. استخدم force_reanalysis=true لإعادة التحليل.',
-                    'last_analyzed_at' => $bag->last_analyzed_at->toIso8601String(),
-                ], 422);
-            }
-
             // Perform analysis
             $analysis = $this->analysisService->analyzeBag($bag, [
                 'preferences' => $request->get('preferences', []),
