@@ -34,7 +34,7 @@ class BagResource extends JsonResource
             'is_analyzed' => $this->is_analyzed,
             'last_analyzed_at' => $this->last_analyzed_at?->toIso8601String(),
             'items_count' => $this->whenCounted('items'),
-            'items' => BagItemResource::collection($this->whenLoaded('items')),
+            'items' => SmartBagItemResource::collection($this->whenLoaded('items')),
             'latest_analysis' => new BagAnalysisResource($this->whenLoaded('latestAnalysis')),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),

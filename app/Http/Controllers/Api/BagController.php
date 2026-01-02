@@ -221,6 +221,7 @@ class BagController extends Controller
             $bag = Bag::where('user_id', $user->id)->findOrFail($bagId);
 
             $item = $bag->items()->create($request->validated());
+            $item->load('itemCategory');
 
             return response()->json([
                 'success' => true,
@@ -254,6 +255,7 @@ class BagController extends Controller
             $item = $bag->items()->findOrFail($itemId);
 
             $item->update($request->validated());
+            $item->load('itemCategory');
 
             return response()->json([
                 'success' => true,
@@ -316,6 +318,7 @@ class BagController extends Controller
             $item = $bag->items()->findOrFail($itemId);
 
             $item->togglePacked();
+            $item->load('itemCategory');
 
             return response()->json([
                 'success' => true,
