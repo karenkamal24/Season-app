@@ -24,7 +24,7 @@ class UpdateBagRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'trip_type' => ['sometimes', Rule::in(['عمل', 'سياحة', 'عائلية', 'علاج'])],
+            'trip_type' => ['sometimes', Rule::in(['عمل', 'سياحة', 'عائلية', 'علاج', 'الجيم', 'أخرى'])],
             'duration' => ['sometimes', 'integer', 'min:1', 'max:365'],
             'destination' => ['sometimes', 'string', 'max:255'],
             'departure_date' => ['sometimes', 'date', 'after_or_equal:today'],
@@ -45,7 +45,7 @@ class UpdateBagRequest extends FormRequest
     {
         return [
             'name.string' => 'اسم الحقيبة يجب أن يكون نص',
-            'trip_type.in' => 'نوع الرحلة يجب أن يكون: عمل، سياحة، عائلية، أو علاج',
+            'trip_type.in' => 'نوع الرحلة يجب أن يكون: عمل، سياحة، عائلية، علاج، الجيم، أو أخرى',
             'duration.min' => 'مدة الرحلة يجب أن تكون يوم واحد على الأقل',
             'departure_date.after_or_equal' => 'تاريخ المغادرة يجب أن يكون اليوم أو في المستقبل',
             'max_weight.min' => 'الحد الأقصى للوزن يجب أن يكون أكبر من صفر',

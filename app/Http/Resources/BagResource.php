@@ -54,6 +54,8 @@ class BagResource extends JsonResource
             'سياحة' => 'Tourism',
             'عائلية' => 'Family',
             'علاج' => 'Medical',
+            'الجيم' => 'Gym',
+            'أخرى' => 'Other',
         ];
 
         return $types[$tripType] ?? $tripType;

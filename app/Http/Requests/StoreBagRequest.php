@@ -24,7 +24,7 @@ class StoreBagRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'trip_type' => ['required', Rule::in(['عمل', 'سياحة', 'عائلية', 'علاج'])],
+            'trip_type' => ['required', Rule::in(['عمل', 'سياحة', 'عائلية', 'علاج', 'الجيم', 'أخرى'])],
             'duration' => ['required', 'integer', 'min:1', 'max:365'],
             'destination' => ['required', 'string', 'max:255'],
             'departure_date' => ['required', 'date', 'after_or_equal:today'],
@@ -54,7 +54,7 @@ class StoreBagRequest extends FormRequest
         return [
             'name.required' => 'اسم الحقيبة مطلوب',
             'trip_type.required' => 'نوع الرحلة مطلوب',
-            'trip_type.in' => 'نوع الرحلة يجب أن يكون: عمل، سياحة، عائلية، أو علاج',
+            'trip_type.in' => 'نوع الرحلة يجب أن يكون: عمل، سياحة، عائلية، علاج، الجيم، أو أخرى',
             'duration.required' => 'مدة الرحلة مطلوبة',
             'duration.min' => 'مدة الرحلة يجب أن تكون يوم واحد على الأقل',
             'destination.required' => 'وجهة السفر مطلوبة',
