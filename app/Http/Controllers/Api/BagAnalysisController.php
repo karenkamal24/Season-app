@@ -33,7 +33,7 @@ class BagAnalysisController extends Controller
             $user = Auth::user();
 
             $bag = Bag::where('user_id', $user->id)
-                ->with('items')
+                ->with(['items', 'latestAnalysis'])
                 ->findOrFail($bagId);
 
             // Check if bag has items
@@ -55,20 +55,55 @@ class BagAnalysisController extends Controller
                 'message' => 'Bag analyzed successfully',
                 'message_ar' => 'تم تحليل الحقيبة بنجاح',
                 'data' => new BagAnalysisResource($analysis),
+                'is_fresh_analysis' => true,
             ], 201);
 
         } catch (ConnectionException $e) {
+            // Try to return last analysis if available
+            $bag = Bag::where('user_id', Auth::id())
+                ->with('latestAnalysis')
+                ->find($bagId);
+
+            if ($bag && $bag->latestAnalysis) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Analysis request timed out. Returning last available analysis.',
+                    'message_ar' => 'انتهت مهلة طلب التحليل. تم إرجاع آخر تحليل متاح.',
+                    'data' => new BagAnalysisResource($bag->latestAnalysis),
+                    'is_fresh_analysis' => false,
+                    'warning' => 'Connection timeout - showing cached analysis',
+                    'warning_ar' => 'انتهت مهلة الاتصال - يتم عرض آخر تحليل محفوظ',
+                ], 200);
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Analysis request timed out. Please try again.',
-                'message_ar' => 'انتهت مهلة طلب التحليل. يرجى المحاولة مرة أخرى.',
+                'message' => 'Analysis request timed out and no previous analysis found. Please try again.',
+                'message_ar' => 'انتهت مهلة طلب التحليل ولا يوجد تحليل سابق. يرجى المحاولة مرة أخرى.',
                 'error' => 'Connection timeout',
             ], 504);
         } catch (\Exception $e) {
+            // Try to return last analysis if available
+            $bag = Bag::where('user_id', Auth::id())
+                ->with('latestAnalysis')
+                ->find($bagId);
+
+            if ($bag && $bag->latestAnalysis) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Analysis failed. Returning last available analysis.',
+                    'message_ar' => 'فشل التحليل. تم إرجاع آخر تحليل متاح.',
+                    'data' => new BagAnalysisResource($bag->latestAnalysis),
+                    'is_fresh_analysis' => false,
+                    'warning' => 'Analysis error - showing cached analysis',
+                    'warning_ar' => 'خطأ في التحليل - يتم عرض آخر تحليل محفوظ',
+                ], 200);
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to analyze bag',
-                'message_ar' => 'فشل في تحليل الحقيبة',
+                'message' => 'Failed to analyze bag and no previous analysis found.',
+                'message_ar' => 'فشل في تحليل الحقيبة ولا يوجد تحليل سابق.',
                 'error' => $e->getMessage(),
             ], 500);
         }
