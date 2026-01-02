@@ -88,24 +88,46 @@ class BagAnalysisController extends Controller
                 ->with('latestAnalysis')
                 ->find($bagId);
 
+            // Check if error is related to quota/API key
+            $errorMessage = $e->getMessage();
+            $isQuotaError = stripos($errorMessage, 'quota') !== false || 
+                           stripos($errorMessage, 'exceeded') !== false ||
+                           stripos($errorMessage, 'billing') !== false;
+
             if ($bag && $bag->latestAnalysis) {
+                $warningMessage = $isQuotaError 
+                    ? 'API quota exceeded - showing cached analysis'
+                    : 'Analysis error - showing cached analysis';
+                $warningMessageAr = $isQuotaError
+                    ? 'تم تجاوز الحصة المسموحة - يتم عرض آخر تحليل محفوظ'
+                    : 'خطأ في التحليل - يتم عرض آخر تحليل محفوظ';
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Analysis failed. Returning last available analysis.',
-                    'message_ar' => 'فشل التحليل. تم إرجاع آخر تحليل متاح.',
+                    'message' => 'Analysis service unavailable. Returning last available analysis.',
+                    'message_ar' => 'خدمة التحليل غير متاحة حالياً. تم إرجاع آخر تحليل متاح.',
                     'data' => new BagAnalysisResource($bag->latestAnalysis),
                     'is_fresh_analysis' => false,
-                    'warning' => 'Analysis error - showing cached analysis',
-                    'warning_ar' => 'خطأ في التحليل - يتم عرض آخر تحليل محفوظ',
+                    'warning' => $warningMessage,
+                    'warning_ar' => $warningMessageAr,
                 ], 200);
             }
 
-            return response()->json([
+            // No previous analysis found
+            $errorResponse = [
                 'success' => false,
-                'message' => 'Failed to analyze bag and no previous analysis found.',
-                'message_ar' => 'فشل في تحليل الحقيبة ولا يوجد تحليل سابق.',
-                'error' => $e->getMessage(),
-            ], 500);
+                'error' => $errorMessage,
+            ];
+
+            if ($isQuotaError) {
+                $errorResponse['message'] = 'Analysis service quota exceeded and no previous analysis found. Please try again later.';
+                $errorResponse['message_ar'] = 'تم تجاوز الحصة المسموحة لخدمة التحليل ولا يوجد تحليل سابق. يرجى المحاولة لاحقاً.';
+            } else {
+                $errorResponse['message'] = 'Failed to analyze bag and no previous analysis found.';
+                $errorResponse['message_ar'] = 'فشل في تحليل الحقيبة ولا يوجد تحليل سابق.';
+            }
+
+            return response()->json($errorResponse, 500);
         }
     }
 
