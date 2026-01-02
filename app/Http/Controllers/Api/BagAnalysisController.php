@@ -9,6 +9,7 @@ use App\Models\Bag;
 use App\Services\BagAnalysisService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Client\ConnectionException;
 
 class BagAnalysisController extends Controller
 {
@@ -56,6 +57,13 @@ class BagAnalysisController extends Controller
                 'data' => new BagAnalysisResource($analysis),
             ], 201);
 
+        } catch (ConnectionException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Analysis request timed out. Please try again.',
+                'message_ar' => 'انتهت مهلة طلب التحليل. يرجى المحاولة مرة أخرى.',
+                'error' => 'Connection timeout',
+            ], 504);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

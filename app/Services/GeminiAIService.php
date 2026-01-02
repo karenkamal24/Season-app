@@ -32,8 +32,8 @@ class GeminiAIService
         $startTime = microtime(true);
 
         try {
-            $response = Http::timeout(60)
-                ->retry(3, 1000)
+            $response = Http::timeout(25)
+                ->retry(2, 500)
                 ->post($this->apiUrl . '?key=' . $this->apiKey, [
                     'contents' => [
                         [
@@ -47,6 +47,7 @@ class GeminiAIService
                         'topK' => 40,
                         'topP' => 0.95,
                         'maxOutputTokens' => 8192,
+                        'responseMimeType' => 'application/json',
                     ], $config),
                     'safetySettings' => [
                         [
