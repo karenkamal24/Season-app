@@ -90,7 +90,9 @@ class Bag extends Model
     // Methods
     public function recalculateWeight(): void
     {
-        $this->total_weight = $this->items()->sum('weight');
+        $this->total_weight = $this->items()->get()->sum(function ($item) {
+            return $item->weight * $item->quantity;
+        });
         $this->save();
     }
 
