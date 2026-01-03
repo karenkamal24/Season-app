@@ -13,21 +13,21 @@ return new class extends Migration
     {
         // First, cleanup duplicates - keep only the latest location for each user in each group
         $this->cleanupDuplicates();
-        
+
         Schema::table('group_locations', function (Blueprint $table) {
             // Drop foreign keys first (they depend on the index)
             $table->dropForeign(['group_id']);
             $table->dropForeign(['user_id']);
         });
-        
+
         Schema::table('group_locations', function (Blueprint $table) {
             // Drop the old index
             $table->dropIndex(['group_id', 'user_id']);
-            
+
             // Add unique constraint (only one location per user per group)
             $table->unique(['group_id', 'user_id'], 'group_locations_group_user_unique');
         });
-        
+
         Schema::table('group_locations', function (Blueprint $table) {
             // Re-add foreign keys
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
@@ -74,15 +74,15 @@ return new class extends Migration
             $table->dropForeign(['group_id']);
             $table->dropForeign(['user_id']);
         });
-        
+
         Schema::table('group_locations', function (Blueprint $table) {
             // Drop unique constraint
             $table->dropUnique('group_locations_group_user_unique');
-            
+
             // Re-add the index
             $table->index(['group_id', 'user_id']);
         });
-        
+
         Schema::table('group_locations', function (Blueprint $table) {
             // Re-add foreign keys
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
