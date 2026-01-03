@@ -269,3 +269,4 @@ php artisan migrate
 **آخر تحديث:** يناير 2025  
 **الإصدار:** 2.0 (محدّث ليستخدم item_category_id)
 
+

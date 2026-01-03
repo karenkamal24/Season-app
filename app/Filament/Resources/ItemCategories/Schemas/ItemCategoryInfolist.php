@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ItemCategories\Schemas;
 use App\Helpers\LanguageHelper;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
@@ -30,9 +31,12 @@ class ItemCategoryInfolist
                                     ->label($isArabic ? 'الاسم (إنجليزي)' : 'English Name')
                                     ->placeholder('-'),
 
-                                TextEntry::make('icon')
+                                ImageEntry::make('icon')
                                     ->label($isArabic ? 'الأيقونة' : 'Icon')
-                                    ->placeholder('-'),
+                                    ->circular()
+                                    ->size(80)
+                                    ->defaultImageUrl(url('/images/default-icon.png'))
+                                    ->columnSpanFull(),
 
                                 TextEntry::make('icon_color')
                                     ->label($isArabic ? 'لون الأيقونة' : 'Icon Color')

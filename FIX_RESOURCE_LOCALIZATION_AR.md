@@ -334,3 +334,4 @@ const tripType = bag.trip_type;  // تلقائياً!
 **آخر تحديث:** يناير 2025  
 **الإصدار:** 2.1 - Localization Optimization
 
+

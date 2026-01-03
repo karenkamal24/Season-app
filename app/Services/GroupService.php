@@ -129,7 +129,7 @@ class GroupService
         if ($isOwner) {
             $distance = 0;
             $isWithinRadius = true;
-            
+
             Log::info('Owner/Admin location updated', [
                 'group_id' => $groupId,
                 'user_id' => $userId,
@@ -159,10 +159,10 @@ class GroupService
                     $latitude,
                     $longitude
                 );
-                
+
                 // Check if distance exceeds safety radius
                 $isWithinRadius = $distance <= $group->safety_radius;
-                
+
                 Log::info('Member location updated - distance calculated', [
                     'group_id' => $groupId,
                     'member_id' => $userId,
@@ -177,15 +177,19 @@ class GroupService
             }
         }
 
-        // Create location record
-        $location = GroupLocation::create([
-            'group_id' => $groupId,
-            'user_id' => $userId,
-            'latitude' => $latitude,
-            'longitude' => $longitude,
-            'distance_from_center' => $distance,
-            'is_within_radius' => $isWithinRadius,
-        ]);
+        // Update or Create location record (one row per user per group)
+        $location = GroupLocation::updateOrCreate(
+            [
+                'group_id' => $groupId,
+                'user_id' => $userId,
+            ],
+            [
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'distance_from_center' => $distance,
+                'is_within_radius' => $isWithinRadius,
+            ]
+        );
 
         // Update member status
         $updateData = [
@@ -318,7 +322,7 @@ class GroupService
     protected function sendSafetyRadiusAlarm($group, $outOfRangeMember, $distance)
     {
         $owner = $group->owner;
-        
+
         if (!$owner || !$owner->fcm_token) {
             // Owner doesn't have FCM token registered
             Log::warning('Cannot send safety radius alarm: Owner has no FCM token', [

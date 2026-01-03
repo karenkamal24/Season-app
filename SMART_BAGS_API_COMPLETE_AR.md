@@ -1104,3 +1104,4 @@ const analyzeBag = async (bagId) => {
 **آخر تحديث:** يناير 2026  
 **الإصدار:** 3.0 - Smart Bags Only (Complete)
 
+

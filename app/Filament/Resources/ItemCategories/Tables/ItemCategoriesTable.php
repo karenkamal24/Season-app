@@ -10,6 +10,7 @@ use Filament\Actions\ViewAction;
 use Filament\Actions\DeleteAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
 
 class ItemCategoriesTable
@@ -30,10 +31,12 @@ class ItemCategoriesTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('icon')
+                ImageColumn::make('icon')
                     ->label($isArabic ? 'الأيقونة' : 'Icon')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-icon.png'))
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 TextColumn::make('icon_color')
                     ->label($isArabic ? 'لون الأيقونة' : 'Icon Color')

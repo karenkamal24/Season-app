@@ -92,3 +92,4 @@ php artisan db:seed --class=ItemCategorySeeder
 
 **نصيحة:** احفظ جدول الفئات في مكان قريب! 🎯
 
+
