@@ -78,21 +78,16 @@ class BannerForm
         $isArabic = LanguageHelper::isArabic();
 
         return [
-            // Authentication Routes
-            '/login' => $isArabic ? 'تسجيل الدخول (/login)' : 'Login (/login)',
-            '/signUp' => $isArabic ? 'إنشاء حساب (/signUp)' : 'Sign Up (/signUp)',
-            '/welcome' => $isArabic ? 'شاشة الترحيب (/welcome)' : 'Welcome (/welcome)',
-            '/verifyOtp' => $isArabic ? 'التحقق من OTP (/verifyOtp)' : 'Verify OTP (/verifyOtp)',
-            '/forgotPassword' => $isArabic ? 'نسيت كلمة المرور (/forgotPassword)' : 'Forgot Password (/forgotPassword)',
-            '/verifyResetOtp' => $isArabic ? 'التحقق من OTP لإعادة التعيين (/verifyResetOtp)' : 'Verify Reset OTP (/verifyResetOtp)',
-            '/resetPassword' => $isArabic ? 'إعادة تعيين كلمة المرور (/resetPassword)' : 'Reset Password (/resetPassword)',
-
+ 
             // Main App Routes
             '/home' => $isArabic ? 'الصفحة الرئيسية (/home)' : 'Home (/home)',
+            '/home?tab=bag' => $isArabic ? 'صفحة الحقيبة (/home?tab=bag)' : 'Bag Page (/home?tab=bag)',
+            '/home?tab=reminders' => $isArabic ? 'صفحة التذكيرات (/home?tab=reminders)' : 'Reminders Page (/home?tab=reminders)',
+            '/home?tab=groups' => $isArabic ? 'صفحة المجموعات (/home?tab=groups)' : 'Groups Page (/home?tab=groups)',
+            '/home?tab=profile' => $isArabic ? 'صفحة الملف الشخصي (/home?tab=profile)' : 'Profile Page (/home?tab=profile)',
             '/profile' => $isArabic ? 'الملف الشخصي (/profile)' : 'Profile (/profile)',
             '/profile/edit' => $isArabic ? 'تعديل الملف الشخصي (/profile/edit)' : 'Profile Edit (/profile/edit)',
             '/settings' => $isArabic ? 'الإعدادات (/settings)' : 'Settings (/settings)',
-            '/' => $isArabic ? 'شاشة البداية (/)' : 'Splash (/)',
 
             // Vendor Services Routes
             '/vendor/services' => $isArabic ? 'خدماتي كبائع (/vendor/services)' : 'My Vendor Services (/vendor/services)',
@@ -111,14 +106,14 @@ class BannerForm
             // Utility Routes
             '/emergency' => $isArabic ? 'الطوارئ (/emergency)' : 'Emergency (/emergency)',
             '/currency/converter' => $isArabic ? 'محول العملات (/currency/converter)' : 'Currency Converter (/currency/converter)',
-            '/location/picker' => $isArabic ? 'اختيار الموقع (/location/picker)' : 'Location Picker (/location/picker)',
-            '/webview' => $isArabic ? 'عرض ويب (/webview)' : 'WebView (/webview)',
 
             // Groups Routes
             '/groups' => $isArabic ? 'قائمة المجموعات (/groups)' : 'Groups List (/groups)',
             '/groups/create' => $isArabic ? 'إنشاء مجموعة (/groups/create)' : 'Create Group (/groups/create)',
             '/groups/join' => $isArabic ? 'الانضمام لمجموعة (/groups/join)' : 'Join Group (/groups/join)',
             '/groups/qr-scanner' => $isArabic ? 'مسح QR للمجموعات (/groups/qr-scanner)' : 'QR Scanner (/groups/qr-scanner)',
+
+            //
         ];
     }
 }
