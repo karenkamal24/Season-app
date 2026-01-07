@@ -45,7 +45,25 @@ class BagAnalysisController extends Controller
                 ], 422);
             }
 
-            // Perform analysis
+            // Check if there's a recent analysis (within 2 hours)
+            if ($bag->latestAnalysis) {
+                $analysisAge = now()->diffInHours($bag->latestAnalysis->created_at);
+                
+                if ($analysisAge < 2) {
+                    // Return cached analysis if it's less than 2 hours old
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Returning recent analysis (less than 2 hours old)',
+                        'message_ar' => 'تم إرجاع تحليل حديث (أقل من ساعتين)',
+                        'data' => new BagAnalysisResource($bag->latestAnalysis),
+                        'is_fresh_analysis' => false,
+                        'analysis_age_hours' => round($analysisAge, 2),
+                        'cached' => true,
+                    ], 200);
+                }
+            }
+
+            // Perform new analysis
             $analysis = $this->analysisService->analyzeBag($bag, [
                 'preferences' => $request->get('preferences', []),
             ]);
