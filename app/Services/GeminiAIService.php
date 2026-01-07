@@ -32,7 +32,8 @@ class GeminiAIService
         $startTime = microtime(true);
 
         try {
-            $response = Http::timeout(25)
+            // Timeout set to 28 seconds (less than Flutter's 30s receiveTimeout)
+            $response = Http::timeout(28)
                 ->retry(2, 500)
                 ->post($this->apiUrl . '?key=' . $this->apiKey, [
                     'contents' => [

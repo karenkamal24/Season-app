@@ -64,6 +64,7 @@ class BagAnalysisController extends Controller
                 ->with('latestAnalysis')
                 ->find($bagId);
 
+            // Try to get latest analysis from relationship
             if ($bag && $bag->latestAnalysis) {
                 return response()->json([
                     'success' => true,
@@ -74,6 +75,25 @@ class BagAnalysisController extends Controller
                     'warning' => 'Connection timeout - showing cached analysis',
                     'warning_ar' => 'انتهت مهلة الاتصال - يتم عرض آخر تحليل محفوظ',
                 ], 200);
+            }
+
+            // If latestAnalysis relationship didn't work, try direct query
+            if ($bag) {
+                $lastAnalysis = $bag->analyses()
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if ($lastAnalysis) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Analysis request timed out. Returning last available analysis.',
+                        'message_ar' => 'انتهت مهلة طلب التحليل. تم إرجاع آخر تحليل متاح.',
+                        'data' => new BagAnalysisResource($lastAnalysis),
+                        'is_fresh_analysis' => false,
+                        'warning' => 'Connection timeout - showing cached analysis',
+                        'warning_ar' => 'انتهت مهلة الاتصال - يتم عرض آخر تحليل محفوظ',
+                    ], 200);
+                }
             }
 
             return response()->json([
