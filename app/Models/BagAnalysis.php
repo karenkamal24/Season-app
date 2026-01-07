@@ -47,7 +47,13 @@ class BagAnalysis extends Model
     {
         static::creating(function ($analysis) {
             if (empty($analysis->analysis_id)) {
-                $analysis->analysis_id = 'analysis_' . Str::random(10) . '_' . time();
+                // Generate unique analysis_id using bag_id, timestamp, and random string
+                // This ensures uniqueness even if multiple analyses are created simultaneously
+                $analysis->analysis_id = 'bag_analysis_' . 
+                    date('Ymd') . '_' . 
+                    $analysis->bag_id . '_' . 
+                    time() . '_' . 
+                    Str::random(6);
             }
         });
     }
