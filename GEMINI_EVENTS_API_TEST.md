@@ -65,7 +65,7 @@ Accept: application/json
 ```http
 GET http://localhost:8000/api/gemini/events
 Accept-Language: en
-Accept-Country: KSA
+Accept-Country: SAU
 Accept: application/json
 ```
 
@@ -166,7 +166,7 @@ curl -X GET "http://localhost:8000/api/gemini/events" \
 # السعودية
 curl -X GET "http://localhost:8000/api/gemini/events" \
   -H "Accept-Language: ar" \
-  -H "Accept-Country: KSA"
+  -H "Accept-Country: SAU"
 
 # الإمارات
 curl -X GET "http://localhost:8000/api/gemini/events" \

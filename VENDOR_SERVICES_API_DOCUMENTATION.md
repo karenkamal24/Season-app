@@ -25,7 +25,7 @@ GET /api/vendor-services
 **Headers:**
 - `Accept: application/json` (مطلوب)
 - `Accept-Language: ar|en` (اختياري - القيمة الافتراضية: ar)
-- `Accept-Country: KSA|EGY|UAE|...` (مطلوب - كود البلد)
+- `Accept-Country: SAU|EGY|UAE|...` (مطلوب - كود البلد)
 
 **Query Parameters:**
 - `service_type_id` (اختياري) - فلترة حسب نوع الخدمة
@@ -35,7 +35,7 @@ GET /api/vendor-services
 curl -X GET "http://your-domain.com/api/vendor-services?service_type_id=1" \
   -H "Accept: application/json" \
   -H "Accept-Language: ar" \
-  -H "Accept-Country: KSA"
+  -H "Accept-Country: SAU"
 ```
 
 **Response (200 OK):**
@@ -81,7 +81,7 @@ GET /api/vendor-services/{id}
 **Headers:**
 - `Accept: application/json` (مطلوب)
 - `Accept-Language: ar|en` (اختياري)
-- `Accept-Country: KSA|EGY|UAE|...` (اختياري - للفلترة حسب البلد)
+- `Accept-Country: SAU|EGY|UAE|...` (اختياري - للفلترة حسب البلد)
 
 **URL Parameters:**
 - `id` (مطلوب) - ID الخدمة
@@ -91,7 +91,7 @@ GET /api/vendor-services/{id}
 curl -X GET "http://your-domain.com/api/vendor-services/1" \
   -H "Accept: application/json" \
   -H "Accept-Language: ar" \
-  -H "Accept-Country: KSA"
+  -H "Accept-Country: SAU"
 ```
 
 **Response (200 OK):**
@@ -211,7 +211,7 @@ curl -X GET "http://your-domain.com/api/vendor-services/my-services/1" \
       "id": 1,
       "name_en": "Saudi Arabia",
       "name_ar": "المملكة العربية السعودية",
-      "code": "KSA"
+      "code": "SAU"
     },
     "commercial_register": "http://...",
     "images": [...],
@@ -293,7 +293,7 @@ curl -X POST "http://your-domain.com/api/vendor-services" \
       "id": 1,
       "name_en": "Saudi Arabia",
       "name_ar": "المملكة العربية السعودية",
-      "code": "KSA"
+      "code": "SAU"
     },
     "commercial_register": "http://...",
     "images": [...],
@@ -565,7 +565,7 @@ curl -X GET "http://your-domain.com/api/service-types" \
 
 أمثلة على أكواد البلدان المدعومة:
 
-- `KSA` - المملكة العربية السعودية
+- `SAU` - المملكة العربية السعودية
 - `EGY` - مصر
 - `UAE` - الإمارات العربية المتحدة
 - `JOR` - الأردن

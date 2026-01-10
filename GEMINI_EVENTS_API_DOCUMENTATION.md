@@ -36,7 +36,7 @@ https://your-domain.com/api/gemini/events
 | Header Name | Type | Required | Description | Example |
 |------------|------|----------|-------------|---------|
 | `Accept-Language` | string | No | اللغة المطلوبة (`ar` أو `en`). الافتراضي: `ar` | `ar` |
-| `Accept-Country` | string | Yes | رمز الدولة (مثل `EGY`, `KSA`, `UAE`) | `EGY` |
+| `Accept-Country` | string | Yes | رمز الدولة (مثل `EGY`, `SAU`, `UAE`) | `EGY` |
 | `Accept` | string | No | نوع الـ response المطلوب | `application/json` |
 
 **ملاحظة:** يمكنك أيضاً استخدام `language` و `country` headers للتوافق مع الإصدارات السابقة.
@@ -128,7 +128,7 @@ https://your-domain.com/api/gemini/events
 | Code | Country (English) | Country (Arabic) |
 |------|------------------|-----------------|
 | `EGY` | Egypt | مصر |
-| `KSA` أو `SAU` | Saudi Arabia | السعودية |
+| `SAU` | Saudi Arabia | السعودية |
 | `UAE` أو `ARE` | United Arab Emirates | الإمارات |
 | `JOR` | Jordan | الأردن |
 | `KWT` | Kuwait | الكويت |

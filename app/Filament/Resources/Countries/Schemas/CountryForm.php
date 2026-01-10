@@ -34,7 +34,7 @@ class CountryForm
                                 Select::make('code')
                                     ->label($isArabic ? 'رمز الدولة' : 'Country Code')
                                     ->options([
-                                        'KSA' => 'KSA - ' . ($isArabic ? 'السعودية' : 'Saudi Arabia'),
+                                        'SAU ' => 'SAU  - ' . ($isArabic ? 'السعودية' : 'Saudi Arabia'),
                                         'UAE' => 'UAE - ' . ($isArabic ? 'الإمارات' : 'United Arab Emirates'),
                                         'EGY' => 'EGY - ' . ($isArabic ? 'مصر' : 'Egypt'),
                                     ])

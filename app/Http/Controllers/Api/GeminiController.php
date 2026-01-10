@@ -149,7 +149,7 @@ class GeminiController extends Controller
                 $language = 'ar';
             }
 
-            // Get country code from Accept-Country header (e.g., EGY, KSA, UAE)
+            // Get country code from Accept-Country header (e.g., EGY, SAU, UAE)
             $countryCode = $request->header('Accept-Country');
 
             // Also check 'country' header for backward compatibility
@@ -164,7 +164,7 @@ class GeminiController extends Controller
 
             if (empty($countryCode)) {
                 return ApiResponse::badRequest(
-                    LangHelper::msg('country_required') ?? 'Country is required. Please provide country code (EGY, KSA, UAE, etc.) in the "Accept-Country" header or query parameter.'
+                    LangHelper::msg('country_required') ?? 'Country is required. Please provide country code (EGY, SAU , UAE, etc.) in the "Accept-Country" header or query parameter.'
                 );
             }
 
@@ -208,7 +208,7 @@ class GeminiController extends Controller
         // Mapping of common country codes to English names
         $countryMap = [
             'EGY' => 'Egypt',
-            'KSA' => 'Saudi Arabia',
+            'SAU ' => 'Saudi Arabia',
             'SAU' => 'Saudi Arabia',
             'UAE' => 'United Arab Emirates',
             'ARE' => 'United Arab Emirates',

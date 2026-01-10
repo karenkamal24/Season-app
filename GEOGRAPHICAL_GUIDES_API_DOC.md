@@ -184,7 +184,7 @@ GET /api/geographical-guides
 - `geographical_sub_category_id`
 
 **Headers:**
-- `Accept-Country: KSA` (optional - filters by country)
+- `Accept-Country: SAU` (optional - filters by country)
 - `Accept-Language: ar` (optional)
 
 **Response:** Only `approved` services
@@ -230,6 +230,7 @@ curl -X DELETE "https://api.example.com/api/geographical-guides/1" \
 ---
 
 **Last Updated:** December 2025
+
 
 
 

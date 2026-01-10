@@ -105,7 +105,7 @@ Accept-Language: ar
 3. **Get Category Apps** (Related endpoint)
    ```
    GET /api/digital-directory/category-apps?category_id={id}
-   Accept-Country: UAE|KSA|EGY
+   Accept-Country: UAE|SAU|EGY
    ```
    - Public
    - Requires `Accept-Country` header

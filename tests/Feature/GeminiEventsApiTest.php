@@ -39,13 +39,13 @@ class GeminiEventsApiTest extends TestCase
     }
 
     /**
-     * Test successful events search with KSA country code
+     * Test successful events search with SAU country code
      */
-    public function test_get_events_with_ksa_country_code(): void
+    public function test_get_events_with_sau_country_code(): void
     {
         $response = $this->withHeaders([
             'Accept-Language' => 'en',
-            'Accept-Country' => 'KSA',
+            'Accept-Country' => 'SAU',
         ])->getJson('/api/gemini/events');
 
         $response->assertStatus(200)
@@ -199,7 +199,7 @@ class GeminiEventsApiTest extends TestCase
      */
     public function test_multiple_country_codes(): void
     {
-        $countries = ['EGY', 'KSA', 'UAE', 'JOR'];
+        $countries = ['EGY', 'SAU', 'UAE', 'JOR'];
 
         foreach ($countries as $country) {
             $response = $this->withHeaders([

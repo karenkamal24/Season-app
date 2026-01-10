@@ -26,7 +26,7 @@ This documentation explains all available API endpoints for the Digital Director
 
 ### Accept-Country (لـ Category Apps فقط)
 - **مطلوب**: نعم (لـ Category Apps) / **Required**: Yes (for Category Apps only)
-- **القيم المتاحة / Available Values**: كود الدولة (مثل: `UAE`, `KSA`, `EGY`)
+- **القيم المتاحة / Available Values**: كود الدولة (مثل: `UAE`, `SAU`, `EGY`)
 - **الوصف / Description**: يحدد الدولة المراد جلب التطبيقات منها
 
 ---
@@ -292,7 +292,7 @@ curl -X GET "http://127.0.0.1:8000/api/digital-directory/category-apps/1" \
 
 أمثلة على أكواد الدول:
 - `UAE` - الإمارات العربية المتحدة
-- `KSA` - المملكة العربية السعودية
+- `SAU` - المملكة العربية السعودية
 - `EGY` - مصر
 - وغيرها من الدول المتاحة في قاعدة البيانات
 

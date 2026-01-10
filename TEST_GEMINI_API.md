@@ -76,7 +76,7 @@ Headers:
 
 **رموز الدول المدعومة:**
 - `EGY` - مصر (Egypt)
-- `KSA` أو `SAU` - السعودية (Saudi Arabia)
+- `SAU` - السعودية (Saudi Arabia)
 - `UAE` أو `ARE` - الإمارات (United Arab Emirates)
 - `JOR` - الأردن (Jordan)
 - `KWT` - الكويت (Kuwait)
@@ -103,7 +103,7 @@ POST http://localhost:8000/api/gemini/events
 
 Headers:
   Accept-Language: ar
-  Accept-Country: KSA
+  Accept-Country: SAU
   Content-Type: application/json
   Accept: application/json
 ```
@@ -174,7 +174,7 @@ curl -X GET "http://localhost:8000/api/gemini/events" \
    - URL: `{{base_url}}/api/gemini/events`
    - Headers: 
      - `Accept-Language: ar` (أو `language: ar`)
-     - `Accept-Country: EGY` (أو `country: EGY`) - استخدم رمز الدولة: EGY, KSA, UAE, إلخ
+     - `Accept-Country: EGY` (أو `country: EGY`) - استخدم رمز الدولة: EGY, SAU, UAE, إلخ
    - **ملاحظة:** لا يحتاج Authorization header
 
 ---

@@ -22,7 +22,7 @@ http://your-domain.com/api
 ### Headers
 جميع الـ endpoints تدعم:
 - `Accept-Language: ar` أو `en` (اختياري - الافتراضي: en)
-- `Accept-Country: KSA` (مطلوب في بعض الـ endpoints - كود الدولة)
+- `Accept-Country: SAU` (مطلوب في بعض الـ endpoints - كود الدولة)
 
 ---
 
@@ -35,7 +35,7 @@ GET /api/Location/cities
 
 ### Headers
 ```
-Accept-Country: KSA
+Accept-Country: SAU
 Accept-Language: ar
 ```
 
@@ -163,7 +163,7 @@ GET /api/geographical-guides
 
 ### Headers
 ```
-Accept-Country: KSA
+Accept-Country: SAU
 Accept-Language: ar
 ```
 
@@ -176,7 +176,7 @@ Accept-Language: ar
 ```
 GET /api/geographical-guides?city_id=1&geographical_category_id=1&geographical_sub_category_id=1
 Headers:
-  Accept-Country: KSA
+  Accept-Country: SAU
   Accept-Language: ar
 ```
 
@@ -216,7 +216,7 @@ Headers:
         "name_ar": "السعودية",
         "name_en": "Saudi Arabia",
         "name": "السعودية",
-        "code": "KSA"
+        "code": "SAU"
       },
       "city": {
         "id": 1,
@@ -296,7 +296,7 @@ Accept-Language: ar
             "name_ar": "السعودية",
             "name_en": "Saudi Arabia",
             "name": "السعودية",
-            "code": "KSA"
+            "code": "SAU"
         },
         "city": {
             "id": 1,
@@ -372,7 +372,7 @@ Authorization: Bearer TOKEN (optional - if viewing own guide, can see any status
                 "name_ar": "السعودية",
                 "name_en": "Saudi Arabia",
                 "name": "السعودية",
-                "code": "KSA"
+                "code": "SAU"
             },
             "city": {
                 "id": 1,
@@ -483,7 +483,7 @@ Accept-Language: ar
       "name_ar": "السعودية",
       "name_en": "Saudi Arabia",
       "name": "السعودية",
-      "code": "KSA"
+      "code": "SAU"
     },
     "city": {
       "id": 1,
@@ -618,7 +618,7 @@ Accept-Language: ar
 ### Step 1: Get Cities
 ```
 GET /api/Location/cities
-Headers: Accept-Country: KSA
+Headers: Accept-Country: SAU
 ```
 → User selects a city
 
@@ -638,7 +638,7 @@ GET /api/geographical-sub-categories?geographical_category_id=1
 ```
 GET /api/geographical-guides?city_id=1&geographical_category_id=1&geographical_sub_category_id=1
 Headers: 
-  Accept-Country: KSA
+  Accept-Country: SAU
   Accept-Language: ar
 ```
 → Display results to user
@@ -894,7 +894,7 @@ Future<void> deleteGuide({
 
 ## ⚠️ Important Notes
 
-1. **Country Code Format**: Use uppercase (e.g., `KSA`, `UAE`, `EGY`)
+1. **Country Code Format**: Use uppercase (e.g., `SAU`, `UAE`, `EGY`)
 2. **Language Support**: All endpoints support `Accept-Language: ar` or `en`
 3. **Status Values**: 
    - `pending` = قيد المراجعة (Pending)
@@ -913,7 +913,7 @@ Future<void> deleteGuide({
 ```bash
 # 1. Get cities
 curl -X GET "http://localhost:8000/api/Location/cities" \
-  -H "Accept-Country: KSA" \
+  -H "Accept-Country: SAU" \
   -H "Accept-Language: ar"
 
 # 2. Get categories
@@ -922,7 +922,7 @@ curl -X GET "http://localhost:8000/api/geographical-categories" \
 
 # 3. Search guides
 curl -X GET "http://localhost:8000/api/geographical-guides?city_id=1&geographical_category_id=1" \
-  -H "Accept-Country: KSA" \
+  -H "Accept-Country: SAU" \
   -H "Accept-Language: ar"
 
 # 4. Get my services

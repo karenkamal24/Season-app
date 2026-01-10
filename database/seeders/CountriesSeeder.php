@@ -23,7 +23,7 @@ class CountriesSeeder extends Seeder
         $data = [
             // Saudi Arabia - السعودية
             [
-                'code' => 'KSA',
+                'code' => 'SAU ',
                 'name_en' => 'Saudi Arabia',
                 'name_ar' => 'السعودية',
                 'cities' => [
