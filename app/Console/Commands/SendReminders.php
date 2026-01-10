@@ -178,11 +178,37 @@ class SendReminders extends Command
 
             } catch (\Throwable $e) {
                 $errors++;
+                $errorMessage = $e->getMessage();
+
+                // للتذكيرات من نوع 'once': إذا كان status = 'completed' تم تعيينه في الذاكرة
+                // (يعني وصلنا لمرحلة shouldSend)، نحفظه حتى لو فشل الإرسال
+                if (isset($reminder) && $reminder->recurrence === 'once' && $reminder->status === 'completed') {
+                    // status تم تعيينه في السطر 88 لكن لم يتم حفظه في قاعدة البيانات
+                    // نحفظه الآن لمنع إعادة المحاولة
+                    $reminder->save();
+                    Log::warning("Failed to send 'once' reminder #{$reminder->id}, but marking as completed to prevent retry", [
+                        'reminder_id' => $reminder->id,
+                        'error' => $errorMessage,
+                    ]);
+                }
+
+                // إذا كان الخطأ بسبب FCM token غير صالح (UNREGISTERED)، احذف الـ token
+                if (isset($reminder) && $reminder->user &&
+                    (str_contains($errorMessage, 'UNREGISTERED') ||
+                     (str_contains($errorMessage, '404') && str_contains($errorMessage, 'not found')))) {
+                    Log::warning("Invalid FCM token for user #{$reminder->user_id}, removing token", [
+                        'user_id' => $reminder->user_id,
+                        'reminder_id' => $reminder->id,
+                    ]);
+                    $reminder->user->update(['fcm_token' => null]);
+                }
+
+                $reminderId = isset($reminder) ? $reminder->id : 'unknown';
                 Log::error('Failed to send reminder', [
-                    'reminder_id' => $reminder->id,
-                    'error' => $e->getMessage(),
+                    'reminder_id' => $reminderId !== 'unknown' ? $reminderId : null,
+                    'error' => $errorMessage,
                 ]);
-                $this->error("Failed to send reminder #{$reminder->id}: {$e->getMessage()}");
+                $this->error("Failed to send reminder #{$reminderId}: {$errorMessage}");
             }
         }
 
