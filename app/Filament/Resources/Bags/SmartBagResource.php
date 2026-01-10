@@ -24,6 +24,8 @@ class SmartBagResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function getNavigationGroup(): ?string
     {
         return app()->getLocale() === 'ar' ? 'الحقائب الذكية' : 'Smart Bags';
