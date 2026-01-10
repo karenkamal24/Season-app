@@ -10,6 +10,7 @@ use App\Http\Requests\AddItemRequest;
 use App\Http\Requests\RemoveItemRequest;
 use App\Http\Requests\UpdateItemQuantityRequest;
 use App\Services\TravelBagService;
+use App\Services\GeminiAIService;
 use App\Utils\ApiResponse;
 use App\Helpers\LangHelper;
 use Illuminate\Http\Request;
@@ -19,7 +20,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class TravelBagController extends Controller
 {
     public function __construct(
-        protected TravelBagService $travelBagService
+        protected TravelBagService $travelBagService,
+        protected GeminiAIService $geminiService
     ) {}
     /**
      * Get Travel Bag Details
@@ -505,6 +507,188 @@ class TravelBagController extends Controller
             );
         } catch (\Exception $e) {
             return ApiResponse::error(LangHelper::msg('reminder_create_failed') . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get AI-generated packing categories
+     * GET /api/travel-bag/ai/categories
+     * Uses Accept-Language header (ar/en)
+     */
+    public function getAICategories(Request $request)
+    {
+        try {
+            // Get language from query parameter (if provided), otherwise from Accept-Language header
+            // Use same method as ItemCategoryController
+            $language = $request->query('language');
+
+            if (!$language) {
+                // Get from Accept-Language header (same as ItemCategoryController)
+                $headerLang = $request->header('Accept-Language', 'ar');
+                $language = strtolower(explode('-', trim($headerLang))[0]);
+            }
+
+            // Validate language, default to 'ar' if not supported
+            if (!in_array($language, ['ar', 'en'])) {
+                $language = 'ar';
+            }
+
+            // Get AI-generated categories
+            $categories = $this->geminiService->generatePackingCategories($language);
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('ai_categories_generated') ?? 'AI categories generated successfully',
+                [
+                    'categories' => $categories,
+                    'language' => $language,
+                ]
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::error(
+                (LangHelper::msg('categories_retrieval_failed') ?? 'Failed to retrieve categories') . ': ' . $e->getMessage()
+            );
+        }
+    }
+
+    /**
+     * Get AI-suggested items for a category
+     * GET /api/travel-bag/ai/suggest-items?category={category_name}
+     * Uses Accept-Language header (ar/en)
+     */
+    public function getAISuggestedItems(Request $request)
+    {
+        try {
+            $categoryName = $request->query('category');
+
+            if (!$categoryName) {
+                return ApiResponse::send(
+                    Response::HTTP_BAD_REQUEST,
+                    LangHelper::msg('category_required') ?? 'Category parameter is required',
+                    []
+                );
+            }
+
+            // Get language from query parameter (if provided), otherwise from Accept-Language header
+            $language = $request->query('language');
+
+            if (!$language) {
+                // Get from Accept-Language header
+                $headerLang = $request->header('Accept-Language', 'ar');
+                $language = strtolower(explode('-', trim($headerLang))[0]);
+            }
+
+            // Validate language, default to 'ar' if not supported
+            if (!in_array($language, ['ar', 'en'])) {
+                $language = 'ar';
+            }
+
+            // Get AI suggestions for this category
+            $items = $this->geminiService->suggestItemsForCategory($categoryName, $language);
+
+            // Convert weight from grams to kilograms for consistency with the app
+            $items = array_map(function ($item) {
+                if (isset($item['weight']) && is_numeric($item['weight'])) {
+                    // Convert grams to kilograms (divide by 1000)
+                    $item['weight'] = round($item['weight'] / 1000, 3);
+                    $item['weight_grams'] = (int)$item['weight'] * 1000; // Keep original in grams for reference
+                }
+                return $item;
+            }, $items);
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('ai_items_suggested') ?? 'AI items suggested successfully',
+                [
+                    'category' => $categoryName,
+                    'items' => $items,
+                    'language' => $language,
+                ]
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::error(
+                (LangHelper::msg('ai_items_suggestion_failed') ?? 'Failed to suggest AI items') . ': ' . $e->getMessage()
+            );
+        }
+    }
+
+    /**
+     * Add AI-suggested item to travel bag
+     * POST /api/travel-bag/ai/add-item
+     * body: {
+     *   "item_name": "string",
+     *   "weight": float (in kg),
+     *   "essential": boolean,
+     *   "bag_type_id": int (optional, default: 1),
+     *   "quantity": int (optional, default: 1)
+     * }
+     */
+    public function addAIItem(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'item_name' => ['required', 'string', 'max:255'],
+                'weight' => ['required', 'numeric', 'min:0', 'max:999.99'],
+                'essential' => ['nullable', 'boolean'],
+                'bag_type_id' => ['nullable', 'integer', 'min:1'],
+                'quantity' => ['nullable', 'integer', 'min:1'],
+            ]);
+
+            $bagTypeId = $validated['bag_type_id'] ?? 1;
+            $quantity = $validated['quantity'] ?? 1;
+            $essential = $validated['essential'] ?? false;
+            $itemName = $validated['item_name'];
+            $weight = $validated['weight'];
+
+            // Add item using TravelBagService
+            // Note: We'll need to update TravelBagService to support essential flag
+            $result = $this->travelBagService->addAIItem(
+                $itemName,
+                $weight,
+                $essential,
+                $bagTypeId,
+                $quantity
+            );
+
+            $bagItem = $result['bag_item'];
+            $travelBag = $result['travel_bag'];
+
+            // Get bag type name based on locale
+            $locale = app()->getLocale();
+            $bagTypeName = $locale === 'ar'
+                ? ($travelBag->bagType->name_ar ?? '')
+                : ($travelBag->bagType->name_en ?? '');
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                LangHelper::msg('ai_item_added') ?? 'AI item added successfully',
+                [
+                    'item_added' => new BagItemResource($bagItem),
+                    'bag_type_id' => $travelBag->bag_type_id,
+                    'bag_name' => $bagTypeName,
+                    'updated_bag' => [
+                        'current_weight' => round((float) $travelBag->current_weight, 2),
+                        'max_weight' => round((float) $travelBag->max_weight, 2),
+                        'weight_percentage' => round((float) $travelBag->weight_percentage, 2),
+                        'total_items' => $travelBag->bagItems->sum('quantity'),
+                    ]
+                ]
+            );
+        } catch (NotFoundHttpException $e) {
+            return ApiResponse::send(
+                Response::HTTP_NOT_FOUND,
+                $e->getMessage()
+            );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::send(
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                LangHelper::msg('validation_failed') ?? 'Validation failed',
+                $e->errors()
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::error(
+                (LangHelper::msg('ai_item_add_failed') ?? 'Failed to add AI item') . ': ' . $e->getMessage()
+            );
         }
     }
 }

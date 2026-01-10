@@ -137,6 +137,11 @@ Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
     Route::get('/reminder', [TravelBagController::class, 'getReminder']); // Get travel bag reminder
     Route::post('/travel-date', [TravelBagController::class, 'setTravelDate']); // Set travel date (new endpoint - يلغي التذكير اليومي ويبعت فقط لو الشنطة ready)
     Route::post('/reminder', [TravelBagController::class, 'setReminder']); // Set travel bag reminder (old endpoint)
+    
+    // AI-Powered Smart Packing
+    Route::get('/ai/categories', [TravelBagController::class, 'getAICategories']); // Get AI-generated packing categories
+    Route::get('/ai/suggest-items', [TravelBagController::class, 'getAISuggestedItems']); // Get AI-suggested items for a category
+    Route::post('/ai/add-item', [TravelBagController::class, 'addAIItem']); // Add AI-suggested item to bag
 });
 
 // Item Management (Bag Items)
@@ -247,6 +252,11 @@ Route::middleware('auth:sanctum')->prefix('smart-bags')->group(function () {
     Route::put('/{bagId}/items/{itemId}', [\App\Http\Controllers\Api\BagController::class, 'updateItem']); // Update item
     Route::delete('/{bagId}/items/{itemId}', [\App\Http\Controllers\Api\BagController::class, 'deleteItem']); // Delete item
     Route::post('/{bagId}/items/{itemId}/toggle-packed', [\App\Http\Controllers\Api\BagController::class, 'toggleItemPacked']); // Toggle packed status
+    
+    // AI-Powered Smart Packing
+    Route::get('/ai/categories', [\App\Http\Controllers\Api\BagController::class, 'getAICategories']); // Get AI-generated packing categories
+    Route::get('/ai/suggest-items', [\App\Http\Controllers\Api\BagController::class, 'getAISuggestedItems']); // Get AI-suggested items for a category
+    Route::post('/{bagId}/ai/add-item', [\App\Http\Controllers\Api\BagController::class, 'addAIItem']); // Add AI-suggested item to bag
     
     // AI Analysis
     Route::post('/{bagId}/analyze', [\App\Http\Controllers\Api\BagAnalysisController::class, 'analyze']); // Analyze bag with AI

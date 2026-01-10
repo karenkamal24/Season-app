@@ -10,14 +10,22 @@ use App\Http\Resources\BagResource;
 use App\Http\Resources\SmartBagItemResource;
 use App\Models\Bag;
 use App\Models\BagItem;
+use App\Services\GeminiAIService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Helpers\LangHelper;
 
 class BagController extends Controller
 {
+    protected GeminiAIService $geminiService;
+
+    public function __construct(GeminiAIService $geminiService)
+    {
+        $this->geminiService = $geminiService;
+    }
     /**
      * Display a listing of the user's bags.
      *
@@ -331,6 +339,193 @@ class BagController extends Controller
                 'success' => false,
                 'message' => LangHelper::msg('item_packed_toggle_failed'),
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get AI-generated packing categories
+     * GET /api/smart-bags/ai/categories
+     * Uses Accept-Language header (ar/en)
+     */
+    public function getAICategories(Request $request): JsonResponse
+    {
+        try {
+            // Get language from query parameter (if provided), otherwise from Accept-Language header
+            // Use same method as ItemCategoryController
+            $language = $request->query('language');
+
+            if (!$language) {
+                // Get from Accept-Language header (same as ItemCategoryController)
+                $headerLang = $request->header('Accept-Language', 'ar');
+                $language = strtolower(explode('-', trim($headerLang))[0]);
+            }
+
+            // Validate language, default to 'ar' if not supported
+            if (!in_array($language, ['ar', 'en'])) {
+                $language = 'ar';
+            }
+
+            // Get AI-generated categories
+            $categories = $this->geminiService->generatePackingCategories($language);
+
+            return response()->json([
+                'success' => true,
+                'message' => LangHelper::msg('ai_categories_generated') ?? 'AI categories generated successfully',
+                'data' => [
+                    'categories' => $categories,
+                    'language' => $language,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => (LangHelper::msg('categories_retrieval_failed') ?? 'Failed to retrieve categories') . ': ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get AI-suggested items for a category
+     * GET /api/smart-bags/ai/suggest-items?category={category_name}
+     * Uses Accept-Language header (ar/en)
+     */
+    public function getAISuggestedItems(Request $request): JsonResponse
+    {
+        try {
+            $categoryName = $request->query('category');
+
+            if (!$categoryName) {
+                return response()->json([
+                    'success' => false,
+                    'message' => LangHelper::msg('category_required') ?? 'Category parameter is required',
+                ], 400);
+            }
+
+            // Get language from query parameter (if provided), otherwise from Accept-Language header
+            $language = $request->query('language');
+
+            if (!$language) {
+                // Get from Accept-Language header
+                $headerLang = $request->header('Accept-Language', 'ar');
+                $language = strtolower(explode('-', trim($headerLang))[0]);
+            }
+
+            // Validate language, default to 'ar' if not supported
+            if (!in_array($language, ['ar', 'en'])) {
+                $language = 'ar';
+            }
+
+            // Get AI suggestions for this category
+            $items = $this->geminiService->suggestItemsForCategory($categoryName, $language);
+
+            // Convert weight from grams to kilograms for consistency with the app
+            $items = array_map(function ($item) {
+                if (isset($item['weight']) && is_numeric($item['weight'])) {
+                    // Convert grams to kilograms (divide by 1000)
+                    $item['weight'] = round($item['weight'] / 1000, 3);
+                    $item['weight_grams'] = (int)($item['weight'] * 1000); // Keep original in grams for reference
+                }
+                return $item;
+            }, $items);
+
+            return response()->json([
+                'success' => true,
+                'message' => LangHelper::msg('ai_items_suggested') ?? 'AI items suggested successfully',
+                'data' => [
+                    'category' => $categoryName,
+                    'items' => $items,
+                    'language' => $language,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => (LangHelper::msg('ai_items_suggestion_failed') ?? 'Failed to suggest AI items') . ': ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Add AI-suggested item to bag
+     * POST /api/smart-bags/{bagId}/ai/add-item
+     * body: {
+     *   "item_name": "string",
+     *   "weight": float (in kg),
+     *   "essential": boolean,
+     *   "quantity": int (optional, default: 1)
+     * }
+     */
+    public function addAIItem(Request $request, string $bagId): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            $bag = Bag::where('user_id', $user->id)->findOrFail($bagId);
+
+            $validated = $request->validate([
+                'item_name' => ['required', 'string', 'max:255'],
+                'weight' => ['required', 'numeric', 'min:0', 'max:999.99'],
+                'essential' => ['nullable', 'boolean'],
+                'quantity' => ['nullable', 'integer', 'min:1'],
+            ]);
+
+            // Check if adding this item will exceed max weight
+            $currentWeight = (float) ($bag->total_weight ?? 0);
+            $itemWeight = (float) $validated['weight'];
+            $quantity = (int) ($validated['quantity'] ?? 1);
+            $newWeight = $currentWeight + ($itemWeight * $quantity);
+
+            if ($newWeight > $bag->max_weight) {
+                return response()->json([
+                    'success' => false,
+                    'message' => LangHelper::msg('cannot_add_more_weight_exceeded') ?? 'Cannot add more items. Weight limit exceeded.',
+                ], 400);
+            }
+
+            // Create bag item (no category needed - all from AI)
+            $itemData = [
+                'name' => $validated['item_name'],
+                'weight' => $validated['weight'],
+                'essential' => $validated['essential'] ?? false,
+                'quantity' => $validated['quantity'] ?? 1,
+            ];
+
+            $item = $bag->items()->create($itemData);
+            $item->load('itemCategory');
+
+            // Recalculate bag weight
+            $bag->recalculateWeight();
+            $bag->load(['items.itemCategory', 'latestAnalysis']);
+
+            return response()->json([
+                'success' => true,
+                'message' => LangHelper::msg('ai_item_added') ?? 'AI item added successfully',
+                'data' => [
+                    'item' => new SmartBagItemResource($item),
+                    'bag' => [
+                        'current_weight' => round((float) $bag->total_weight, 2),
+                        'max_weight' => round((float) $bag->max_weight, 2),
+                        'weight_percentage' => round((float) $bag->weight_percentage, 2),
+                    ],
+                ],
+            ], 201);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => LangHelper::msg('bag_not_found') ?? 'Bag not found',
+            ], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => LangHelper::msg('validation_failed') ?? 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => (LangHelper::msg('ai_item_add_failed') ?? 'Failed to add AI item') . ': ' . $e->getMessage(),
             ], 500);
         }
     }

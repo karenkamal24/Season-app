@@ -79,7 +79,7 @@ class GeminiAIService
             }
 
             $data = $response->json();
-            
+
             $processingTime = (int)((microtime(true) - $startTime) * 1000);
 
             return [
@@ -143,11 +143,11 @@ class GeminiAIService
     public function analyzeBag(array $bagData): array
     {
         $prompt = $this->buildAnalysisPrompt($bagData);
-        
+
         $response = $this->generateContent($prompt);
-        
+
         $analysis = $this->extractJson($response['text']);
-        
+
         // Add metadata
         $analysis['metadata'] = array_merge($analysis['metadata'] ?? [], [
             'analyzed_at' => now()->toIso8601String(),
@@ -288,6 +288,172 @@ class GeminiAIService
 }
 ```
 PROMPT;
+    }
+
+    /**
+     * Generate packing categories using Gemini AI
+     *
+     * @param string $language Language code (ar/en)
+     * @return array
+     * @throws Exception
+     */
+    public function generatePackingCategories(string $language = 'ar'): array
+    {
+        $prompt = $this->buildCategoriesPrompt($language);
+
+        $response = $this->generateContent($prompt);
+
+        $categories = $this->extractJson($response['text']);
+
+        // Ensure it's an array
+        if (!is_array($categories)) {
+            throw new Exception('Invalid response format from AI');
+        }
+
+        // If response is wrapped in a key, extract it
+        if (isset($categories['categories'])) {
+            $categories = $categories['categories'];
+        }
+
+        return $categories;
+    }
+
+    /**
+     * Suggest items for a category using Gemini AI
+     *
+     * @param string $category Category name
+     * @param string $language Language code (ar/en)
+     * @return array
+     * @throws Exception
+     */
+    public function suggestItemsForCategory(string $category, string $language = 'ar'): array
+    {
+        $prompt = $this->buildItemsPrompt($category, $language);
+
+        $response = $this->generateContent($prompt);
+
+        $items = $this->extractJson($response['text']);
+
+        // Ensure it's an array
+        if (!is_array($items)) {
+            throw new Exception('Invalid response format from AI');
+        }
+
+        // If response is wrapped in a key, extract it
+        if (isset($items['items'])) {
+            $items = $items['items'];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Build prompt for generating packing categories
+     *
+     * @param string $language Language code (ar/en)
+     * @return string
+     */
+    protected function buildCategoriesPrompt(string $language): string
+    {
+        $langText = $language === 'en' ? 'English' : 'Arabic';
+
+        if ($language === 'en') {
+            return <<<PROMPT
+Generate 8-10 essential packing categories for travel.
+Respond in English language.
+Return as JSON array: [{"name": "category_name"}]
+
+Example format:
+[
+  {"name": "Clothing"},
+  {"name": "Toiletries"},
+  {"name": "Electronics"},
+  {"name": "Documents"},
+  {"name": "Medications"},
+  {"name": "Accessories"},
+  {"name": "Food & Snacks"},
+  {"name": "Entertainment"}
+]
+
+Return ONLY valid JSON array, no additional text.
+PROMPT;
+        } else {
+            return <<<PROMPT
+قم بتوليد 8-10 فئات أساسية لتعبئة الحقائب للسفر.
+الرد باللغة العربية.
+قم بإرجاع مصفوفة JSON: [{"name": "اسم_الفئة"}]
+
+مثال على التنسيق:
+[
+  {"name": "الملابس"},
+  {"name": "مستلزمات النظافة"},
+  {"name": "الإلكترونيات"},
+  {"name": "المستندات"},
+  {"name": "الأدوية"},
+  {"name": "الإكسسوارات"},
+  {"name": "الطعام والوجبات الخفيفة"},
+  {"name": "الترفيه"}
+]
+
+قم بإرجاع مصفوفة JSON صالحة فقط، بدون أي نص إضافي.
+PROMPT;
+        }
+    }
+
+    /**
+     * Build prompt for suggesting items for a category
+     *
+     * @param string $category Category name
+     * @param string $language Language code (ar/en)
+     * @return string
+     */
+    protected function buildItemsPrompt(string $category, string $language): string
+    {
+        $langText = $language === 'en' ? 'English' : 'Arabic';
+
+        if ($language === 'en') {
+            return <<<PROMPT
+Suggest 10-15 essential items for '{$category}' category when packing for travel.
+For each item provide estimated weight in grams.
+Respond in English language.
+Return as JSON: [{"name": "item_name", "weight": weight_in_grams}]
+
+Example format:
+[
+  {"name": "T-Shirt", "weight": 150},
+  {"name": "Jeans", "weight": 500},
+  {"name": "Underwear", "weight": 50},
+  {"name": "Socks", "weight": 40}
+]
+
+Important:
+- Weight should be in grams (not kilograms)
+- Provide realistic weight estimates
+- Focus on essential travel items
+- Return ONLY valid JSON array, no additional text
+PROMPT;
+        } else {
+            return <<<PROMPT
+اقترح 10-15 عنصراً أساسياً لفئة '{$category}' عند تعبئة الحقائب للسفر.
+لكل عنصر، قدم الوزن المقدر بالجرام.
+الرد باللغة العربية.
+قم بإرجاع JSON: [{"name": "اسم_العنصر", "weight": الوزن_بالجرام}]
+
+مثال على التنسيق:
+[
+  {"name": "قميص", "weight": 150},
+  {"name": "بنطال", "weight": 500},
+  {"name": "ملابس داخلية", "weight": 50},
+  {"name": "جوارب", "weight": 40}
+]
+
+مهم:
+- الوزن يجب أن يكون بالجرام (وليس بالكيلوجرام)
+- قدم تقديرات وزن واقعية
+- ركز على العناصر الأساسية للسفر
+- قم بإرجاع مصفوفة JSON صالحة فقط، بدون أي نص إضافي
+PROMPT;
+        }
     }
 }
 

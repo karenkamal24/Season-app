@@ -231,6 +231,88 @@ class TravelBagService
     }
 
     /**
+     * Add AI-suggested item to travel bag
+     */
+    public function addAIItem(string $itemName, float $weight, bool $essential = false, int $bagTypeId = 1, int $quantity = 1)
+    {
+        $travelBag = $this->getOrCreateBagByType($bagTypeId);
+
+        // Check if current weight already exceeds max weight
+        $currentWeight = $travelBag->current_weight;
+        if ($currentWeight >= $travelBag->max_weight) {
+            throw new \Exception(LangHelper::msg('cannot_add_more_weight_exceeded'));
+        }
+
+        // Check if custom item with same name already exists
+        $bagItem = BagItem::where('travel_bag_id', $travelBag->id)
+            ->where('custom_item_name', $itemName)
+            ->whereNull('item_id')
+            ->first();
+
+        // Calculate current weight (excluding this item if it exists)
+        $currentWeight = $travelBag->current_weight;
+
+        if ($bagItem) {
+            // Remove existing item weight from current weight
+            $existingItemWeight = $bagItem->custom_weight ?? $weight;
+            $currentWeight -= ($existingItemWeight * $bagItem->quantity);
+
+            // Calculate new total weight after adding quantity
+            $newQuantity = $bagItem->quantity + $quantity;
+            $newTotalWeight = $currentWeight + ($weight * $newQuantity);
+        } else {
+            // Calculate new total weight for new item
+            $newTotalWeight = $currentWeight + ($weight * $quantity);
+        }
+
+        // Check if adding this item will exceed max weight
+        if ($newTotalWeight > $travelBag->max_weight) {
+            throw new \Exception(LangHelper::msg('cannot_add_more_weight_exceeded'));
+        }
+
+        if ($bagItem) {
+            // Update quantity and essential flag
+            $bagItem->quantity += $quantity;
+            $bagItem->custom_weight = $weight;
+            $bagItem->custom_item_name = $itemName;
+            // Update essential flag if column exists (check fillable or use schema check)
+            $fillable = $bagItem->getFillable();
+            if (in_array('essential', $fillable) || Schema::hasColumn('bag_items', 'essential')) {
+                $bagItem->essential = $essential;
+            }
+            $bagItem->save();
+        } else {
+            // Create new bag item
+            $bagItemData = [
+                'travel_bag_id' => $travelBag->id,
+                'item_id' => null,
+                'custom_item_name' => $itemName,
+                'quantity' => $quantity,
+                'custom_weight' => $weight,
+            ];
+            
+            // Add essential flag if column exists
+            $fillable = (new BagItem())->getFillable();
+            if (in_array('essential', $fillable) || Schema::hasColumn('bag_items', 'essential')) {
+                $bagItemData['essential'] = $essential;
+            }
+            
+            $bagItem = BagItem::create($bagItemData);
+        }
+
+        // Load relationships
+        $travelBag->load(['bagItems.item.category', 'bagType']);
+
+        // Update bag status based on weight
+        $this->updateBagStatusBasedOnWeight($travelBag);
+
+        return [
+            'bag_item' => $bagItem,
+            'travel_bag' => $travelBag,
+        ];
+    }
+
+    /**
      * Remove item from travel bag
      */
     public function removeItem(int $itemId, ?int $quantity = null, int $bagTypeId = 1)
