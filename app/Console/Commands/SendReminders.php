@@ -7,6 +7,7 @@ use App\Models\TravelBag;
 use App\Jobs\SendPushNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+
 class SendReminders extends Command
 {
     protected $signature = 'reminders:send';
@@ -54,81 +55,77 @@ class SendReminders extends Command
                     $timezone
                 );
 
-                $reminderTime = Carbon::createFromFormat('H:i', $timeString, $timezone);
-
                 $shouldSend = false;
-                $toleranceMinutes = 1;
 
                 Log::info("Checking reminder #{$reminder->id} ({$reminder->recurrence}) for user #{$reminder->user_id}");
 
                 switch ($reminder->recurrence) {
                     case 'once':
-                        if (($currentDateTime->isSameDay($reminderDateTime) ||
-                            $currentDateTime->greaterThan($reminderDateTime)) &&
-                            !$reminder->last_sent_at) {
-
-                            $diff = abs($currentDateTime->diffInMinutes($reminderDateTime));
-
-                            if ($diff <= $toleranceMinutes || $currentDateTime->greaterThanOrEqualTo($reminderDateTime)) {
-                                // لو التذكير مربوط بشنطة سفر، تحقق من حالة الشنطة
-                                if ($reminder->travel_bag_id) {
-                                    $travelBag = \App\Models\TravelBag::find($reminder->travel_bag_id);
-                                    if ($travelBag) {
-                                        // التذكير يبعت فقط لو الشنطة ready
-                                        // (إما status = 'ready' أو الوزن كامل)
-                                        if (!$travelBag->is_ready) {
-                                            Log::info("Skipping reminder #{$reminder->id} - travel bag #{$travelBag->id} is not ready yet (status: {$travelBag->status}, current_weight: {$travelBag->current_weight}, max_weight: {$travelBag->max_weight})");
-                                            continue 2; // تخطي هذا التذكير (2 للحلقة الخارجية)
-                                        }
-                                        Log::info("Travel bag #{$travelBag->id} is ready (status: {$travelBag->status}), will send reminder #{$reminder->id}");
+                        // تبعت لو الوقت الحالي >= وقت التذكير ومتبعتش قبل كده
+                        if ($currentDateTime->greaterThanOrEqualTo($reminderDateTime) && !$reminder->last_sent_at) {
+                            // لو التذكير مربوط بشنطة سفر، تحقق من حالة الشنطة
+                            if ($reminder->travel_bag_id) {
+                                $travelBag = \App\Models\TravelBag::find($reminder->travel_bag_id);
+                                if ($travelBag) {
+                                    if (!$travelBag->is_ready) {
+                                        Log::info("Skipping reminder #{$reminder->id} - travel bag #{$travelBag->id} is not ready yet (status: {$travelBag->status}, current_weight: {$travelBag->current_weight}, max_weight: {$travelBag->max_weight})");
+                                        continue 2;
                                     }
+                                    Log::info("Travel bag #{$travelBag->id} is ready (status: {$travelBag->status}), will send reminder #{$reminder->id}");
                                 }
-
-                                $shouldSend = true;
-                                $reminder->status = 'completed';
-                                Log::info("Sending reminder #{$reminder->id}");
                             }
+
+                            $shouldSend = true;
+                            $reminder->status = 'completed';
+                            Log::info("Sending reminder #{$reminder->id}");
                         }
                         break;
 
                     case 'daily':
-                        $targetTime = $currentDateTime->copy()->setTimeFromTimeString($timeString);
-                        $diff = abs($currentDateTime->diffInMinutes($targetTime));
+                        // تبعت لو الوقت الحالي >= وقت التذكير النهارده ومتبعتش النهارده
+                        $targetTime = $currentDateTime->copy()->startOfDay()->setTimeFromTimeString($timeString);
 
-                        if ($diff <= $toleranceMinutes) {
+                        if ($currentDateTime->greaterThanOrEqualTo($targetTime)) {
                             $lastSent = $reminder->last_sent_at ? Carbon::parse($reminder->last_sent_at, $timezone) : null;
-                            if (!$lastSent || !$lastSent->isToday()) {
+                            if (!$lastSent || !$lastSent->isToday($timezone)) {
                                 $shouldSend = true;
+                                Log::info("Sending daily reminder #{$reminder->id}");
                             }
                         }
                         break;
 
                     case 'weekly':
-                        $targetTime = $currentDateTime->copy()->setTimeFromTimeString($timeString);
-                        $diff = abs($currentDateTime->diffInMinutes($targetTime));
+                        // تبعت لو اليوم صح والوقت >= وقت التذكير ومتبعتش الأسبوع ده
+                        if ($currentDateTime->dayOfWeek === $reminderDateTime->dayOfWeek) {
+                            $targetTime = $currentDateTime->copy()->startOfDay()->setTimeFromTimeString($timeString);
 
-                        if ($currentDateTime->dayOfWeek === $reminderDateTime->dayOfWeek && $diff <= $toleranceMinutes) {
-                            $lastSent = $reminder->last_sent_at ? Carbon::parse($reminder->last_sent_at, $timezone) : null;
-                            if (!$lastSent || !$lastSent->isSameWeek($currentDateTime)) {
-                                $shouldSend = true;
+                            if ($currentDateTime->greaterThanOrEqualTo($targetTime)) {
+                                $lastSent = $reminder->last_sent_at ? Carbon::parse($reminder->last_sent_at, $timezone) : null;
+                                if (!$lastSent || !$lastSent->isSameWeek($currentDateTime)) {
+                                    $shouldSend = true;
+                                    Log::info("Sending weekly reminder #{$reminder->id}");
+                                }
                             }
                         }
                         break;
 
                     case 'monthly':
-                        $targetTime = $currentDateTime->copy()->setTimeFromTimeString($timeString);
-                        $diff = abs($currentDateTime->diffInMinutes($targetTime));
+                        // تبعت لو اليوم من الشهر صح والوقت >= وقت التذكير ومتبعتش الشهر ده
+                        if ($currentDateTime->day === $reminderDateTime->day) {
+                            $targetTime = $currentDateTime->copy()->startOfDay()->setTimeFromTimeString($timeString);
 
-                        if ($currentDateTime->day === $reminderDateTime->day && $diff <= $toleranceMinutes) {
-                            $lastSent = $reminder->last_sent_at ? Carbon::parse($reminder->last_sent_at, $timezone) : null;
-                            if (!$lastSent || !$lastSent->isSameMonth($currentDateTime)) {
-                                $shouldSend = true;
+                            if ($currentDateTime->greaterThanOrEqualTo($targetTime)) {
+                                $lastSent = $reminder->last_sent_at ? Carbon::parse($reminder->last_sent_at, $timezone) : null;
+                                if (!$lastSent || !$lastSent->isSameMonth($currentDateTime)) {
+                                    $shouldSend = true;
+                                    Log::info("Sending monthly reminder #{$reminder->id}");
+                                }
                             }
                         }
                         break;
                 }
 
-                    if ($shouldSend) {
+                if ($shouldSend) {
                     $userLang = $reminder->user->preferred_language ?? 'ar';
 
                     $title = $reminder->title;
@@ -164,7 +161,6 @@ class SendReminders extends Command
                     if ($reminder->recurrence === 'once' && $reminder->travel_bag_id) {
                         $bag = TravelBag::find($reminder->travel_bag_id);
                         if ($bag) {
-                            // حذف كل العناصر ثم الشنطة نفسها
                             $bag->bagItems()->delete();
                             $bag->delete();
                             Log::info("Deleted travel bag #{$bag->id} after sending its trip reminder.");
@@ -180,11 +176,7 @@ class SendReminders extends Command
                 $errors++;
                 $errorMessage = $e->getMessage();
 
-                // للتذكيرات من نوع 'once': إذا كان status = 'completed' تم تعيينه في الذاكرة
-                // (يعني وصلنا لمرحلة shouldSend)، نحفظه حتى لو فشل الإرسال
                 if (isset($reminder) && $reminder->recurrence === 'once' && $reminder->status === 'completed') {
-                    // status تم تعيينه في السطر 88 لكن لم يتم حفظه في قاعدة البيانات
-                    // نحفظه الآن لمنع إعادة المحاولة
                     $reminder->save();
                     Log::warning("Failed to send 'once' reminder #{$reminder->id}, but marking as completed to prevent retry", [
                         'reminder_id' => $reminder->id,
@@ -192,7 +184,6 @@ class SendReminders extends Command
                     ]);
                 }
 
-                // إذا كان الخطأ بسبب FCM token غير صالح (UNREGISTERED)، احذف الـ token
                 if (isset($reminder) && $reminder->user &&
                     (str_contains($errorMessage, 'UNREGISTERED') ||
                      (str_contains($errorMessage, '404') && str_contains($errorMessage, 'not found')))) {
