@@ -28,6 +28,7 @@ class User extends Authenticatable implements FilamentUser
         'language',
         'provider',
         'provider_id',
+        'provider_token',
         'role',
         'is_blocked',
         'email_verified_at',

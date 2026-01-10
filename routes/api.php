@@ -38,6 +38,14 @@ Route::prefix('auth')
         Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
         Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
         Route::post('/login', [AuthController::class, 'login']);
+        
+        // Social Login (Google)
+        Route::post('/login/google', [AuthController::class, 'loginWithGoogle']);
+        Route::post('/register/google', [AuthController::class, 'registerWithGoogle']);
+        
+        // Social Login (Apple)
+        Route::post('/login/apple', [AuthController::class, 'loginWithApple']);
+        Route::post('/register/apple', [AuthController::class, 'registerWithApple']);
     });
 //foeget passwoed and  Password Reset
 Route::prefix('auth')

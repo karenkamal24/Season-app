@@ -183,7 +183,6 @@ class SendReminders extends Command
                         'error' => $errorMessage,
                     ]);
                 }
-
                 if (isset($reminder) && $reminder->user &&
                     (str_contains($errorMessage, 'UNREGISTERED') ||
                      (str_contains($errorMessage, '404') && str_contains($errorMessage, 'not found')))) {
