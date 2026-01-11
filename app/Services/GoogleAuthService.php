@@ -13,7 +13,13 @@ class GoogleAuthService
     public function verifyIdToken(string $idToken): array
     {
         try {
-            $client = new GoogleClient(['client_id' => config('services.google.client_id')]);
+            $clientId = config('services.google.client_id');
+            
+            if (!$clientId) {
+                throw new Exception('Google client_id is not configured. Please set GOOGLE_CLIENT_ID in your .env file.');
+            }
+            
+            $client = new GoogleClient(['client_id' => $clientId]);
             $payload = $client->verifyIdToken($idToken);
             
             if (!$payload) {
@@ -29,6 +35,8 @@ class GoogleAuthService
                 'family_name' => $payload['family_name'] ?? null,
                 'picture' => $payload['picture'] ?? null,
             ];
+        } catch (\Google\Exception $e) {
+            throw new Exception('Google authentication error: ' . $e->getMessage());
         } catch (Exception $e) {
             throw new Exception('Failed to verify Google token: ' . $e->getMessage());
         }

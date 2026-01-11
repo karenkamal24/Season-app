@@ -152,6 +152,9 @@ class AuthController extends Controller
     {
         Log::info('🔑 === Google Login Request Received ===', [
             'timestamp' => now()->toDateTimeString(),
+            'has_id_token' => $request->has('id_token'),
+            'has_access_token' => $request->has('access_token'),
+            'has_fcm_token' => $request->has('fcm_token'),
         ]);
 
         try {

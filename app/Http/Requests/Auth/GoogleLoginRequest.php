@@ -27,4 +27,19 @@ class GoogleLoginRequest extends FormRequest
             'fcm_token' => 'nullable|string',
         ];
     }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array
+     */
+    public function messages(): array
+    {
+        return [
+            'id_token.required' => 'The id_token field is required.',
+            'id_token.string' => 'The id_token must be a string.',
+            'access_token.string' => 'The access_token must be a string.',
+            'fcm_token.string' => 'The fcm_token must be a string.',
+        ];
+    }
 }
