@@ -166,22 +166,49 @@ class AuthController extends Controller
                 })->orWhere('email', $googleUser['email']);
             })->first();
             
+            // Auto-register if user doesn't exist
             if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found. Please register first.',
-                    'message_ar' => 'المستخدم غير موجود. يرجى التسجيل أولاً',
-                    'error' => 'User not registered'
-                ], 404);
+                Log::info('Auto-registering user from Google login', [
+                    'email' => $googleUser['email'],
+                ]);
+                
+                $firstName = $googleUser['given_name'] ?? null;
+                $lastName = $googleUser['family_name'] ?? null;
+                $fullName = $googleUser['name'] ?? trim(($firstName ?? '') . ' ' . ($lastName ?? '')) ?: 'User';
+                
+                $user = User::create([
+                    'email' => $googleUser['email'],
+                    'name' => $fullName,
+                    'photo_url' => $googleUser['picture'],
+                    'provider' => 'google',
+                    'provider_id' => $googleUser['id'],
+                    'provider_token' => $request->access_token,
+                    'email_verified_at' => $googleUser['email_verified'] ? now() : null,
+                    'fcm_token' => $request->fcm_token,
+                    'password' => bcrypt(Str::random(32)), // Random password for social login users
+                ]);
+                
+                Log::info('✅ User auto-registered from Google login', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+            } else {
+                // Update FCM token if provided
+                if ($request->fcm_token) {
+                    $user->update(['fcm_token' => $request->fcm_token]);
+                }
+                
+                // Update provider token
+                $user->update(['provider_token' => $request->access_token]);
+                
+                // Update provider and provider_id if they're missing
+                if (!$user->provider || !$user->provider_id) {
+                    $user->update([
+                        'provider' => 'google',
+                        'provider_id' => $googleUser['id'],
+                    ]);
+                }
             }
-            
-            // Update FCM token if provided
-            if ($request->fcm_token) {
-                $user->update(['fcm_token' => $request->fcm_token]);
-            }
-            
-            // Update provider token
-            $user->update(['provider_token' => $request->access_token]);
             
             // Generate JWT token
             $token = $user->createToken('API TOKEN')->plainTextToken;
@@ -331,23 +358,45 @@ class AuthController extends Controller
                 })->orWhere('email', $appleUser['email']);
             })->first();
             
+            // Auto-register if user doesn't exist
             if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found. Please register first.',
-                    'message_ar' => 'المستخدم غير موجود. يرجى التسجيل أولاً',
-                    'error' => 'User not registered'
-                ], 404);
-            }
-            
-            // Update FCM token if provided
-            if ($request->fcm_token) {
-                $user->update(['fcm_token' => $request->fcm_token]);
-            }
-            
-            // Update provider token if authorization_code provided
-            if ($request->authorization_code) {
-                $user->update(['provider_token' => $request->authorization_code]);
+                Log::info('Auto-registering user from Apple login', [
+                    'email' => $appleUser['email'],
+                ]);
+                
+                $user = User::create([
+                    'email' => $appleUser['email'],
+                    'name' => 'User', // Apple doesn't provide name in subsequent logins
+                    'provider' => 'apple',
+                    'provider_id' => $appleUser['id'],
+                    'provider_token' => $request->authorization_code,
+                    'email_verified_at' => $appleUser['email_verified'] ? now() : null,
+                    'fcm_token' => $request->fcm_token,
+                    'password' => bcrypt(Str::random(32)), // Random password for social login users
+                ]);
+                
+                Log::info('✅ User auto-registered from Apple login', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+            } else {
+                // Update FCM token if provided
+                if ($request->fcm_token) {
+                    $user->update(['fcm_token' => $request->fcm_token]);
+                }
+                
+                // Update provider token if authorization_code provided
+                if ($request->authorization_code) {
+                    $user->update(['provider_token' => $request->authorization_code]);
+                }
+                
+                // Update provider and provider_id if they're missing
+                if (!$user->provider || !$user->provider_id) {
+                    $user->update([
+                        'provider' => 'apple',
+                        'provider_id' => $appleUser['id'],
+                    ]);
+                }
             }
             
             // Generate JWT token
