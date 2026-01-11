@@ -23,7 +23,7 @@ class GoogleLoginRequest extends FormRequest
     {
         return [
             'id_token' => 'required|string',
-            'access_token' => 'required|string',
+            'access_token' => 'nullable|string',
             'fcm_token' => 'nullable|string',
         ];
     }

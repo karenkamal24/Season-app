@@ -182,7 +182,7 @@ class AuthController extends Controller
                     'photo_url' => $googleUser['picture'],
                     'provider' => 'google',
                     'provider_id' => $googleUser['id'],
-                    'provider_token' => $request->access_token,
+                    'provider_token' => $request->access_token ?? null,
                     'email_verified_at' => $googleUser['email_verified'] ? now() : null,
                     'fcm_token' => $request->fcm_token,
                     'password' => bcrypt(Str::random(32)), // Random password for social login users
@@ -198,8 +198,10 @@ class AuthController extends Controller
                     $user->update(['fcm_token' => $request->fcm_token]);
                 }
                 
-                // Update provider token
-                $user->update(['provider_token' => $request->access_token]);
+                // Update provider token if provided
+                if ($request->access_token) {
+                    $user->update(['provider_token' => $request->access_token]);
+                }
                 
                 // Update provider and provider_id if they're missing
                 if (!$user->provider || !$user->provider_id) {
@@ -369,7 +371,7 @@ class AuthController extends Controller
                     'name' => 'User', // Apple doesn't provide name in subsequent logins
                     'provider' => 'apple',
                     'provider_id' => $appleUser['id'],
-                    'provider_token' => $request->authorization_code,
+                    'provider_token' => $request->authorization_code ?? null,
                     'email_verified_at' => $appleUser['email_verified'] ? now() : null,
                     'fcm_token' => $request->fcm_token,
                     'password' => bcrypt(Str::random(32)), // Random password for social login users
@@ -419,7 +421,7 @@ class AuthController extends Controller
                         'first_name' => explode(' ', $user->name, 2)[0] ?? null,
                         'last_name' => explode(' ', $user->name, 2)[1] ?? null,
                         'name' => $user->name,
-                        'photo' => null, // Apple doesn't provide photo
+                        'photo' => $user->photo_url ?? $user->avatar ?? null,
                         'phone' => $user->phone,
                         'email_verified_at' => $user->email_verified_at,
                     ]
@@ -473,7 +475,7 @@ class AuthController extends Controller
                 'name' => 'User', // Apple doesn't provide name in subsequent logins
                 'provider' => 'apple',
                 'provider_id' => $appleUser['id'],
-                'provider_token' => $request->authorization_code,
+                'provider_token' => $request->authorization_code ?? null,
                 'email_verified_at' => $appleUser['email_verified'] ? now() : null,
                 'fcm_token' => $request->fcm_token,
                 'password' => bcrypt(Str::random(32)), // Random password for social login users
@@ -499,7 +501,7 @@ class AuthController extends Controller
                         'first_name' => explode(' ', $user->name, 2)[0] ?? null,
                         'last_name' => explode(' ', $user->name, 2)[1] ?? null,
                         'name' => $user->name,
-                        'photo' => null, // Apple doesn't provide photo
+                        'photo' => $user->photo_url ?? $user->avatar ?? null,
                         'phone' => $user->phone,
                         'email_verified_at' => $user->email_verified_at,
                     ]
