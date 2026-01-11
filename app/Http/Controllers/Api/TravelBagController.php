@@ -14,6 +14,7 @@ use App\Services\GeminiAIService;
 use App\Utils\ApiResponse;
 use App\Helpers\LangHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -688,6 +689,53 @@ class TravelBagController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::error(
                 (LangHelper::msg('ai_item_add_failed') ?? 'Failed to add AI item') . ': ' . $e->getMessage()
+            );
+        }
+    }
+
+    /**
+     * Estimate weight for a custom item using AI
+     * POST /api/travel-bag/estimate-weight
+     */
+    public function estimateWeight(Request $request)
+    {
+        try {
+            $request->validate([
+                'custom_item_name' => 'required|string|max:255',
+            ], [
+                'custom_item_name.required' => 'Item name is required',
+                'custom_item_name.string' => 'Item name must be a string',
+                'custom_item_name.max' => 'Item name must not exceed 255 characters',
+            ]);
+
+            $itemName = $request->input('custom_item_name');
+            $language = app()->getLocale();
+
+            // Estimate weight using AI
+            $estimatedWeight = $this->geminiService->estimateItemWeight($itemName, $language);
+
+            return ApiResponse::send(
+                Response::HTTP_OK,
+                'Weight estimated successfully',
+                [
+                    'item_name' => $itemName,
+                    'estimated_weight_kg' => $estimatedWeight,
+                    'estimated_weight_grams' => round($estimatedWeight * 1000, 1),
+                ]
+            );
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::badRequest($e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Failed to estimate item weight', [
+                'item_name' => $request->input('custom_item_name'),
+                'error' => $e->getMessage(),
+            ]);
+
+            return ApiResponse::send(
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                'Failed to estimate weight: ' . $e->getMessage(),
+                []
             );
         }
     }

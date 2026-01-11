@@ -455,5 +455,117 @@ PROMPT;
 PROMPT;
         }
     }
+
+    /**
+     * Estimate weight for a custom item using Gemini AI
+     *
+     * @param string $itemName Item name
+     * @param string $language Language code (ar/en)
+     * @return float Estimated weight in kilograms
+     * @throws Exception
+     */
+    public function estimateItemWeight(string $itemName, string $language = 'ar'): float
+    {
+        $prompt = $this->buildWeightEstimationPrompt($itemName, $language);
+
+        $response = $this->generateContent($prompt);
+
+        $result = $this->extractJson($response['text']);
+
+        // Handle different response formats
+        $weight = null;
+        if (isset($result['weight'])) {
+            $weight = (float) $result['weight'];
+        } elseif (isset($result['weight_kg'])) {
+            $weight = (float) $result['weight_kg'];
+        } elseif (is_numeric($result)) {
+            $weight = (float) $result;
+        } else {
+            throw new Exception('Invalid weight format from AI response');
+        }
+
+        // Ensure weight is in kilograms (convert from grams if needed)
+        if ($weight > 1000) {
+            // Likely in grams, convert to kg
+            $weight = $weight / 1000;
+        }
+
+        // Validate weight is reasonable (between 0.001 kg and 100 kg)
+        if ($weight < 0.001 || $weight > 100) {
+            throw new Exception('Weight estimate out of reasonable range');
+        }
+
+        return round($weight, 3); // Round to 3 decimal places
+    }
+
+    /**
+     * Build prompt for estimating item weight
+     *
+     * @param string $itemName Item name
+     * @param string $language Language code (ar/en)
+     * @return string
+     */
+    protected function buildWeightEstimationPrompt(string $itemName, string $language): string
+    {
+        if ($language === 'en') {
+            return <<<PROMPT
+Estimate the weight of the following travel item: "{$itemName}"
+
+Provide a realistic weight estimate in kilograms (kg) for this item when packed for travel.
+Consider:
+- Typical size and material
+- Standard travel version of this item
+- Average weight for common travel items
+
+Respond with ONLY a JSON object in this format:
+{
+  "weight": weight_in_kg,
+  "unit": "kg",
+  "confidence": "high|medium|low"
+}
+
+Example:
+{
+  "weight": 0.5,
+  "unit": "kg",
+  "confidence": "high"
+}
+
+Important:
+- Weight must be in kilograms (not grams)
+- Provide realistic estimates (typically 0.01 to 50 kg for travel items)
+- Return ONLY valid JSON, no additional text
+PROMPT;
+        } else {
+            return <<<PROMPT
+قدر وزن العنصر التالي للسفر: "{$itemName}"
+
+قدم تقديراً واقعياً للوزن بالكيلوجرام (kg) لهذا العنصر عند تعبئته للسفر.
+راعي:
+- الحجم النموذجي والمادة
+- النسخة القياسية للسفر من هذا العنصر
+- الوزن المتوسط للعناصر الشائعة للسفر
+
+قم بالرد بـ JSON فقط بالتنسيق التالي:
+{
+  "weight": الوزن_بالكيلوجرام,
+  "unit": "kg",
+  "confidence": "high|medium|low"
+}
+
+مثال:
+{
+  "weight": 0.5,
+  "unit": "kg",
+  "confidence": "high"
+}
+
+مهم:
+- الوزن يجب أن يكون بالكيلوجرام (وليس بالجرام)
+- قدم تقديرات واقعية (عادة من 0.01 إلى 50 كجم للعناصر السفر)
+- قم بإرجاع JSON صالح فقط، بدون أي نص إضافي
+PROMPT;
+        }
+    }
 }
 

@@ -130,6 +130,7 @@ Route::middleware('auth:sanctum')->prefix('bag-types')->group(function () {
 Route::middleware('auth:sanctum')->prefix('travel-bag')->group(function () {
     Route::get('/details', [TravelBagController::class, 'details']);
     Route::put('/max-weight', [TravelBagController::class, 'updateMaxWeight']);
+    Route::post('/estimate-weight', [TravelBagController::class, 'estimateWeight']); // Estimate weight for custom item
     Route::post('/add-item', [TravelBagController::class, 'addItem']);
     Route::get('/items', [TravelBagController::class, 'getItems']);
     Route::put('/items/{item_id}/quantity', [TravelBagController::class, 'updateItemQuantity']);
