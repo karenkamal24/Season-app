@@ -40,6 +40,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('bags:send-alerts --hours=24')->hourly();
         // Send urgent alerts for bags departing in 6 hours
         $schedule->command('bags:send-alerts --hours=6')->everyThreeHours();
+        // Send travel date reminders daily at 9 AM (1 day before travel)
+        $schedule->command('bags:send-travel-reminders --days-before=1')->dailyAt('09:00');
+        // Send travel date reminders 3 days before travel
+        $schedule->command('bags:send-travel-reminders --days-before=3')->dailyAt('09:00');
     })
 
 
