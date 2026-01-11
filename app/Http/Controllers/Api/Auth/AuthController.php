@@ -18,6 +18,7 @@ use App\Http\Resources\Auth\UserResource;
 use App\Helpers\LangHelper;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Exception;
 
 class AuthController extends Controller
@@ -242,18 +243,24 @@ class AuthController extends Controller
                 ]
             ], 200);
             
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Re-throw validation exceptions to be handled by Laravel's exception handler
+            throw $e;
         } catch (Exception $e) {
             Log::error('❌ Google Login failed', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Google login failed',
-                'message_ar' => 'فشل تسجيل الدخول عبر Google',
-                'error' => $e->getMessage()
+                'status' => 400,
+                'message' => 'Google login failed: ' . $e->getMessage(),
+                'message_ar' => 'فشل تسجيل الدخول عبر Google: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+                'data' => []
             ], 400);
         }
     }
