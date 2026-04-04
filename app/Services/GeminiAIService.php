@@ -144,21 +144,31 @@ class GeminiAIService
      */
     private function fixTruncatedJson(string $json): string
     {
-        // Already valid — return as is
         if (json_decode($json, true) !== null) {
             return $json;
         }
 
-        // Try to fix array truncation: [..., {"name": "incomplete
         if (str_starts_with($json, '[')) {
-            $fixed = preg_replace('/,?\s*\{[^}]*$/', '', $json);
-            $fixed = rtrim($fixed) . ']';
-            if (json_decode($fixed, true) !== null) {
-                return $fixed;
+            // شيل آخر عنصر مش مكتمل (سواء انتهى بـ quote أو بـ comma أو بـ {)
+            $lastComplete = strrpos($json, '},');
+
+            if ($lastComplete !== false) {
+                $fixed = substr($json, 0, $lastComplete + 1) . ']';
+                if (json_decode($fixed, true) !== null) {
+                    return $fixed;
+                }
+            }
+
+            // لو مفيش عنصر مكتمل خالص، جرب تقفل آخر object
+            $lastBrace = strrpos($json, '}');
+            if ($lastBrace !== false) {
+                $fixed = substr($json, 0, $lastBrace + 1) . ']';
+                if (json_decode($fixed, true) !== null) {
+                    return $fixed;
+                }
             }
         }
 
-        // Try to fix object truncation: {..., "key": "incomplete
         if (str_starts_with($json, '{')) {
             $fixed = preg_replace('/,?\s*"[^"]*":\s*"[^"]*$/', '', $json);
             $fixed = rtrim($fixed) . '}';
@@ -169,7 +179,6 @@ class GeminiAIService
 
         return $json;
     }
-
     /**
      * Analyze bag with Gemini AI
      *
