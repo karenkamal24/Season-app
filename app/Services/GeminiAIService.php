@@ -119,6 +119,9 @@ class GeminiAIService
         // Clean up the text
         $jsonText = trim($jsonText);
 
+        // Fix truncated JSON - remove last incomplete element
+        $jsonText = $this->fixTruncatedJson($jsonText);
+
         // Try to decode
         $decoded = json_decode($jsonText, true);
 
@@ -131,6 +134,40 @@ class GeminiAIService
         }
 
         return $decoded;
+    }
+
+    /**
+     * Fix truncated JSON by removing incomplete last element and closing brackets
+     *
+     * @param string $json
+     * @return string
+     */
+    private function fixTruncatedJson(string $json): string
+    {
+        // Already valid — return as is
+        if (json_decode($json, true) !== null) {
+            return $json;
+        }
+
+        // Try to fix array truncation: [..., {"name": "incomplete
+        if (str_starts_with($json, '[')) {
+            $fixed = preg_replace('/,?\s*\{[^}]*$/', '', $json);
+            $fixed = rtrim($fixed) . ']';
+            if (json_decode($fixed, true) !== null) {
+                return $fixed;
+            }
+        }
+
+        // Try to fix object truncation: {..., "key": "incomplete
+        if (str_starts_with($json, '{')) {
+            $fixed = preg_replace('/,?\s*"[^"]*":\s*"[^"]*$/', '', $json);
+            $fixed = rtrim($fixed) . '}';
+            if (json_decode($fixed, true) !== null) {
+                return $fixed;
+            }
+        }
+
+        return $json;
     }
 
     /**
@@ -236,7 +273,7 @@ PROMPT;
         $prompt = $this->buildCategoriesPrompt($language);
 
         $response = $this->generateContent($prompt, [
-            'maxOutputTokens' => 512,
+            'maxOutputTokens' => 1024,
             'temperature' => 0.3,
         ]);
 
