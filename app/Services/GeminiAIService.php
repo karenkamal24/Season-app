@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Exception;
 
 class GeminiAIService
@@ -15,7 +16,7 @@ class GeminiAIService
     public function __construct()
     {
         $this->apiKey = config('services.gemini.api_key');
-        $this->model = config('services.gemini.model', 'gemini-1.5-flash');
+        $this->model = config('services.gemini.model', 'gemini-2.0-flash-exp');
         $this->apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent";
     }
 
@@ -32,9 +33,8 @@ class GeminiAIService
         $startTime = microtime(true);
 
         try {
-            // Timeout set to 28 seconds (less than Flutter's 30s receiveTimeout)
-            $response = Http::timeout(28)
-                ->retry(2, 500)
+            $response = Http::timeout(15)
+                ->retry(1, 200)
                 ->post($this->apiUrl . '?key=' . $this->apiKey, [
                     'contents' => [
                         [
@@ -47,7 +47,7 @@ class GeminiAIService
                         'temperature' => 0.7,
                         'topK' => 40,
                         'topP' => 0.95,
-                        'maxOutputTokens' => 8192,
+                        'maxOutputTokens' => 2048,
                         'responseMimeType' => 'application/json',
                     ], $config),
                     'safetySettings' => [
@@ -142,9 +142,22 @@ class GeminiAIService
      */
     public function analyzeBag(array $bagData): array
     {
+        $cacheKey = 'bag_analysis_' . md5(json_encode([
+            $bagData['tripDetails'] ?? [],
+            collect($bagData['items'] ?? [])->pluck('id')->sort()->values()->toArray(),
+            $bagData['totalWeight'] ?? 0,
+        ]));
+
+        if ($cached = Cache::get($cacheKey)) {
+            return $cached;
+        }
+
         $prompt = $this->buildAnalysisPrompt($bagData);
 
-        $response = $this->generateContent($prompt);
+        $response = $this->generateContent($prompt, [
+            'maxOutputTokens' => 2048,
+            'temperature' => 0.5,
+        ]);
 
         $analysis = $this->extractJson($response['text']);
 
@@ -155,6 +168,8 @@ class GeminiAIService
             'processing_time_ms' => $response['processing_time_ms'],
             'finish_reason' => $response['finish_reason'],
         ]);
+
+        Cache::put($cacheKey, $analysis, 1800);
 
         return $analysis;
     }
@@ -178,115 +193,28 @@ class GeminiAIService
         })->join("\n");
 
         return <<<PROMPT
-أنت مساعد ذكي متخصص في تنظيم حقائب السفر. مهمتك تحليل محتويات الحقيبة وتقديم اقتراحات ذكية.
+أنت مساعد ذكي لتنظيم حقائب السفر. حلل الحقيبة وأعد JSON فقط بدون أي نص إضافي.
 
-## معلومات الرحلة:
-- النوع: {$tripDetails['type']}
-- المدة: {$tripDetails['duration']} أيام
-- الوجهة: {$tripDetails['destination']}
-- تاريخ المغادرة: {$tripDetails['departureDate']}
-- الوزن الحالي: {$totalWeight} كجم
-- الحد الأقصى: {$tripDetails['maxWeight']} كجم
+رحلة: {$tripDetails['type']} - {$tripDetails['duration']} أيام - {$tripDetails['destination']} - {$tripDetails['departureDate']}
+وزن: {$totalWeight}/{$tripDetails['maxWeight']} كجم
 
-## محتويات الحقيبة الحالية:
+الأغراض الحالية:
 {$itemsList}
 
-## المطلوب منك:
+القواعد:
+- راعي نوع الرحلة والمدة والمناخ
+- اقترح بدائل أخف وزناً
+- لا تحذف أغراض ضرورية
+- رحلة عمل تحتاج ملابس رسمية
 
-قدم تحليلاً كاملاً يشمل:
-
-1. **الأغراض الناقصة** (missing_items):
-   - اسم الغرض
-   - الوزن المقدر
-   - السبب (لماذا ناقص)
-   - الأولوية (high/medium/low)
-   - الفئة
-
-2. **الأغراض الزائدة** (extra_items):
-   - اسم الغرض (من القائمة الموجودة)
-   - السبب (لماذا غير ضروري)
-   - الوزن الذي سيتم توفيره
-
-3. **تحسينات الوزن** (weight_optimization):
-   - الوزن الحالي
-   - الوزن المقترح
-   - الوزن الموفر
-   - التأثير (high/medium/low)
-
-4. **اقتراحات إضافية** (additional_suggestions):
-   - إعادة توزيع الأغراض
-   - نصائح عامة
-
-5. **تنبيه ذكي** (smart_alert):
-   - الوقت المتبقي للرحلة
-   - الرسالة
-   - الإجراء المقترح
-   - مستوى الأهمية
-
-## قواعد مهمة:
-- ✅ كن محدداً في الأسباب
-- ✅ راعي نوع الرحلة (رحلة عمل تحتاج ملابس رسمية)
-- ✅ راعي مدة السفر (كل يوم يحتاج ملابس)
-- ✅ راعي المناخ في الوجهة
-- ✅ اقترح بدائل أخف وزناً
-- ❌ لا تقترح أغراض غالية جداً
-- ❌ لا تقترح حذف أغراض ضرورية
-
-**يجب أن يكون الرد بصيغة JSON فقط، بدون أي نص إضافي:**
-
-```json
-{
-  "analysis_id": "unique_id",
-  "missing_items": [
-    {
-      "id": "missing_1",
-      "name": "اسم الغرض",
-      "weight": 0.5,
-      "reason": "السبب",
-      "priority": "high",
-      "category": "الفئة"
-    }
-  ],
-  "extra_items": [
-    {
-      "id": "extra_1",
-      "item_id_in_bag": "item_id",
-      "name": "اسم الغرض",
-      "reason": "السبب",
-      "weight_saved": 1.5
-    }
-  ],
-  "weight_optimization": {
-    "current_weight": {$totalWeight},
-    "suggested_weight": 0,
-    "weight_saved": 0,
-    "impact_level": "high",
-    "percentage_saved": 0,
-    "suggestions": []
-  },
-  "additional_suggestions": [
-    {
-      "id": "sugg_1",
-      "category": "organization",
-      "title": "العنوان",
-      "description": "الوصف",
-      "priority": "medium"
-    }
-  ],
-  "smart_alert": {
-    "alert_id": "alert_1",
-    "time_remaining": "X ساعات",
-    "time_remaining_minutes": 0,
-    "message": "الرسالة",
-    "action": "الإجراء",
-    "severity": "high",
-    "icon": "clock"
-  },
-  "metadata": {
-    "confidence_score": 0.92
-  }
-}
-```
+أعد JSON بهذه المفاتيح فقط:
+- analysis_id: معرف فريد
+- missing_items: [{id, name, weight, reason, priority(high/medium/low), category}]
+- extra_items: [{id, item_id_in_bag, name, reason, weight_saved}]
+- weight_optimization: {current_weight, suggested_weight, weight_saved, impact_level, percentage_saved, suggestions}
+- additional_suggestions: [{id, category, title, description, priority}]
+- smart_alert: {alert_id, time_remaining, time_remaining_minutes, message, action, severity, icon}
+- metadata: {confidence_score}
 PROMPT;
     }
 
@@ -299,9 +227,18 @@ PROMPT;
      */
     public function generatePackingCategories(string $language = 'ar'): array
     {
+        $cacheKey = 'packing_categories_' . $language;
+
+        if ($cached = Cache::get($cacheKey)) {
+            return $cached;
+        }
+
         $prompt = $this->buildCategoriesPrompt($language);
 
-        $response = $this->generateContent($prompt);
+        $response = $this->generateContent($prompt, [
+            'maxOutputTokens' => 512,
+            'temperature' => 0.3,
+        ]);
 
         $categories = $this->extractJson($response['text']);
 
@@ -314,6 +251,8 @@ PROMPT;
         if (isset($categories['categories'])) {
             $categories = $categories['categories'];
         }
+
+        Cache::put($cacheKey, $categories, 86400);
 
         return $categories;
     }
@@ -328,9 +267,18 @@ PROMPT;
      */
     public function suggestItemsForCategory(string $category, string $language = 'ar'): array
     {
+        $cacheKey = 'category_items_' . md5($category . $language);
+
+        if ($cached = Cache::get($cacheKey)) {
+            return $cached;
+        }
+
         $prompt = $this->buildItemsPrompt($category, $language);
 
-        $response = $this->generateContent($prompt);
+        $response = $this->generateContent($prompt, [
+            'maxOutputTokens' => 1024,
+            'temperature' => 0.4,
+        ]);
 
         $items = $this->extractJson($response['text']);
 
@@ -343,6 +291,8 @@ PROMPT;
         if (isset($items['items'])) {
             $items = $items['items'];
         }
+
+        Cache::put($cacheKey, $items, 86400);
 
         return $items;
     }
@@ -466,9 +416,18 @@ PROMPT;
      */
     public function estimateItemWeight(string $itemName, string $language = 'ar'): float
     {
+        $cacheKey = 'item_weight_' . md5($itemName . $language);
+
+        if ($cached = Cache::get($cacheKey)) {
+            return $cached;
+        }
+
         $prompt = $this->buildWeightEstimationPrompt($itemName, $language);
 
-        $response = $this->generateContent($prompt);
+        $response = $this->generateContent($prompt, [
+            'maxOutputTokens' => 256,
+            'temperature' => 0.2,
+        ]);
 
         $result = $this->extractJson($response['text']);
 
@@ -495,7 +454,11 @@ PROMPT;
             throw new Exception('Weight estimate out of reasonable range');
         }
 
-        return round($weight, 3); // Round to 3 decimal places
+        $weight = round($weight, 3);
+
+        Cache::put($cacheKey, $weight, 86400);
+
+        return $weight;
     }
 
     /**
@@ -568,4 +531,3 @@ PROMPT;
         }
     }
 }
-
