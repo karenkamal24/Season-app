@@ -54,7 +54,7 @@ class GeminiAIService
                     'temperature' => 0.2,
                     'topK' => 20,
                     'topP' => 0.8,
-                    'maxOutputTokens' => 1000,
+                    'maxOutputTokens' => 2000, // 🔥 مهم جدًا
                     'responseMimeType' => 'application/json',
                 ], $config),
                 'safetySettings' => [
@@ -87,6 +87,11 @@ class GeminiAIService
 
         $data = $response->json();
 
+        // 🔥 مهم جدًا (debug)
+        Log::info('RAW GEMINI RESPONSE', [
+            'text' => $data['candidates'][0]['content']['parts'][0]['text'] ?? ''
+        ]);
+
         $processingTime = (int)((microtime(true) - $startTime) * 1000);
 
         return [
@@ -103,8 +108,8 @@ class GeminiAIService
         throw $e;
     }
 
-
     }
+
 
 
     /**
@@ -116,43 +121,32 @@ class GeminiAIService
      */
     public function extractJson(string $text): array
     {
-    // 1. استخراج JSON من code block لو موجود
-    if (preg_match('/json\s*([\s\S]*?)\s*/i', $text, $matches)) {
+    // استخراج JSON بشكل صحيح
+    if (preg_match('/`json\s*([\s\S]*?)\s*`/i', $text, $matches)) {
     $jsonText = $matches[1];
-    } elseif (preg_match('/\s*([\s\S]*?)\s*/', $text, $matches)) {
+    } elseif (preg_match('/`([\s\S]*?)`/', $text, $matches)) {
     $jsonText = $matches[1];
-    } else {
-    // 2. استخراج أول JSON object من النص
-    if (preg_match('/{[\s\S]*}/', $text, $matches)) {
+    } elseif (preg_match('/{[\s\S]*}/', $text, $matches)) {
     $jsonText = $matches[0];
     } else {
     $jsonText = $text;
     }
-    }
 
-    // 3. تنظيف النص
     $jsonText = trim($jsonText);
 
-    // إزالة أي نص قبل أول {
+    // تنظيف إضافي
     $jsonText = preg_replace('/^[^{]*/', '', $jsonText);
-
-    // إزالة أي نص بعد آخر }
     $jsonText = preg_replace('/[^}]*$/', '', $jsonText);
 
-    // 4. محاولة decode
+    // decode
     $decoded = json_decode($jsonText, true);
 
-    // 5. لو فشل → محاولة إصلاح بسيط
+    // محاولة إصلاح
     if (json_last_error() !== JSON_ERROR_NONE) {
-
-        // إزالة trailing commas
         $jsonText = preg_replace('/,\s*([}\]])/', '$1', $jsonText);
-
-        // محاولة تانية
         $decoded = json_decode($jsonText, true);
     }
 
-    // 6. لو لسه فشل → log قوي
     if (json_last_error() !== JSON_ERROR_NONE) {
         Log::error('JSON Parse Failed', [
             'error' => json_last_error_msg(),
@@ -165,7 +159,9 @@ class GeminiAIService
 
     return $decoded;
 
+
     }
+
 
     /**
      * Analyze bag with Gemini AI
@@ -176,22 +172,43 @@ class GeminiAIService
      */
     public function analyzeBag(array $bagData): array
     {
-        $prompt = $this->buildAnalysisPrompt($bagData);
+    $prompt = $this->buildAnalysisPrompt($bagData);
 
+
+    $attempts = 0;
+
+    do {
         $response = $this->generateContent($prompt);
 
-        $analysis = $this->extractJson($response['text']);
+        try {
+            $analysis = $this->extractJson($response['text']);
+            break;
+        } catch (\Exception $e) {
+            $attempts++;
 
-        // Add metadata
-        $analysis['metadata'] = array_merge($analysis['metadata'] ?? [], [
-            'analyzed_at' => now()->toIso8601String(),
-            'ai_model' => $this->model,
-            'processing_time_ms' => $response['processing_time_ms'],
-            'finish_reason' => $response['finish_reason'],
-        ]);
+            Log::warning('Retrying AI بسبب JSON بايظ', [
+                'attempt' => $attempts
+            ]);
 
-        return $analysis;
+            if ($attempts >= 2) {
+                throw $e;
+            }
+        }
+
+    } while ($attempts < 2);
+
+    $analysis['metadata'] = array_merge($analysis['metadata'] ?? [], [
+        'analyzed_at' => now()->toIso8601String(),
+        'ai_model' => $this->model,
+        'processing_time_ms' => $response['processing_time_ms'],
+        'finish_reason' => $response['finish_reason'],
+    ]);
+
+    return $analysis;
+
+
     }
+
 
     /**
      * Build analysis prompt for bag
@@ -205,8 +222,6 @@ class GeminiAIService
     $items = $bagData['items'] ?? [];
     $totalWeight = $bagData['totalWeight'] ?? 0;
 
-
-    // تقليل حجم البيانات
     $itemsList = collect($items)->map(function ($item) {
         $essential = ($item['essential'] ?? false) ? 'ضروري' : '';
         return "{$item['name']} {$item['weight']}كجم {$item['category']} {$essential}";
@@ -214,84 +229,83 @@ class GeminiAIService
 
     return <<<PROMPT
 
-
     أنت مساعد ذكي لتنظيم حقائب السفر.
 
-    ## الرحلة:
+    الرحلة:
 
     {$tripDetails['type']} | {$tripDetails['duration']} أيام | {$tripDetails['destination']}
     وزن: {$totalWeight}/{$tripDetails['maxWeight']} كجم
 
-    ## المحتويات:
+    المحتويات:
 
     {$itemsList}
 
-    ## المطلوب:
+    المطلوب:
 
-    حلل الحقيبة وارجع JSON فقط.
+    حلل الحقيبة.
 
-    ## قواعد:
+    قواعد:
+    اجابات قصيرة جدا (max 10 كلمات)
+    راعي المدة والمناخ
+    لا تحذف عناصر ضرورية
+    لا تقترح أشياء غالية
+    بدون شرح
+    لا تستخدم markdown أو ```
+    لا تكتب أي نص خارج JSON
+    تأكد أن JSON مكتمل ومغلق بالكامل
+    OUTPUT (JSON فقط):
 
-    * اجابات قصيرة جدا (max 10 كلمات)
-    * راعي المدة والمناخ
-    * لا تحذف عناصر ضرورية
-    * لا تقترح أشياء غالية
-    * بدون شرح
-
-    ```json
     {
-      "analysis_id": "unique_id",
-      "missing_items": [
-        {
-          "id": "missing_1",
-          "name": "اسم",
-          "weight": 0.5,
-          "reason": "سبب",
-          "priority": "high",
-          "category": "فئة"
-        }
-      ],
-      "extra_items": [
-        {
-          "id": "extra_1",
-          "item_id_in_bag": "item_id",
-          "name": "اسم",
-          "reason": "سبب",
-          "weight_saved": 1.5
-        }
-      ],
-      "weight_optimization": {
-        "current_weight": {$totalWeight},
-        "suggested_weight": 0,
-        "weight_saved": 0,
-        "impact_level": "high",
-        "percentage_saved": 0,
-        "suggestions": []
-      },
-      "additional_suggestions": [
-        {
-          "id": "sugg_1",
-          "category": "organization",
-          "title": "عنوان",
-          "description": "وصف",
-          "priority": "medium"
-        }
-      ],
-      "smart_alert": {
-        "alert_id": "alert_1",
-        "time_remaining": "X",
-        "time_remaining_minutes": 0,
-        "message": "رسالة",
-        "action": "إجراء",
-        "severity": "high",
-        "icon": "clock"
-      },
-      "metadata": {
-        "confidence_score": 0.9
-      }
+    "analysis_id": "unique_id",
+    "missing_items": [
+    {
+    "id": "missing_1",
+    "name": "اسم",
+    "weight": 0.5,
+    "reason": "سبب",
+    "priority": "high",
+    "category": "فئة"
     }
-
-
+    ],
+    "extra_items": [
+    {
+    "id": "extra_1",
+    "item_id_in_bag": "item_id",
+    "name": "اسم",
+    "reason": "سبب",
+    "weight_saved": 1.5
+    }
+    ],
+    "weight_optimization": {
+    "current_weight": {$totalWeight},
+    "suggested_weight": 0,
+    "weight_saved": 0,
+    "impact_level": "high",
+    "percentage_saved": 0,
+    "suggestions": []
+    },
+    "additional_suggestions": [
+    {
+    "id": "sugg_1",
+    "category": "organization",
+    "title": "عنوان",
+    "description": "وصف",
+    "priority": "medium"
+    }
+    ],
+    "smart_alert": {
+    "alert_id": "alert_1",
+    "time_remaining": "X",
+    "time_remaining_minutes": 0,
+    "message": "رسالة",
+    "action": "إجراء",
+    "severity": "high",
+    "icon": "clock"
+    },
+    "metadata": {
+    "confidence_score": 0.9
+    }
+    }
     PROMPT;
     }
 
