@@ -256,7 +256,7 @@ class GeminiAIService
 
         $prompt = $this->buildAnalysisPrompt($bagData);
 
-        $maxAttempts = 3;
+        $maxAttempts = 5;
         $attempt = 0;
 
         do {
