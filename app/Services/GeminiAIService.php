@@ -33,8 +33,9 @@ class GeminiAIService
         $startTime = microtime(true);
 
         try {
-            $response = Http::timeout(15)
-                ->retry(1, 200)
+            // تحسين: زيادة الـ timeout لأن العربية بتاخد وقت أطول
+            $response = Http::timeout(30)
+                ->retry(2, 500)
                 ->post($this->apiUrl . '?key=' . $this->apiKey, [
                     'contents' => [
                         [
@@ -80,13 +81,30 @@ class GeminiAIService
 
             $data = $response->json();
 
+            // تحسين: التحقق من وجود candidates قبل الوصول إليها
+            if (empty($data['candidates'])) {
+                Log::error('Gemini API returned no candidates', ['data' => $data]);
+                throw new Exception('Gemini API returned no candidates');
+            }
+
+            $candidate = $data['candidates'][0];
+
+            // تحسين: تحذير لو الـ finish_reason مش STOP
+            $finishReason = $candidate['finishReason'] ?? 'UNKNOWN';
+            if ($finishReason === 'MAX_TOKENS') {
+                Log::warning('Gemini response truncated due to MAX_TOKENS', [
+                    'prompt_length' => strlen($prompt),
+                    'finish_reason' => $finishReason,
+                ]);
+            }
+
             $processingTime = (int)((microtime(true) - $startTime) * 1000);
 
             return [
-                'text' => $data['candidates'][0]['content']['parts'][0]['text'] ?? '',
+                'text' => $candidate['content']['parts'][0]['text'] ?? '',
                 'processing_time_ms' => $processingTime,
-                'finish_reason' => $data['candidates'][0]['finishReason'] ?? 'UNKNOWN',
-                'safety_ratings' => $data['candidates'][0]['safetyRatings'] ?? [],
+                'finish_reason' => $finishReason,
+                'safety_ratings' => $candidate['safetyRatings'] ?? [],
             ];
 
         } catch (Exception $e) {
@@ -116,19 +134,19 @@ class GeminiAIService
             $jsonText = $text;
         }
 
-        // Clean up the text
         $jsonText = trim($jsonText);
 
-        // Fix truncated JSON - remove last incomplete element
+        // Fix truncated JSON
         $jsonText = $this->fixTruncatedJson($jsonText);
 
-        // Try to decode
         $decoded = json_decode($jsonText, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        // تحسين: التحقق من $decoded مش من json_last_error فقط
+        // لأن json_last_error بيرجع 0 أحياناً حتى لو الـ decode فشل
+        if ($decoded === null) {
             Log::error('Failed to parse JSON from Gemini response', [
                 'error' => json_last_error_msg(),
-                'text' => $text
+                'text_preview' => substr($text, 0, 500),
             ]);
             throw new Exception('Failed to parse JSON from AI response: ' . json_last_error_msg());
         }
@@ -150,10 +168,8 @@ class GeminiAIService
         }
 
         if (str_starts_with($json, '[')) {
-            // ابحث عن آخر عنصر مكتمل ينتهي بـ }
-            // أولاً: جرب إيجاد آخر }, (عنصر مكتمل يليه فاصلة)
+            // أولاً: دور على آخر عنصر مكتمل ينتهي بـ },
             $lastComplete = strrpos($json, '},');
-
             if ($lastComplete !== false) {
                 $fixed = substr($json, 0, $lastComplete + 1) . ']';
                 if (json_decode($fixed, true) !== null) {
@@ -161,7 +177,7 @@ class GeminiAIService
                 }
             }
 
-            // ثانياً: جرب إيجاد آخر } بدون فاصلة (آخر عنصر)
+            // ثانياً: دور على آخر } بدون فاصلة
             $lastBrace = strrpos($json, '}');
             if ($lastBrace !== false) {
                 $fixed = substr($json, 0, $lastBrace + 1) . ']';
@@ -170,7 +186,7 @@ class GeminiAIService
                 }
             }
 
-            // ثالثاً: شيل آخر عنصر مش مكتمل بالكامل
+            // ثالثاً: شيل آخر عنصر مش مكتمل
             $fixed = preg_replace('/,?\s*\{[^}]*$/', '', $json);
             $fixed = rtrim($fixed) . ']';
             if (json_decode($fixed, true) !== null) {
@@ -178,12 +194,30 @@ class GeminiAIService
             }
         }
 
-        // Try to fix object truncation: {..., "key": "incomplete
         if (str_starts_with($json, '{')) {
+            // تحسين: معالجة أعمق لـ objects المقطوعة
+
+            // حالة 1: قيمة string مقطوعة
             $fixed = preg_replace('/,?\s*"[^"]*":\s*"[^"]*$/', '', $json);
             $fixed = rtrim($fixed) . '}';
             if (json_decode($fixed, true) !== null) {
                 return $fixed;
+            }
+
+            // حالة 2: array داخلية مقطوعة
+            $fixed = preg_replace('/,?\s*"[^"]*":\s*\[[^\]]*$/', '', $json);
+            $fixed = rtrim($fixed) . '}';
+            if (json_decode($fixed, true) !== null) {
+                return $fixed;
+            }
+
+            // حالة 3: object داخلي مقطوع — دور على آخر } مكتملة
+            $lastBrace = strrpos($json, '}');
+            if ($lastBrace !== false) {
+                $fixed = substr($json, 0, $lastBrace + 1) . '}';
+                if (json_decode($fixed, true) !== null) {
+                    return $fixed;
+                }
             }
         }
 
@@ -211,14 +245,14 @@ class GeminiAIService
 
         $prompt = $this->buildAnalysisPrompt($bagData);
 
+        // تحسين: 8192 لأن الـ response العربي الكامل بيحتاج tokens أكتر بكتير
         $response = $this->generateContent($prompt, [
-            'maxOutputTokens' => 2048,
+            'maxOutputTokens' => 8192,
             'temperature' => 0.5,
         ]);
 
         $analysis = $this->extractJson($response['text']);
 
-        // Add metadata
         $analysis['metadata'] = array_merge($analysis['metadata'] ?? [], [
             'analyzed_at' => now()->toIso8601String(),
             'ai_model' => $this->model,
@@ -242,7 +276,6 @@ class GeminiAIService
         $tripDetails = $bagData['tripDetails'] ?? [];
         $items = $bagData['items'] ?? [];
         $totalWeight = $bagData['totalWeight'] ?? 0;
-        $preferences = $bagData['preferences'] ?? [];
 
         $itemsList = collect($items)->map(function ($item) {
             $essential = ($item['essential'] ?? false) ? '[ضروري]' : '';
@@ -299,12 +332,10 @@ PROMPT;
 
         $categories = $this->extractJson($response['text']);
 
-        // Ensure it's an array
         if (!is_array($categories)) {
             throw new Exception('Invalid response format from AI');
         }
 
-        // If response is wrapped in a key, extract it
         if (isset($categories['categories'])) {
             $categories = $categories['categories'];
         }
@@ -337,25 +368,18 @@ PROMPT;
             'temperature' => 0.4,
         ]);
 
-        Log::debug('RAW AI Response', [
-            'raw_text' => $response['text'],
-            'finish_reason' => $response['finish_reason'],
-            'length' => strlen($response['text']),
-        ]);
-
         $items = $this->extractJson($response['text']);
 
-        // Ensure it's an array
         if (!is_array($items)) {
             throw new Exception('Invalid response format from AI');
         }
 
-        // If response is wrapped in a key, extract it
+        // لو الـ response wrapped في key
         if (isset($items['items'])) {
             $items = $items['items'];
         }
 
-        // إذا لم تكن مصفوفة متسلسلة، ابحث عن أول قيمة مصفوفة بداخلها
+        // لو مش sequential array، دور على أول مصفوفة جوا
         if (!isset($items[0])) {
             foreach ($items as $value) {
                 if (is_array($value) && isset($value[0])) {
@@ -365,10 +389,20 @@ PROMPT;
             }
         }
 
+        // تحسين: التحقق إن كل عنصر عنده name و weight
+        $items = collect($items)->filter(function ($item) {
+            return isset($item['name']) && isset($item['weight']);
+        })->values()->toArray();
+
+        if (empty($items)) {
+            throw new Exception('AI returned no valid items for category: ' . $category);
+        }
+
         Cache::put($cacheKey, $items, 86400);
 
         return $items;
     }
+
     /**
      * Build prompt for generating packing categories
      *
@@ -499,7 +533,6 @@ PROMPT;
 
         $result = $this->extractJson($response['text']);
 
-        // Handle different response formats
         $weight = null;
         if (isset($result['weight'])) {
             $weight = (float) $result['weight'];
@@ -511,13 +544,11 @@ PROMPT;
             throw new Exception('Invalid weight format from AI response');
         }
 
-        // Ensure weight is in kilograms (convert from grams if needed)
+        // تحويل من جرام لكيلو لو لزم
         if ($weight > 1000) {
-            // Likely in grams, convert to kg
             $weight = $weight / 1000;
         }
 
-        // Validate weight is reasonable (between 0.001 kg and 100 kg)
         if ($weight < 0.001 || $weight > 100) {
             throw new Exception('Weight estimate out of reasonable range');
         }
