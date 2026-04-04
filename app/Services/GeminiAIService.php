@@ -256,24 +256,57 @@ class GeminiAIService
 
         $prompt = $this->buildAnalysisPrompt($bagData);
 
-        $response = $this->generateContent($prompt, [
-            'maxOutputTokens' => 8192,
-            'temperature' => 0.5,
-        ]);
+        $maxAttempts = 3;
+        $attempt = 0;
 
-        $analysis = $this->extractJson($response['text']);
+        do {
+            $attempt++;
 
-        $analysis['metadata'] = array_merge($analysis['metadata'] ?? [], [
-            'analyzed_at' => now()->toIso8601String(),
-            'ai_model' => $this->model,
-            'processing_time_ms' => $response['processing_time_ms'],
-            'finish_reason' => $response['finish_reason'],
-        ]);
+            try {
+                $response = $this->generateContent($prompt, [
+                    'maxOutputTokens' => 8192, // زي ما هو 👍
+                    'temperature' => 0.5,
+                ]);
 
-        // 6 ساعات — المستخدم مش هيستنى غير في أول مرة
-        Cache::put($cacheKey, $analysis, 60 * 60 * 6);
+                // لو الرد اتقطع
+                if ($response['finish_reason'] === 'MAX_TOKENS') {
+                    throw new \Exception('Response truncated');
+                }
 
-        return $analysis;
+                $analysis = $this->extractJson($response['text']);
+
+                // validation بسيط
+                if (!is_array($analysis) || !isset($analysis['analysis_id'])) {
+                    throw new \Exception('Invalid analysis structure');
+                }
+
+                // metadata
+                $analysis['metadata'] = array_merge($analysis['metadata'] ?? [], [
+                    'analyzed_at' => now()->toIso8601String(),
+                    'ai_model' => $this->model,
+                    'processing_time_ms' => $response['processing_time_ms'] ?? null,
+                    'finish_reason' => $response['finish_reason'] ?? null,
+                ]);
+
+                // cache
+                Cache::put($cacheKey, $analysis, 60 * 60 * 6);
+
+                return $analysis; // ✅ نجاح
+
+            } catch (\Exception $e) {
+                Log::warning("Analyze attempt {$attempt} failed", [
+                    'error' => $e->getMessage(),
+                ]);
+
+                if ($attempt >= $maxAttempts) {
+                    // ❌ بعد 3 محاولات → يقع
+                    throw $e;
+                }
+
+                sleep(1);
+            }
+
+        } while ($attempt < $maxAttempts);
     }
 
     /**
