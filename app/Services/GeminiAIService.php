@@ -144,12 +144,14 @@ class GeminiAIService
      */
     private function fixTruncatedJson(string $json): string
     {
+        // Already valid — return as is
         if (json_decode($json, true) !== null) {
             return $json;
         }
 
         if (str_starts_with($json, '[')) {
-            // شيل آخر عنصر مش مكتمل (سواء انتهى بـ quote أو بـ comma أو بـ {)
+            // ابحث عن آخر عنصر مكتمل ينتهي بـ }
+            // أولاً: جرب إيجاد آخر }, (عنصر مكتمل يليه فاصلة)
             $lastComplete = strrpos($json, '},');
 
             if ($lastComplete !== false) {
@@ -159,7 +161,7 @@ class GeminiAIService
                 }
             }
 
-            // لو مفيش عنصر مكتمل خالص، جرب تقفل آخر object
+            // ثانياً: جرب إيجاد آخر } بدون فاصلة (آخر عنصر)
             $lastBrace = strrpos($json, '}');
             if ($lastBrace !== false) {
                 $fixed = substr($json, 0, $lastBrace + 1) . ']';
@@ -167,8 +169,16 @@ class GeminiAIService
                     return $fixed;
                 }
             }
+
+            // ثالثاً: شيل آخر عنصر مش مكتمل بالكامل
+            $fixed = preg_replace('/,?\s*\{[^}]*$/', '', $json);
+            $fixed = rtrim($fixed) . ']';
+            if (json_decode($fixed, true) !== null) {
+                return $fixed;
+            }
         }
 
+        // Try to fix object truncation: {..., "key": "incomplete
         if (str_starts_with($json, '{')) {
             $fixed = preg_replace('/,?\s*"[^"]*":\s*"[^"]*$/', '', $json);
             $fixed = rtrim($fixed) . '}';
@@ -179,6 +189,7 @@ class GeminiAIService
 
         return $json;
     }
+
     /**
      * Analyze bag with Gemini AI
      *
@@ -322,7 +333,7 @@ PROMPT;
         $prompt = $this->buildItemsPrompt($category, $language);
 
         $response = $this->generateContent($prompt, [
-            'maxOutputTokens' => 1024,
+            'maxOutputTokens' => 2048, // زيادة من 1024 لتجنب اقتطاع JSON
             'temperature' => 0.4,
         ]);
 
@@ -338,6 +349,16 @@ PROMPT;
             $items = $items['items'];
         }
 
+        // إذا لم تكن مصفوفة متسلسلة، ابحث عن أول قيمة مصفوفة بداخلها
+        if (!isset($items[0])) {
+            foreach ($items as $value) {
+                if (is_array($value) && isset($value[0])) {
+                    $items = $value;
+                    break;
+                }
+            }
+        }
+
         Cache::put($cacheKey, $items, 86400);
 
         return $items;
@@ -351,8 +372,6 @@ PROMPT;
      */
     protected function buildCategoriesPrompt(string $language): string
     {
-        $langText = $language === 'en' ? 'English' : 'Arabic';
-
         if ($language === 'en') {
             return <<<PROMPT
 Generate 8-10 essential packing categories for travel.
@@ -405,8 +424,6 @@ PROMPT;
      */
     protected function buildItemsPrompt(string $category, string $language): string
     {
-        $langText = $language === 'en' ? 'English' : 'Arabic';
-
         if ($language === 'en') {
             return <<<PROMPT
 Suggest 10-15 essential items for '{$category}' category when packing for travel.
