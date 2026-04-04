@@ -116,30 +116,55 @@ class GeminiAIService
      */
     public function extractJson(string $text): array
     {
-        // Try to extract JSON from markdown code blocks
-        if (preg_match('/```json\s*([\s\S]*?)\s*```/i', $text, $matches)) {
-            $jsonText = $matches[1];
-        } elseif (preg_match('/```\s*([\s\S]*?)\s*```/', $text, $matches)) {
-            $jsonText = $matches[1];
-        } else {
-            $jsonText = $text;
-        }
+    // 1. استخراج JSON من code block لو موجود
+    if (preg_match('/json\s*([\s\S]*?)\s*/i', $text, $matches)) {
+    $jsonText = $matches[1];
+    } elseif (preg_match('/\s*([\s\S]*?)\s*/', $text, $matches)) {
+    $jsonText = $matches[1];
+    } else {
+    // 2. استخراج أول JSON object من النص
+    if (preg_match('/{[\s\S]*}/', $text, $matches)) {
+    $jsonText = $matches[0];
+    } else {
+    $jsonText = $text;
+    }
+    }
 
-        // Clean up the text
-        $jsonText = trim($jsonText);
+    // 3. تنظيف النص
+    $jsonText = trim($jsonText);
 
-        // Try to decode
+    // إزالة أي نص قبل أول {
+    $jsonText = preg_replace('/^[^{]*/', '', $jsonText);
+
+    // إزالة أي نص بعد آخر }
+    $jsonText = preg_replace('/[^}]*$/', '', $jsonText);
+
+    // 4. محاولة decode
+    $decoded = json_decode($jsonText, true);
+
+    // 5. لو فشل → محاولة إصلاح بسيط
+    if (json_last_error() !== JSON_ERROR_NONE) {
+
+        // إزالة trailing commas
+        $jsonText = preg_replace('/,\s*([}\]])/', '$1', $jsonText);
+
+        // محاولة تانية
         $decoded = json_decode($jsonText, true);
+    }
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('Failed to parse JSON from Gemini response', [
-                'error' => json_last_error_msg(),
-                'text' => $text
-            ]);
-            throw new Exception('Failed to parse JSON from AI response: ' . json_last_error_msg());
-        }
+    // 6. لو لسه فشل → log قوي
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        Log::error('JSON Parse Failed', [
+            'error' => json_last_error_msg(),
+            'original_text' => $text,
+            'cleaned_text' => $jsonText,
+        ]);
 
-        return $decoded;
+        throw new Exception('Invalid JSON from AI');
+    }
+
+    return $decoded;
+
     }
 
     /**
@@ -188,7 +213,7 @@ class GeminiAIService
     })->join("\n");
 
     return <<<PROMPT
-   
+
 
     أنت مساعد ذكي لتنظيم حقائب السفر.
 
