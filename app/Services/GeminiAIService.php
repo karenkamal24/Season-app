@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Client\ConnectionException;
 use Exception;
 
 class GeminiAIService
@@ -33,9 +34,35 @@ class GeminiAIService
         $startTime = microtime(true);
 
         try {
-            // تحسين: زيادة الـ timeout لأن العربية بتاخد وقت أطول
-            $response = Http::timeout(30)
-                ->retry(2, 500)
+            $response = Http::timeout(60)
+                ->retry(3, 2000, function ($exception, $request) {
+                    // retry بس لو connection error أو server error (5xx)
+                    // مش لو API key غلط أو prompt مشكلة (4xx)
+                    if ($exception instanceof ConnectionException) {
+                        Log::warning('Gemini connection error, retrying...', [
+                            'message' => $exception->getMessage(),
+                        ]);
+                        return true;
+                    }
+
+                    if (method_exists($exception, 'response') && $exception->response) {
+                        $status = $exception->response->status();
+                        if ($status >= 500) {
+                            Log::warning('Gemini server error, retrying...', [
+                                'status' => $status,
+                            ]);
+                            return true;
+                        }
+                        // 429 = rate limit، استنى أكتر
+                        if ($status === 429) {
+                            Log::warning('Gemini rate limit hit, retrying after delay...');
+                            sleep(3);
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })
                 ->post($this->apiUrl . '?key=' . $this->apiKey, [
                     'contents' => [
                         [
@@ -81,7 +108,6 @@ class GeminiAIService
 
             $data = $response->json();
 
-            // تحسين: التحقق من وجود candidates قبل الوصول إليها
             if (empty($data['candidates'])) {
                 Log::error('Gemini API returned no candidates', ['data' => $data]);
                 throw new Exception('Gemini API returned no candidates');
@@ -89,7 +115,6 @@ class GeminiAIService
 
             $candidate = $data['candidates'][0];
 
-            // تحسين: تحذير لو الـ finish_reason مش STOP
             $finishReason = $candidate['finishReason'] ?? 'UNKNOWN';
             if ($finishReason === 'MAX_TOKENS') {
                 Log::warning('Gemini response truncated due to MAX_TOKENS', [
@@ -125,7 +150,6 @@ class GeminiAIService
      */
     public function extractJson(string $text): array
     {
-        // Try to extract JSON from markdown code blocks
         if (preg_match('/```json\s*([\s\S]*?)\s*```/i', $text, $matches)) {
             $jsonText = $matches[1];
         } elseif (preg_match('/```\s*([\s\S]*?)\s*```/', $text, $matches)) {
@@ -135,14 +159,10 @@ class GeminiAIService
         }
 
         $jsonText = trim($jsonText);
-
-        // Fix truncated JSON
         $jsonText = $this->fixTruncatedJson($jsonText);
 
         $decoded = json_decode($jsonText, true);
 
-        // تحسين: التحقق من $decoded مش من json_last_error فقط
-        // لأن json_last_error بيرجع 0 أحياناً حتى لو الـ decode فشل
         if ($decoded === null) {
             Log::error('Failed to parse JSON from Gemini response', [
                 'error' => json_last_error_msg(),
@@ -162,13 +182,11 @@ class GeminiAIService
      */
     private function fixTruncatedJson(string $json): string
     {
-        // Already valid — return as is
         if (json_decode($json, true) !== null) {
             return $json;
         }
 
         if (str_starts_with($json, '[')) {
-            // أولاً: دور على آخر عنصر مكتمل ينتهي بـ },
             $lastComplete = strrpos($json, '},');
             if ($lastComplete !== false) {
                 $fixed = substr($json, 0, $lastComplete + 1) . ']';
@@ -177,7 +195,6 @@ class GeminiAIService
                 }
             }
 
-            // ثانياً: دور على آخر } بدون فاصلة
             $lastBrace = strrpos($json, '}');
             if ($lastBrace !== false) {
                 $fixed = substr($json, 0, $lastBrace + 1) . ']';
@@ -186,7 +203,6 @@ class GeminiAIService
                 }
             }
 
-            // ثالثاً: شيل آخر عنصر مش مكتمل
             $fixed = preg_replace('/,?\s*\{[^}]*$/', '', $json);
             $fixed = rtrim($fixed) . ']';
             if (json_decode($fixed, true) !== null) {
@@ -195,23 +211,18 @@ class GeminiAIService
         }
 
         if (str_starts_with($json, '{')) {
-            // تحسين: معالجة أعمق لـ objects المقطوعة
-
-            // حالة 1: قيمة string مقطوعة
             $fixed = preg_replace('/,?\s*"[^"]*":\s*"[^"]*$/', '', $json);
             $fixed = rtrim($fixed) . '}';
             if (json_decode($fixed, true) !== null) {
                 return $fixed;
             }
 
-            // حالة 2: array داخلية مقطوعة
             $fixed = preg_replace('/,?\s*"[^"]*":\s*\[[^\]]*$/', '', $json);
             $fixed = rtrim($fixed) . '}';
             if (json_decode($fixed, true) !== null) {
                 return $fixed;
             }
 
-            // حالة 3: object داخلي مقطوع — دور على آخر } مكتملة
             $lastBrace = strrpos($json, '}');
             if ($lastBrace !== false) {
                 $fixed = substr($json, 0, $lastBrace + 1) . '}';
@@ -245,7 +256,6 @@ class GeminiAIService
 
         $prompt = $this->buildAnalysisPrompt($bagData);
 
-        // تحسين: 8192 لأن الـ response العربي الكامل بيحتاج tokens أكتر بكتير
         $response = $this->generateContent($prompt, [
             'maxOutputTokens' => 8192,
             'temperature' => 0.5,
@@ -260,7 +270,8 @@ class GeminiAIService
             'finish_reason' => $response['finish_reason'],
         ]);
 
-        Cache::put($cacheKey, $analysis, 1800);
+        // 6 ساعات — المستخدم مش هيستنى غير في أول مرة
+        Cache::put($cacheKey, $analysis, 60 * 60 * 6);
 
         return $analysis;
     }
@@ -374,12 +385,10 @@ PROMPT;
             throw new Exception('Invalid response format from AI');
         }
 
-        // لو الـ response wrapped في key
         if (isset($items['items'])) {
             $items = $items['items'];
         }
 
-        // لو مش sequential array، دور على أول مصفوفة جوا
         if (!isset($items[0])) {
             foreach ($items as $value) {
                 if (is_array($value) && isset($value[0])) {
@@ -389,7 +398,6 @@ PROMPT;
             }
         }
 
-        // تحسين: التحقق إن كل عنصر عنده name و weight
         $items = collect($items)->filter(function ($item) {
             return isset($item['name']) && isset($item['weight']);
         })->values()->toArray();
@@ -544,7 +552,6 @@ PROMPT;
             throw new Exception('Invalid weight format from AI response');
         }
 
-        // تحويل من جرام لكيلو لو لزم
         if ($weight > 1000) {
             $weight = $weight / 1000;
         }
@@ -555,7 +562,7 @@ PROMPT;
 
         $weight = round($weight, 3);
 
-        Cache::put($cacheKey, $weight, 86400);
+        Cache::put($cacheKey, $weight, 60 * 60 * 24 * 7);
 
         return $weight;
     }
