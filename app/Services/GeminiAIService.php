@@ -333,8 +333,14 @@ PROMPT;
         $prompt = $this->buildItemsPrompt($category, $language);
 
         $response = $this->generateContent($prompt, [
-            'maxOutputTokens' => 2048, // زيادة من 1024 لتجنب اقتطاع JSON
+            'maxOutputTokens' => 2048,
             'temperature' => 0.4,
+        ]);
+
+        Log::debug('RAW AI Response', [
+            'raw_text' => $response['text'],
+            'finish_reason' => $response['finish_reason'],
+            'length' => strlen($response['text']),
         ]);
 
         $items = $this->extractJson($response['text']);
@@ -363,7 +369,6 @@ PROMPT;
 
         return $items;
     }
-
     /**
      * Build prompt for generating packing categories
      *
