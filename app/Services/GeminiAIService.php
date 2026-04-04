@@ -244,19 +244,9 @@ class GeminiAIService
      */
     public function analyzeBag(array $bagData): array
     {
-        $cacheKey = 'bag_analysis_' . md5(json_encode([
-            $bagData['tripDetails'] ?? [],
-            collect($bagData['items'] ?? [])->pluck('id')->sort()->values()->toArray(),
-            $bagData['totalWeight'] ?? 0,
-        ]));
-
-        if ($cached = Cache::get($cacheKey)) {
-            return $cached;
-        }
-
         $prompt = $this->buildAnalysisPrompt($bagData);
 
-        $maxAttempts = 5;
+        $maxAttempts = 3;
         $attempt = 0;
 
         do {
@@ -264,7 +254,7 @@ class GeminiAIService
 
             try {
                 $response = $this->generateContent($prompt, [
-                    'maxOutputTokens' => 8192, // زي ما هو 👍
+                    'maxOutputTokens' => 8192,
                     'temperature' => 0.5,
                 ]);
 
@@ -288,19 +278,16 @@ class GeminiAIService
                     'finish_reason' => $response['finish_reason'] ?? null,
                 ]);
 
-                // cache
-                Cache::put($cacheKey, $analysis, 60 * 60 * 6);
-
                 return $analysis; // ✅ نجاح
 
             } catch (\Exception $e) {
+
                 Log::warning("Analyze attempt {$attempt} failed", [
                     'error' => $e->getMessage(),
                 ]);
 
                 if ($attempt >= $maxAttempts) {
-                    // ❌ بعد 3 محاولات → يقع
-                    throw $e;
+                    throw $e; // ❌ يقع بعد 3 مرات
                 }
 
                 sleep(1);
