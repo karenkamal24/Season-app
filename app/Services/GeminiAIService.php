@@ -29,74 +29,83 @@ class GeminiAIService
      */
     public function generateContent(string $prompt, array $config = []): array
     {
-        $startTime = microtime(true);
+    $startTime = microtime(true);
 
-        try {
-            // Timeout set to 28 seconds (less than Flutter's 30s receiveTimeout)
-            $response = Http::timeout(28)
-                ->retry(2, 500)
-                ->post($this->apiUrl . '?key=' . $this->apiKey, [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                ['text' => $prompt]
-                            ]
+
+    try {
+        $response = Http::withOptions([
+                'curl' => [
+                    CURLOPT_TCP_KEEPALIVE => 1,
+                    CURLOPT_TCP_KEEPIDLE => 60,
+                    CURLOPT_TCP_KEEPINTVL => 10,
+                ],
+            ])
+            ->timeout(15)
+            ->retry(1, 200)
+            ->post($this->apiUrl . '?key=' . $this->apiKey, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
                         ]
-                    ],
-                    'generationConfig' => array_merge([
-                        'temperature' => 0.7,
-                        'topK' => 40,
-                        'topP' => 0.95,
-                        'maxOutputTokens' => 8192,
-                        'responseMimeType' => 'application/json',
-                    ], $config),
-                    'safetySettings' => [
-                        [
-                            'category' => 'HARM_CATEGORY_HARASSMENT',
-                            'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                        ],
-                        [
-                            'category' => 'HARM_CATEGORY_HATE_SPEECH',
-                            'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                        ],
-                        [
-                            'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                            'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                        ],
-                        [
-                            'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                            'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                        ],
                     ]
-                ]);
-
-            if (!$response->successful()) {
-                Log::error('Gemini API Error', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
-                throw new Exception('Gemini API request failed: ' . $response->body());
-            }
-
-            $data = $response->json();
-
-            $processingTime = (int)((microtime(true) - $startTime) * 1000);
-
-            return [
-                'text' => $data['candidates'][0]['content']['parts'][0]['text'] ?? '',
-                'processing_time_ms' => $processingTime,
-                'finish_reason' => $data['candidates'][0]['finishReason'] ?? 'UNKNOWN',
-                'safety_ratings' => $data['candidates'][0]['safetyRatings'] ?? [],
-            ];
-
-        } catch (Exception $e) {
-            Log::error('Gemini AI Service Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                ],
+                'generationConfig' => array_merge([
+                    'temperature' => 0.2,
+                    'topK' => 20,
+                    'topP' => 0.8,
+                    'maxOutputTokens' => 1000,
+                    'responseMimeType' => 'application/json',
+                ], $config),
+                'safetySettings' => [
+                    [
+                        'category' => 'HARM_CATEGORY_HARASSMENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_HATE_SPEECH',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                ]
             ]);
-            throw $e;
+
+        if (!$response->successful()) {
+            Log::error('Gemini API Error', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+            throw new Exception('Gemini API request failed');
         }
+
+        $data = $response->json();
+
+        $processingTime = (int)((microtime(true) - $startTime) * 1000);
+
+        return [
+            'text' => $data['candidates'][0]['content']['parts'][0]['text'] ?? '',
+            'processing_time_ms' => $processingTime,
+            'finish_reason' => $data['candidates'][0]['finishReason'] ?? 'UNKNOWN',
+            'safety_ratings' => $data['candidates'][0]['safetyRatings'] ?? [],
+        ];
+
+    } catch (Exception $e) {
+        Log::error('Gemini AI Service Error', [
+            'message' => $e->getMessage(),
+        ]);
+        throw $e;
     }
+
+
+    }
+
 
     /**
      * Extract JSON from AI response
@@ -167,128 +176,100 @@ class GeminiAIService
      */
     protected function buildAnalysisPrompt(array $bagData): string
     {
-        $tripDetails = $bagData['tripDetails'] ?? [];
-        $items = $bagData['items'] ?? [];
-        $totalWeight = $bagData['totalWeight'] ?? 0;
-        $preferences = $bagData['preferences'] ?? [];
+    $tripDetails = $bagData['tripDetails'] ?? [];
+    $items = $bagData['items'] ?? [];
+    $totalWeight = $bagData['totalWeight'] ?? 0;
 
-        $itemsList = collect($items)->map(function ($item) {
-            $essential = ($item['essential'] ?? false) ? '[ضروري]' : '';
-            return "- {$item['name']} ({$item['weight']} كجم) - {$item['category']} {$essential}";
-        })->join("\n");
 
-        return <<<PROMPT
-أنت مساعد ذكي متخصص في تنظيم حقائب السفر. مهمتك تحليل محتويات الحقيبة وتقديم اقتراحات ذكية.
+    // تقليل حجم البيانات
+    $itemsList = collect($items)->map(function ($item) {
+        $essential = ($item['essential'] ?? false) ? 'ضروري' : '';
+        return "{$item['name']} {$item['weight']}كجم {$item['category']} {$essential}";
+    })->join("\n");
 
-## معلومات الرحلة:
-- النوع: {$tripDetails['type']}
-- المدة: {$tripDetails['duration']} أيام
-- الوجهة: {$tripDetails['destination']}
-- تاريخ المغادرة: {$tripDetails['departureDate']}
-- الوزن الحالي: {$totalWeight} كجم
-- الحد الأقصى: {$tripDetails['maxWeight']} كجم
+    return <<<PROMPT
+   
 
-## محتويات الحقيبة الحالية:
-{$itemsList}
+    أنت مساعد ذكي لتنظيم حقائب السفر.
 
-## المطلوب منك:
+    ## الرحلة:
 
-قدم تحليلاً كاملاً يشمل:
+    {$tripDetails['type']} | {$tripDetails['duration']} أيام | {$tripDetails['destination']}
+    وزن: {$totalWeight}/{$tripDetails['maxWeight']} كجم
 
-1. **الأغراض الناقصة** (missing_items):
-   - اسم الغرض
-   - الوزن المقدر
-   - السبب (لماذا ناقص)
-   - الأولوية (high/medium/low)
-   - الفئة
+    ## المحتويات:
 
-2. **الأغراض الزائدة** (extra_items):
-   - اسم الغرض (من القائمة الموجودة)
-   - السبب (لماذا غير ضروري)
-   - الوزن الذي سيتم توفيره
+    {$itemsList}
 
-3. **تحسينات الوزن** (weight_optimization):
-   - الوزن الحالي
-   - الوزن المقترح
-   - الوزن الموفر
-   - التأثير (high/medium/low)
+    ## المطلوب:
 
-4. **اقتراحات إضافية** (additional_suggestions):
-   - إعادة توزيع الأغراض
-   - نصائح عامة
+    حلل الحقيبة وارجع JSON فقط.
 
-5. **تنبيه ذكي** (smart_alert):
-   - الوقت المتبقي للرحلة
-   - الرسالة
-   - الإجراء المقترح
-   - مستوى الأهمية
+    ## قواعد:
 
-## قواعد مهمة:
-- ✅ كن محدداً في الأسباب
-- ✅ راعي نوع الرحلة (رحلة عمل تحتاج ملابس رسمية)
-- ✅ راعي مدة السفر (كل يوم يحتاج ملابس)
-- ✅ راعي المناخ في الوجهة
-- ✅ اقترح بدائل أخف وزناً
-- ❌ لا تقترح أغراض غالية جداً
-- ❌ لا تقترح حذف أغراض ضرورية
+    * اجابات قصيرة جدا (max 10 كلمات)
+    * راعي المدة والمناخ
+    * لا تحذف عناصر ضرورية
+    * لا تقترح أشياء غالية
+    * بدون شرح
 
-**يجب أن يكون الرد بصيغة JSON فقط، بدون أي نص إضافي:**
-
-```json
-{
-  "analysis_id": "unique_id",
-  "missing_items": [
+    ```json
     {
-      "id": "missing_1",
-      "name": "اسم الغرض",
-      "weight": 0.5,
-      "reason": "السبب",
-      "priority": "high",
-      "category": "الفئة"
+      "analysis_id": "unique_id",
+      "missing_items": [
+        {
+          "id": "missing_1",
+          "name": "اسم",
+          "weight": 0.5,
+          "reason": "سبب",
+          "priority": "high",
+          "category": "فئة"
+        }
+      ],
+      "extra_items": [
+        {
+          "id": "extra_1",
+          "item_id_in_bag": "item_id",
+          "name": "اسم",
+          "reason": "سبب",
+          "weight_saved": 1.5
+        }
+      ],
+      "weight_optimization": {
+        "current_weight": {$totalWeight},
+        "suggested_weight": 0,
+        "weight_saved": 0,
+        "impact_level": "high",
+        "percentage_saved": 0,
+        "suggestions": []
+      },
+      "additional_suggestions": [
+        {
+          "id": "sugg_1",
+          "category": "organization",
+          "title": "عنوان",
+          "description": "وصف",
+          "priority": "medium"
+        }
+      ],
+      "smart_alert": {
+        "alert_id": "alert_1",
+        "time_remaining": "X",
+        "time_remaining_minutes": 0,
+        "message": "رسالة",
+        "action": "إجراء",
+        "severity": "high",
+        "icon": "clock"
+      },
+      "metadata": {
+        "confidence_score": 0.9
+      }
     }
-  ],
-  "extra_items": [
-    {
-      "id": "extra_1",
-      "item_id_in_bag": "item_id",
-      "name": "اسم الغرض",
-      "reason": "السبب",
-      "weight_saved": 1.5
+
+
+    PROMPT;
     }
-  ],
-  "weight_optimization": {
-    "current_weight": {$totalWeight},
-    "suggested_weight": 0,
-    "weight_saved": 0,
-    "impact_level": "high",
-    "percentage_saved": 0,
-    "suggestions": []
-  },
-  "additional_suggestions": [
-    {
-      "id": "sugg_1",
-      "category": "organization",
-      "title": "العنوان",
-      "description": "الوصف",
-      "priority": "medium"
-    }
-  ],
-  "smart_alert": {
-    "alert_id": "alert_1",
-    "time_remaining": "X ساعات",
-    "time_remaining_minutes": 0,
-    "message": "الرسالة",
-    "action": "الإجراء",
-    "severity": "high",
-    "icon": "clock"
-  },
-  "metadata": {
-    "confidence_score": 0.92
-  }
-}
-```
-PROMPT;
-    }
+
 
     /**
      * Generate packing categories using Gemini AI
