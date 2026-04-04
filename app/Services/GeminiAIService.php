@@ -340,7 +340,7 @@ PROMPT;
             $categories = $categories['categories'];
         }
 
-        Cache::put($cacheKey, $categories, 86400);
+        Cache::put($cacheKey, $categories, 60 * 60 * 24 * 7);
 
         return $categories;
     }
@@ -398,7 +398,7 @@ PROMPT;
             throw new Exception('AI returned no valid items for category: ' . $category);
         }
 
-        Cache::put($cacheKey, $items, 86400);
+        Cache::put($cacheKey, $items, 60 * 60 * 24 * 7);
 
         return $items;
     }
