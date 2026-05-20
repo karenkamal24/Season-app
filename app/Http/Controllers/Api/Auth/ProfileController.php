@@ -41,4 +41,26 @@ class ProfileController extends Controller
             new ProfileResource($user)
         );
     }
+
+    public function deleteAccount()
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return ApiResponse::send(
+                Response::HTTP_UNAUTHORIZED,
+                LangHelper::msg('unauthorized'),
+                null
+            );
+        }
+
+        // Delete the user account
+        $user->deleteAccount();
+
+        return ApiResponse::send(
+            Response::HTTP_OK,
+            LangHelper::msg('account_deleted'),
+            null
+        );
+    }
 }

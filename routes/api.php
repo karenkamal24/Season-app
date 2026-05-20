@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')
     ->group(function () {
         Route::get('/', [ProfileController::class, 'show']);
         Route::put('/', [ProfileController::class, 'update']);
+        Route::delete('/delete-account', [ProfileController::class, 'deleteAccount']);
     });
 //service types
 Route::get('service-types', [VendorServiceController::class, 'indexServiceType']);

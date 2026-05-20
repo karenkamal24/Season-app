@@ -149,4 +149,16 @@ public function getLastSeenAttribute(): ?string
         : "Active {$days} day(s) ago";
 }
 
+    /**
+     * Delete the user account and perform necessary cleanup.
+     */
+    public function deleteAccount(): bool
+    {
+        // Delete related vendor services
+        $this->vendor_services()->delete();
+
+        // Delete the user
+        return $this->delete();
+    }
+
 }

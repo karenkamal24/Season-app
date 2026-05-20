@@ -846,6 +846,16 @@ class LangHelper
                 'ar' => 'تم جلب الأدلة الجغرافية بنجاح.'
             ],
 
+            // Account Management
+            'account_deleted' => [
+                'en' => 'Account deleted successfully.',
+                'ar' => 'تم حذف الحساب بنجاح.'
+            ],
+            'unauthorized' => [
+                'en' => 'Unauthorized access.',
+                'ar' => 'وصول غير مصرح به.'
+            ],
+
         ];
 
         return $messages[$key][$locale] ?? $messages[$key]['en'] ?? $key;
