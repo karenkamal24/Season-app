@@ -58,6 +58,10 @@ return [
 
     'apple' => [
         'client_id' => env('APPLE_CLIENT_ID'),
+        // Native iOS Sign in with Apple uses the app Bundle ID as token `aud`.
+        'bundle_id' => env('APPLE_BUNDLE_ID', 'com.season.app.seasonApp'),
+        // Optional comma-separated list override, e.g. "com.season.app.seasonApp,com.season.app.service"
+        'client_ids' => env('APPLE_CLIENT_IDS'),
         'team_id' => env('APPLE_TEAM_ID'),
         'key_id' => env('APPLE_KEY_ID'),
         'private_key' => env('APPLE_PRIVATE_KEY'),

@@ -25,6 +25,7 @@ class AppleLoginRequest extends FormRequest
             'id_token' => 'required|string',
             'authorization_code' => 'nullable|string',
             'fcm_token' => 'nullable|string',
+            'bundle_id' => 'nullable|string',
         ];
     }
 }

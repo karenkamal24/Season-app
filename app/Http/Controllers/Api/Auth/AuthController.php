@@ -360,7 +360,10 @@ class AuthController extends Controller
 
         try {
             // Verify Apple token
-            $appleUser = $this->appleAuth->verifyIdToken($request->id_token);
+            $appleUser = $this->appleAuth->verifyIdToken(
+                $request->id_token,
+                $request->bundle_id
+            );
             
             // Find user by provider_id or email
             $user = User::where(function ($query) use ($appleUser) {
@@ -465,7 +468,10 @@ class AuthController extends Controller
 
         try {
             // Verify Apple token
-            $appleUser = $this->appleAuth->verifyIdToken($request->id_token);
+            $appleUser = $this->appleAuth->verifyIdToken(
+                $request->id_token,
+                $request->bundle_id
+            );
             
             // Check if user already exists
             $existingUser = User::where('email', $appleUser['email'])->first();

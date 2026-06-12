@@ -16,7 +16,7 @@ class AppleAuthService
     /**
      * Verify Apple ID token and get user info
      */
-    public function verifyIdToken(string $idToken): array
+    public function verifyIdToken(string $idToken, ?string $clientBundleId = null): array
     {
         try {
             // Decode the JWT token
@@ -39,7 +39,7 @@ class AppleAuthService
                 throw new Exception('Invalid token issuer');
             }
 
-            if ($payload['aud'] !== config('services.apple.client_id')) {
+            if (!$this->isValidAudience($payload['aud'] ?? '', $clientBundleId)) {
                 throw new Exception('Invalid token audience');
             }
 
@@ -58,6 +58,45 @@ class AppleAuthService
         }
     }
     
+    /**
+     * Allowed `aud` values for Apple ID tokens.
+     *
+     * Native iOS apps send the Bundle ID as audience, not the Services ID used for web.
+     */
+    private function getAllowedAudiences(?string $clientBundleId = null): array
+    {
+        $configured = array_filter(array_map('trim', explode(',', (string) config('services.apple.client_ids', ''))));
+
+        $defaults = array_filter([
+            config('services.apple.client_id'),
+            config('services.apple.bundle_id'),
+            $clientBundleId,
+            'com.season.app.seasonApp',
+            'com.season.app.season_app',
+            'com.season.app.season_app.service',
+        ]);
+
+        if (!empty($configured)) {
+            return array_values(array_unique(array_merge($configured, $defaults)));
+        }
+
+        return array_values(array_unique($defaults));
+    }
+
+    private function isValidAudience(string $audience, ?string $clientBundleId = null): bool
+    {
+        if ($audience === '') {
+            return false;
+        }
+
+        if (in_array($audience, $this->getAllowedAudiences($clientBundleId), true)) {
+            return true;
+        }
+
+        // Native iOS tokens always use the app Bundle ID as `aud`.
+        return str_starts_with($audience, 'com.season.app.');
+    }
+
     /**
      * Verify Apple token signature using Apple's public keys
      */
