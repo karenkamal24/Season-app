@@ -2,45 +2,52 @@
 
 namespace App\Mail;
 
-use SendGrid\Mail\Mail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class SendGridMail
 {
     public static function send($to, $subject, $body)
     {
-        $email = new Mail();
-        
         try {
-            $email->setFrom(
-                config('mail.from.address'),
-                config('mail.from.name')
-            );
-            
-            $email->setSubject($subject);
-            $email->addTo($to);
-            $email->addContent("text/html", $body);
-            
-            $sendgrid = new \SendGrid(env('SENDGRID_API_KEY'));
-            $response = $sendgrid->send($email);
-            
-            Log::info('✅ SendGrid API Success', [
-                'status' => $response->statusCode(),
+            $response = Http::withToken(config('services.resend.key'))
+                ->acceptJson()
+                ->post('https://api.resend.com/emails', [
+                    'from' => config('mail.from.address'),
+                    'to' => [$to],
+                    'subject' => $subject,
+                    'html' => $body,
+                ]);
+
+            if ($response->failed()) {
+                Log::error('❌ Resend API Error', [
+                    'status' => $response->status(),
+                    'body' => $response->json() ?? $response->body(),
+                    'to' => $to,
+                ]);
+
+                throw new \RuntimeException('Resend API request failed.');
+            }
+
+            Log::info('✅ Resend API Success', [
+                'status' => $response->status(),
                 'to' => $to,
-                'subject' => $subject
+                'subject' => $subject,
+                'id' => $response->json('id'),
             ]);
-            
+
             return [
-                'status' => $response->statusCode(),
-                'success' => true
+                'status' => $response->status(),
+                'success' => true,
+                'id' => $response->json('id'),
             ];
-            
+
         } catch (\Exception $e) {
-            Log::error('❌ SendGrid API Error', [
+            Log::error('❌ Resend API Error', [
                 'error' => $e->getMessage(),
                 'to' => $to
             ]);
-            
+
             throw $e;
         }
     }

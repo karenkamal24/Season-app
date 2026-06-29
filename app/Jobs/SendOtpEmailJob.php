@@ -65,7 +65,7 @@ class SendOtpEmailJob implements ShouldQueue
             $subject = 'تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح.';
             $body = "تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح.<br><b>{$this->otp}</b> — expires in 10 minutes.";
             
-            // ✅ استخدم SendGrid API
+            // ✅ استخدم Resend API
             $result = SendGridMail::send($email, $subject, $body);
 
             Log::info('✅ SendOtpEmailJob نجح', [

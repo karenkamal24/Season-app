@@ -38,7 +38,8 @@ class OtpService
 
         $body = LangHelper::msg('otp_sent') . "<br><b>{$otp}</b> — expires in {$this->otpTtl} minutes.";
 
-    SendOtpEmailJob::dispatch($user, $otp, $purpose);
+        // Send synchronously so OTP delivery does not depend on a running queue worker.
+        SendOtpEmailJob::dispatchSync($user, $otp, $purpose);
 
     }
 
