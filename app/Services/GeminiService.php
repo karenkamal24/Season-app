@@ -130,30 +130,67 @@ class GeminiService
             Cache::forget($cacheKey);
         }
 
-        // الكاش لمدة 24 ساعة (86400 ثانية) بدلاً من 12 ساعة لتحسين السرعة
-        return Cache::remember($cacheKey, 86400, function () use ($country, $language, $backupKey) {
-            try {
-                $eventsData = $this->fetchEventsFromGemini($country, $language);
-                
-                // حفظ نسخة احتياطية دائمة في الكاش للرجوع إليها في حال انقطاع الخدمة أو بطء الـ API
-                if (!empty($eventsData['events'])) {
-                    Cache::forever($backupKey, $eventsData);
-                }
+        // إذا كان هناك كاش صالح وغير فارغ، نرجعه فوراً
+        $cached = Cache::get($cacheKey);
+        if ($cached && !empty($cached['events']) && !$forceRefresh) {
+            return $cached;
+        }
 
-                return $eventsData;
-            } catch (Exception $e) {
-                // إذا حدث خطأ أو Timeout في Gemini ولكن توجد نسخة كاش احتياطية سابقة، نعيدها فوراً
-                $backup = Cache::get($backupKey);
-                if ($backup && is_array($backup)) {
-                    Log::warning("Gemini API failed/timed out, serving backup events cache for {$country} ({$language})", [
-                        'error' => $e->getMessage(),
-                    ]);
-                    return $backup;
-                }
+        // إذا كان الكاش القديم فارغاً، نحذفه
+        if ($cached && empty($cached['events'])) {
+            Cache::forget($cacheKey);
+        }
 
-                throw $e;
+        // إذا كان المطلوب بالإنجليزية، نعتمد على الفعاليات العربية ونترجمها لتطابق الفعاليات والتواريخ 100%
+        if ($language === 'en') {
+            $arCacheKey = "gemini_events_{$countrySlug}_ar";
+            $arData = Cache::get($arCacheKey);
+
+            // إذا لم تكن الفعاليات العربية موجودة بالكاش، نجلبها أولاً
+            if (!$arData || empty($arData['events'])) {
+                try {
+                    $arData = $this->searchUpcomingEvents($country, 'ar', $forceRefresh);
+                } catch (\Throwable $e) {
+                    Log::warning("Fetching Arabic events before translating to English failed: " . $e->getMessage());
+                }
             }
-        });
+
+            if (!empty($arData['events'])) {
+                try {
+                    $translatedData = $this->translateEventsToEnglish($arData, $country);
+                    if (!empty($translatedData['events'])) {
+                        Cache::put($cacheKey, $translatedData, 86400);
+                        Cache::forever($backupKey, $translatedData);
+                        return $translatedData;
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning("Translating Arabic events to English failed, falling back to direct generation: " . $e->getMessage());
+                }
+            }
+        }
+
+        try {
+            $eventsData = $this->fetchEventsFromGemini($country, $language);
+
+            // نخزن في الكاش إذا رجعت فعاليات
+            if (!empty($eventsData['events'])) {
+                Cache::put($cacheKey, $eventsData, 86400); // 24 ساعة
+                Cache::forever($backupKey, $eventsData);
+            }
+
+            return $eventsData;
+        } catch (Exception $e) {
+            // في حال حدوث خطأ أو Timeout في Gemini، نرجع آخر كاش محفوظ لنفس الدولة إن وُجد
+            $backup = Cache::get($backupKey);
+            if ($backup && !empty($backup['events'])) {
+                Log::warning("Gemini failed, serving last cached events for {$country} ({$language})", [
+                    'error' => $e->getMessage(),
+                ]);
+                return $backup;
+            }
+
+            throw $e;
+        }
     }
 
     /**
@@ -167,34 +204,24 @@ class GeminiService
     private function fetchEventsFromGemini(string $country, string $language = 'en'): array
     {
         $today = date('Y-m-d');
+        $currentYear = date('Y');
+        $nextYear = (int)$currentYear + 1;
 
-        // برومبت سريع ومباشر يطلب 6-10 أحداث فقط لتقليل عدد الـ Tokens ووقت التوليد لأقصى درجة
-        $prompt = "You are an assistant that finds real-world upcoming events happening in a specific country.
-
-INPUT:
-1) \"language\": \"{$language}\"
-2) \"country\": \"{$country}\"
-3) \"today_date\": \"{$today}\"
+        $prompt = "You are a tourism and culture expert assistant.
 
 TASK:
-1. Search for upcoming events happening in the specified country starting from 'today_date'.
-2. Return ONLY the nearest upcoming events (between 6 to 10 events), sorted from the closest date to the farthest.
-3. For each event, provide:
-    - \"title\": event name
-    - \"date\": YYYY-MM-DD
-    - \"start_at\": HH:MM or YYYY-MM-DD HH:MM or null
-    - \"end_at\": HH:MM or YYYY-MM-DD HH:MM or null
-    - \"city\": city name
-    - \"venue\": venue name or null
-    - \"country\": \"{$country}\"
-    - \"category\": type (concert, conference, exhibition, sports, workshop, festival, etc.)
-    - \"source\": platform or official website name
+Provide a curated list of the top 6 to 10 prominent annual, seasonal, cultural, tourist, and entertainment events and festivals in {$country}.
+For example:
+- In Saudi Arabia: Riyadh Season, Jeddah Season, Saudi Arabian F1 Grand Prix, LEAP Conference, Riyadh International Book Fair, The Saudi Cup.
+- In Egypt: Cairo International Book Fair, Cairo International Film Festival, New Alamein Festival, Citadel Music Festival, Arab Music Festival.
+- For any other country: their top famous national and international festivals, seasons, and exhibitions.
 
-Do not include a 'url' field.
-
-LANGUAGE RULES:
-- If language is \"en\": ALL text fields MUST be in English only.
-- If language is \"ar\": ALL text fields MUST be in Arabic when available (keep English name if no translation exists).
+CRITICAL RULES:
+1. Return between 6 to 10 events.
+2. DATE CONSTRAINT: Today's reference date is {$today}. All event dates MUST be upcoming dates in {$currentYear} or {$nextYear} (e.g. 2025/2026). NEVER return old dates from 2024 or earlier.
+3. The 'generated_at' field MUST be exactly '{$today}'.
+4. If language is \"ar\", write title, city, venue, category, and source in Arabic. If \"en\", write in English.
+5. DO NOT return an empty list.
 
 OUTPUT FORMAT:
 Respond with pure JSON object matching this structure:
@@ -206,8 +233,8 @@ Respond with pure JSON object matching this structure:
         {
             \"title\": \"...\",
             \"date\": \"YYYY-MM-DD\",
-            \"start_at\": null,
-            \"end_at\": null,
+            \"start_at\": \"18:00\",
+            \"end_at\": \"23:00\",
             \"city\": \"...\",
             \"venue\": \"...\",
             \"country\": \"{$country}\",
@@ -215,9 +242,7 @@ Respond with pure JSON object matching this structure:
             \"source\": \"...\"
         }
     ]
-}
-
-If no events are found, return the same structure with empty events array and \"note\": \"No upcoming events found\".";
+}";
 
         try {
             $url = "{$this->baseUrl}/models/{$this->model}:generateContent";
@@ -234,20 +259,12 @@ If no events are found, return the same structure with empty events array and \"
                 ],
                 'generationConfig' => [
                     'temperature' => 0.2, // خفض الحرارة لتوليد أسرع وأكثر دقة وتفادي البطء
-                    'maxOutputTokens' => 2048, // تقليل التوكنز لتسريع الاستجابة ومنع التعليق
+                    'maxOutputTokens' => 4096, // رفع التوكنز لتفادي انقطاع نصوص الـ UTF-8 العربية في منتصف الـ JSON
                     'responseMimeType' => 'application/json',
                 ],
             ];
 
-            // تحسين الاتصال: خفض timeout إلى 10 ثوان، تسريع الـ DNS عبر IPv4
-            $response = Http::timeout(10)
-                ->connectTimeout(4)
-                ->retry(1, 150)
-                ->withOptions([
-                    'curl' => [
-                        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-                    ],
-                ])
+            $response = Http::timeout(30)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])->post("{$url}?key={$this->apiKey}", $payload);
@@ -270,16 +287,19 @@ If no events are found, return the same structure with empty events array and \"
                  throw new Exception('Invalid or incomplete response from Gemini API');
             }
 
-            $responseText = $data['candidates'][0]['content']['parts'][0]['text'];
+            $responseText = trim($data['candidates'][0]['content']['parts'][0]['text']);
 
-            // حذف علامات تنسيق Markdown للـ JSON (مثل ```json)
-            $responseText = preg_replace('/^```json\s*/i', '', $responseText);
-            $responseText = preg_replace('/^```\s*/', '', $responseText);
-            $responseText = preg_replace('/\s*```$/', '', $responseText);
-            $responseText = trim($responseText);
+            // استخراج نص الـ JSON بدقة متناهية بين أول { وآخر } لتفادي أي markdown أو نصوص إضافية
+            $start = strpos($responseText, '{');
+            $end = strrpos($responseText, '}');
+            if ($start !== false && $end !== false && $end > $start) {
+                $cleanJson = substr($responseText, $start, $end - $start + 1);
+            } else {
+                $cleanJson = $responseText;
+            }
 
             // تحليل JSON
-            $jsonData = json_decode($responseText, true);
+            $jsonData = json_decode($cleanJson, true);
 
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($jsonData)) {
                 Log::error('Gemini Events Response Parse Error', [
@@ -310,4 +330,136 @@ If no events are found, return the same structure with empty events array and \"
             throw $e;
         }
     }
+
+    /**
+     * Translate Arabic events to English while strictly preserving exact dates, times, and order.
+     *
+     * @param array $arData
+     * @param string $country
+     * @return array
+     * @throws Exception
+     */
+    private function translateEventsToEnglish(array $arData, string $country): array
+    {
+        $events = $arData['events'] ?? [];
+        if (empty($events)) {
+            return $arData;
+        }
+
+        $eventsJson = json_encode($events, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $generatedAt = $arData['generated_at'] ?? date('Y-m-d');
+
+        $prompt = "You are a professional translator and cultural editor.
+Translate the following list of events from Arabic to English.
+
+CRITICAL INSTRUCTIONS:
+1. Translate ONLY the Arabic text fields: 'title', 'city', 'venue', 'category', 'source'.
+2. DO NOT change or alter any dates or times ('date', 'start_at', 'end_at') or 'country'. Keep them EXACTLY as they are in the source.
+3. Keep the exact same number of events and in the exact same sequence.
+4. Return pure JSON matching this exact structure:
+{
+    \"country\": \"{$country}\",
+    \"language\": \"en\",
+    \"generated_at\": \"{$generatedAt}\",
+    \"events\": [
+        {
+            \"title\": \"...\",
+            \"date\": \"...\",
+            \"start_at\": \"...\",
+            \"end_at\": \"...\",
+            \"city\": \"...\",
+            \"venue\": \"...\",
+            \"country\": \"{$country}\",
+            \"category\": \"...\",
+            \"source\": \"...\"
+        }
+    ]
 }
+
+Events to translate:
+{$eventsJson}";
+
+        $url = "{$this->baseUrl}/models/{$this->model}:generateContent";
+        $payload = [
+            'contents' => [
+                [
+                    'parts' => [
+                        ['text' => $prompt]
+                    ]
+                ]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.1,
+                'maxOutputTokens' => 4096,
+                'responseMimeType' => 'application/json',
+            ],
+        ];
+
+        $response = Http::timeout(30)
+            ->withHeaders(['Content-Type' => 'application/json'])
+            ->post("{$url}?key={$this->apiKey}", $payload);
+
+        if ($response->failed()) {
+            throw new Exception("Gemini Translation API call failed: " . $response->body());
+        }
+
+        $data = $response->json();
+        $responseText = trim($data['candidates'][0]['content']['parts'][0]['text'] ?? '');
+        $start = strpos($responseText, '{');
+        $end = strrpos($responseText, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $cleanJson = substr($responseText, $start, $end - $start + 1);
+        } else {
+            $cleanJson = $responseText;
+        }
+
+        $translated = json_decode($cleanJson, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($translated) && !empty($translated['events'])) {
+            return $translated;
+        }
+
+        throw new Exception("Failed to parse translated events JSON: " . json_last_error_msg());
+    }
+
+    /**
+     * Direct live diagnostic test of Gemini API without cache
+     */
+    public function debugGeminiCall(string $country, string $language = 'en'): array
+    {
+        $today = date('Y-m-d');
+        $url = "{$this->baseUrl}/models/{$this->model}:generateContent";
+
+        $prompt = "You are a tourism expert. List 4 real annual events in {$country}. Return pure JSON with country, language, and events list.";
+
+        $payload = [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.2,
+                'maxOutputTokens' => 2048,
+                'responseMimeType' => 'application/json',
+            ],
+        ];
+
+        try {
+            $response = Http::timeout(10)->post("{$url}?key={$this->apiKey}", $payload);
+
+            return [
+                'model' => $this->model,
+                'key_preview' => substr($this->apiKey, 0, 10) . '...',
+                'http_status' => $response->status(),
+                'http_successful' => $response->successful(),
+                'google_response' => $response->json(),
+            ];
+        } catch (Exception $e) {
+            return [
+                'error' => $e->getMessage(),
+                'model' => $this->model,
+                'key_preview' => substr($this->apiKey, 0, 10) . '...',
+            ];
+        }
+    }
+}
+
+

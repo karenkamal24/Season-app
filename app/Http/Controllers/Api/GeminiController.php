@@ -126,9 +126,9 @@ class GeminiController extends Controller
                 $language = $request->header('accept-language');
             }
 
-            // Also check 'language' header for backward compatibility
+            // Also check query parameter 'lang' or 'language' for easy testing
             if (empty($language)) {
-                $language = $request->header('language');
+                $language = $request->input('lang') ?? $request->input('language');
             }
 
             // If still empty, default to Arabic
@@ -178,6 +178,10 @@ class GeminiController extends Controller
 
             $forceRefresh = $request->boolean('refresh', false);
 
+            if ($request->boolean('debug', false)) {
+                return response()->json($this->geminiService->debugGeminiCall($countryName, $language), 200);
+            }
+
             $result = $this->geminiService->searchUpcomingEvents($countryName, $language, $forceRefresh);
 
             // Return the JSON response with HTTP Cache headers for fast client delivery
@@ -193,7 +197,7 @@ class GeminiController extends Controller
             ]);
 
             return ApiResponse::error(
-                LangHelper::msg('events_search_error') ?? 'Failed to search for events: ' . $e->getMessage()
+                $e->getMessage()
             );
         }
     }
@@ -212,29 +216,49 @@ class GeminiController extends Controller
         // Mapping of common country codes to English names
         $countryMap = [
             'EGY' => 'Egypt',
+            'EG' => 'Egypt',
             'SAU' => 'Saudi Arabia',
+            'SA' => 'Saudi Arabia',
             'UAE' => 'United Arab Emirates',
             'ARE' => 'United Arab Emirates',
+            'AE' => 'United Arab Emirates',
             'JOR' => 'Jordan',
+            'JO' => 'Jordan',
             'KWT' => 'Kuwait',
+            'KW' => 'Kuwait',
             'QAT' => 'Qatar',
+            'QA' => 'Qatar',
             'BHR' => 'Bahrain',
+            'BH' => 'Bahrain',
             'OMN' => 'Oman',
+            'OM' => 'Oman',
             'LBN' => 'Lebanon',
+            'LB' => 'Lebanon',
             'IRQ' => 'Iraq',
+            'IQ' => 'Iraq',
             'SYR' => 'Syria',
             'YEM' => 'Yemen',
             'PSE' => 'Palestine',
             'USA' => 'United States',
+            'US' => 'United States',
             'GBR' => 'United Kingdom',
+            'UK' => 'United Kingdom',
             'FRA' => 'France',
+            'FR' => 'France',
             'DEU' => 'Germany',
+            'DE' => 'Germany',
             'ITA' => 'Italy',
+            'IT' => 'Italy',
             'ESP' => 'Spain',
+            'ES' => 'Spain',
             'TUR' => 'Turkey',
+            'TR' => 'Turkey',
             'IND' => 'India',
+            'IN' => 'India',
             'CHN' => 'China',
+            'CN' => 'China',
             'JPN' => 'Japan',
+            'JP' => 'Japan',
             'AUS' => 'Australia',
             'CAN' => 'Canada',
         ];
@@ -242,6 +266,13 @@ class GeminiController extends Controller
         // Check if code exists in map
         if (isset($countryMap[$code])) {
             return $countryMap[$code];
+        }
+
+        // If the code is already the full English country name
+        foreach ($countryMap as $name) {
+            if (strcasecmp($code, $name) === 0) {
+                return $name;
+            }
         }
 
         // Try to find in database
