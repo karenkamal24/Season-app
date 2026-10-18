@@ -176,10 +176,14 @@ class GeminiController extends Controller
                 $countryName = $countryCode;
             }
 
-            $result = $this->geminiService->searchUpcomingEvents($countryName, $language);
+            $forceRefresh = $request->boolean('refresh', false);
 
-            // Return the JSON response directly as Gemini returns it
-            return response()->json($result, 200);
+            $result = $this->geminiService->searchUpcomingEvents($countryName, $language, $forceRefresh);
+
+            // Return the JSON response with HTTP Cache headers for fast client delivery
+            return response()->json($result, 200, [
+                'Cache-Control' => 'public, max-age=3600',
+            ]);
         } catch (Exception $e) {
             // تسجيل الخطأ بالكامل قبل إرجاع الاستجابة
             Log::error('Gemini Controller Events Error (500)', [
@@ -208,7 +212,6 @@ class GeminiController extends Controller
         // Mapping of common country codes to English names
         $countryMap = [
             'EGY' => 'Egypt',
-            'SAU ' => 'Saudi Arabia',
             'SAU' => 'Saudi Arabia',
             'UAE' => 'United Arab Emirates',
             'ARE' => 'United Arab Emirates',

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Exception;
+use Illuminate\Support\Str;
 use Illuminate\Http\Client\ConnectionException;
 
 class GeminiService
@@ -114,18 +115,44 @@ class GeminiService
      * @return array
      * @throws Exception
      */
-    public function searchUpcomingEvents(string $country, string $language = 'en'): array
+    public function searchUpcomingEvents(string $country, string $language = 'en', bool $forceRefresh = false): array
     {
         if (empty($this->apiKey)) {
             throw new Exception('Gemini API key is not configured');
         }
 
-        // 💡 Cache key يعتمد على country و language
-        $cacheKey = "gemini_events_{$country}_{$language}";
-        
-        // 💡 محاولة جلب البيانات من Cache أولاً (cache لمدة 12 ساعة)
-        return Cache::remember($cacheKey, 43200, function () use ($country, $language) {
-            return $this->fetchEventsFromGemini($country, $language);
+        // Cache key موحد وآمن بدون مسافات أو حروف خاصة
+        $countrySlug = Str::slug($country, '_') ?: 'default';
+        $cacheKey = "gemini_events_{$countrySlug}_{$language}";
+        $backupKey = "gemini_events_backup_{$countrySlug}_{$language}";
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
+        }
+
+        // الكاش لمدة 24 ساعة (86400 ثانية) بدلاً من 12 ساعة لتحسين السرعة
+        return Cache::remember($cacheKey, 86400, function () use ($country, $language, $backupKey) {
+            try {
+                $eventsData = $this->fetchEventsFromGemini($country, $language);
+                
+                // حفظ نسخة احتياطية دائمة في الكاش للرجوع إليها في حال انقطاع الخدمة أو بطء الـ API
+                if (!empty($eventsData['events'])) {
+                    Cache::forever($backupKey, $eventsData);
+                }
+
+                return $eventsData;
+            } catch (Exception $e) {
+                // إذا حدث خطأ أو Timeout في Gemini ولكن توجد نسخة كاش احتياطية سابقة، نعيدها فوراً
+                $backup = Cache::get($backupKey);
+                if ($backup && is_array($backup)) {
+                    Log::warning("Gemini API failed/timed out, serving backup events cache for {$country} ({$language})", [
+                        'error' => $e->getMessage(),
+                    ]);
+                    return $backup;
+                }
+
+                throw $e;
+            }
         });
     }
 
@@ -139,83 +166,58 @@ class GeminiService
      */
     private function fetchEventsFromGemini(string $country, string $language = 'en'): array
     {
-        // 💡 التعديل 1: تحديد تاريخ اليوم الحالي لضمان البحث عن أحداث مستقبلية
         $today = date('Y-m-d');
 
+        // برومبت سريع ومباشر يطلب 6-10 أحداث فقط لتقليل عدد الـ Tokens ووقت التوليد لأقصى درجة
         $prompt = "You are an assistant that finds real-world upcoming events happening in a specific country.
 
 INPUT:
-You will receive three variables:
-1) \"language\": either \"ar\" for Arabic or \"en\" for English.
-2) \"country\": the country name in English (e.g., \"Egypt\", \"Saudi Arabia\", \"UAE\", \"France\", etc.).
-3) \"today_date\": The current date in YYYY-MM-DD format.
+1) \"language\": \"{$language}\"
+2) \"country\": \"{$country}\"
+3) \"today_date\": \"{$today}\"
 
 TASK:
-1. Search for upcoming events happening in the specified country **starting from the 'today_date'**.
-2. Return ONLY the nearest upcoming events (preferably the next 10–20 events), sorted from the closest date to the farthest.
-3. For each event, provide the following fields:
-    - \"title\": the name of the event
-    - \"date\": full date in ISO 8601 format (YYYY-MM-DD)
-    - \"start_at\": event start time or start datetime. Use:
-        • HH:MM if time only is known
-        • YYYY-MM-DD HH:MM if date and time are known
-        • null if unknown
-    - \"end_at\": event end time or end datetime. Use same rules as start_at
-    - \"city\": the city where the event happens
-    - \"venue\": place/venue name if available, otherwise null
-    - \"country\": same value as the input country header
-    - \"category\": type of event (concert, conference, exhibition, sports, workshop, festival, etc.) if possible
-    - \"source\": the website, platform, or service where the event information was found
+1. Search for upcoming events happening in the specified country starting from 'today_date'.
+2. Return ONLY the nearest upcoming events (between 6 to 10 events), sorted from the closest date to the farthest.
+3. For each event, provide:
+    - \"title\": event name
+    - \"date\": YYYY-MM-DD
+    - \"start_at\": HH:MM or YYYY-MM-DD HH:MM or null
+    - \"end_at\": HH:MM or YYYY-MM-DD HH:MM or null
+    - \"city\": city name
+    - \"venue\": venue name or null
+    - \"country\": \"{$country}\"
+    - \"category\": type (concert, conference, exhibition, sports, workshop, festival, etc.)
+    - \"source\": platform or official website name
 
-**NOTE: Do not include a 'url' field.**
+Do not include a 'url' field.
 
-LANGUAGE RULES (CRITICAL - MUST FOLLOW):
-- If the \"language\" variable is \"en\" (English):
-    • You MUST return ALL text fields (title, city, venue, category, source) in English ONLY.
-    • Do NOT use Arabic text in any field.
-    • Example: title should be \"Cairo International Film Festival\" NOT \"مهرجان القاهرة السينمائي\"
-- If the \"language\" variable is \"ar\" (Arabic):
-    • You MUST return ALL text fields (title, city, venue, category, source) in Arabic when available.
-    • If no Arabic translation exists, keep the original English name.
-- The \"country\" field in each event should match the input country name exactly.
-- The \"language\" field in the response MUST match the input language exactly (\"en\" or \"ar\").
+LANGUAGE RULES:
+- If language is \"en\": ALL text fields MUST be in English only.
+- If language is \"ar\": ALL text fields MUST be in Arabic when available (keep English name if no translation exists).
 
 OUTPUT FORMAT:
-Always respond with a single JSON object in this structure:
-
+Respond with pure JSON object matching this structure:
 {
-    \"country\": \"<country from header>\",
-    \"language\": \"<language from header>\",
-    \"generated_at\": \"<current date in YYYY-MM-DD>\",
+    \"country\": \"{$country}\",
+    \"language\": \"{$language}\",
+    \"generated_at\": \"{$today}\",
     \"events\": [
         {
             \"title\": \"...\",
             \"date\": \"YYYY-MM-DD\",
-            \"start_at\": \"YYYY-MM-DD HH:MM\" or \"HH:MM\" or null,
-            \"end_at\": \"YYYY-MM-DD HH:MM\" or \"HH:MM\" or null,
+            \"start_at\": null,
+            \"end_at\": null,
             \"city\": \"...\",
             \"venue\": \"...\",
-            \"country\": \"...\",
+            \"country\": \"{$country}\",
             \"category\": \"...\",
-            \"source\": \"...\" // تم حذف url
+            \"source\": \"...\"
         }
     ]
 }
 
-RULES:
-- You MUST return pure JSON only. No markdown, no explanations, no introductory or closing text.
-- Do NOT include any fields that are not specified.
-- If no events are found, return:
-    • the same JSON structure
-    • an empty \"events\" array
-    • and add a field \"note\": \"No upcoming events found\"
-
-Now, find upcoming events for:
-- Country: {$country}
-- Language: {$language}
-- Today's Date: {$today}
-
-Return ONLY the JSON response, nothing else.";
+If no events are found, return the same structure with empty events array and \"note\": \"No upcoming events found\".";
 
         try {
             $url = "{$this->baseUrl}/models/{$this->model}:generateContent";
@@ -231,15 +233,21 @@ Return ONLY the JSON response, nothing else.";
                     ]
                 ],
                 'generationConfig' => [
-                    'temperature' => 0.7,
-                    'maxOutputTokens' => 8192,
+                    'temperature' => 0.2, // خفض الحرارة لتوليد أسرع وأكثر دقة وتفادي البطء
+                    'maxOutputTokens' => 2048, // تقليل التوكنز لتسريع الاستجابة ومنع التعليق
                     'responseMimeType' => 'application/json',
                 ],
             ];
 
-            // تقليل timeout إلى 15 ثانية مع retry
-            $response = Http::timeout(15)
-                ->retry(2, 100) // retry مرتين مع انتظار 100ms بين كل محاولة
+            // تحسين الاتصال: خفض timeout إلى 10 ثوان، تسريع الـ DNS عبر IPv4
+            $response = Http::timeout(10)
+                ->connectTimeout(4)
+                ->retry(1, 150)
+                ->withOptions([
+                    'curl' => [
+                        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                    ],
+                ])
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])->post("{$url}?key={$this->apiKey}", $payload);
@@ -265,24 +273,21 @@ Return ONLY the JSON response, nothing else.";
             $responseText = $data['candidates'][0]['content']['parts'][0]['text'];
 
             // حذف علامات تنسيق Markdown للـ JSON (مثل ```json)
-            $responseText = preg_replace('/^```json\s*/', '', $responseText);
+            $responseText = preg_replace('/^```json\s*/i', '', $responseText);
             $responseText = preg_replace('/^```\s*/', '', $responseText);
             $responseText = preg_replace('/\s*```$/', '', $responseText);
             $responseText = trim($responseText);
 
-            // محاولة تحليل JSON
+            // تحليل JSON
             $jsonData = json_decode($responseText, true);
 
-            // في حال فشل التحليل نهائياً، أرجع استجابة بديلة مع تسجيل الخطأ
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($jsonData)) {
                 Log::error('Gemini Events Response Parse Error', [
                     'response_snippet' => substr($responseText, 0, 500),
                     'response_length' => strlen($responseText),
                     'json_error' => json_last_error_msg(),
-                    'json_error_code' => json_last_error(),
                 ]);
 
-                // إرجاع استجابة بديلة بنفس الشكل الأصلي
                 return [
                     'country' => $country,
                     'language' => $language,
@@ -294,7 +299,6 @@ Return ONLY the JSON response, nothing else.";
 
             return $jsonData;
         } catch (ConnectionException $e) {
-            // خطأ شبكة أو Timeout
             Log::error('Gemini Connection Error - Events Search', ['message' => $e->getMessage(), 'country' => $country]);
             throw new Exception('Connection failed while reaching Gemini API: ' . $e->getMessage());
         } catch (Exception $e) {
