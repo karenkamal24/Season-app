@@ -154,10 +154,9 @@ class VendorServiceController extends Controller
     {
         $vendorService = $this->vendorServiceService->getOneApproved($id, $request);
 
-        return ApiResponse::send(
-            Response::HTTP_OK,
-            LangHelper::msg('vendor_service_details'),
-            new VendorServiceIndexResource($vendorService)
-        );
+        return response()->json([
+            'success' => true,
+            'data' => new VendorServiceIndexResource($vendorService),
+        ]);
     }
 }

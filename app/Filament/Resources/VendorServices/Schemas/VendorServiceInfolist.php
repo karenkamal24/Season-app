@@ -51,6 +51,14 @@ class VendorServiceInfolist
                         ->label($isArabic ? 'رقم الاتصال' : 'Contact Number')
                         ->placeholder('-'),
 
+                    TextEntry::make('phone')
+                        ->label($isArabic ? 'رقم الهاتف' : 'Phone')
+                        ->placeholder('-'),
+
+                    TextEntry::make('whatsapp')
+                        ->label($isArabic ? 'واتساب' : 'WhatsApp')
+                        ->placeholder('-'),
+
                     TextEntry::make('address')
                         ->label($isArabic ? 'العنوان' : 'Address')
                         ->placeholder('-'),

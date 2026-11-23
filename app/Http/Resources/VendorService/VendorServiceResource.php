@@ -15,6 +15,8 @@ class VendorServiceResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'contact_number' => $this->contact_number,
+            'phone' => $this->phone,
+            'whatsapp' => $this->whatsapp,
             'address' => $this->address,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,

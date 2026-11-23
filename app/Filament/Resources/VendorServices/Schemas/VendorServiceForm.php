@@ -52,9 +52,14 @@ class VendorServiceForm
             Section::make($isArabic ? 'الاتصال والموقع' : 'Contact & Location')
                 ->icon('heroicon-o-map-pin')
                 ->schema([
-                    TextInput::make('contact_number')
+                    TextInput::make('phone')
                         ->label($isArabic ? 'رقم الاتصال' : 'Contact Number')
-                        ->tel(),
+                        ->tel()
+                        ->rules(['regex:/^\+[1-9]\d{7,14}$/']),
+
+                    TextInput::make('whatsapp')
+                        ->label($isArabic ? 'واتساب' : 'WhatsApp')
+                        ->rules(['regex:/^[1-9]\d{7,14}$/']),
 
                     TextInput::make('address')
                         ->label($isArabic ? 'العنوان' : 'Address'),
@@ -62,11 +67,13 @@ class VendorServiceForm
                     TextInput::make('latitude')
                         ->numeric()
                         ->step('any')
+                        ->rules(['numeric', 'between:-90,90'])
                         ->label($isArabic ? 'خط العرض' : 'Latitude'),
 
                     TextInput::make('longitude')
                         ->numeric()
                         ->step('any')
+                        ->rules(['numeric', 'between:-180,180'])
                         ->label($isArabic ? 'خط الطول' : 'Longitude'),
 
                     Select::make('country_id')

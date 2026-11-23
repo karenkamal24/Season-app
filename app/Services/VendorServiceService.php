@@ -43,7 +43,9 @@ class VendorServiceService
             'service_type_id'     => $request->service_type_id,
             'name'                => $request->name,
             'description'         => $request->description,
-            'contact_number'      => $request->contact_number,
+            'contact_number'      => $request->input('phone') ?? $request->input('contact_number'),
+            'phone'               => $request->input('phone') ?? $request->input('contact_number'),
+            'whatsapp'            => $request->input('whatsapp'),
             'address'             => $request->address,
             'latitude'            => $request->latitude,
             'longitude'           => $request->longitude,
@@ -94,6 +96,12 @@ class VendorServiceService
         }
 
         $data = $request->validated();
+
+        if (array_key_exists('phone', $data)) {
+            $data['contact_number'] = $data['phone'];
+        } elseif (array_key_exists('contact_number', $data)) {
+            $data['phone'] = $data['contact_number'];
+        }
 
         if ($request->hasFile('commercial_register')) {
             $data['commercial_register'] = $request->file('commercial_register')

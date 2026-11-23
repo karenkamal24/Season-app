@@ -14,6 +14,8 @@ class VendorService extends Model
         'name',
         'description',
         'contact_number',
+        'phone',
+        'whatsapp',
         'address',
         'latitude',
         'longitude',
@@ -26,6 +28,12 @@ class VendorService extends Model
     protected $casts = [
         'images' => 'array',
     ];
+
+    public function setPhoneAttribute(?string $value): void
+    {
+        $this->attributes['phone'] = $value;
+        $this->attributes['contact_number'] = $value;
+    }
 
     public function user()
     {
