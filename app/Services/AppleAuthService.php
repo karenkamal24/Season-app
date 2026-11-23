@@ -2,174 +2,77 @@
 
 namespace App\Services;
 
-use Lcobucci\JWT\Configuration;
-use Lcobucci\JWT\Signer\Rsa\Sha256;
-use Lcobucci\JWT\Signer\Key\InMemory;
-use Lcobucci\JWT\Encoding\JoseEncoder;
-use Lcobucci\JWT\Token\Parser;
-use Illuminate\Support\Facades\Http;
+use Firebase\JWT\JWK;
+use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Cache;
-use Exception;
+use Illuminate\Support\Facades\Http;
+use RuntimeException;
+use Throwable;
 
 class AppleAuthService
 {
-    /**
-     * Verify Apple ID token and get user info
-     */
-    public function verifyIdToken(string $idToken, ?string $clientBundleId = null): array
+    public function verifyIdToken(string $idToken): array
     {
         try {
-            // Decode the JWT token
-            $tokenParts = explode('.', $idToken);
-            if (count($tokenParts) !== 3) {
-                throw new Exception('Invalid token format');
+            $parts = explode('.', $idToken);
+            if (count($parts) !== 3) {
+                throw new RuntimeException('Invalid token format');
             }
-            
-            $payload = json_decode(base64_decode(strtr($tokenParts[1], '-_', '+/')), true);
-            
-            if (!$payload) {
-                throw new Exception('Failed to decode token payload');
+            $header = JWT::jsonDecode(JWT::urlsafeB64Decode($parts[0]));
+            if (($header->alg ?? null) !== 'RS256' || empty($header->kid)) {
+                throw new RuntimeException('Invalid token algorithm or missing key ID');
             }
 
-            // Verify the token signature using Apple's public keys
-            $this->verifyAppleTokenSignature($idToken, $payload);
-            
-            // Verify token issuer and audience
-            if ($payload['iss'] !== 'https://appleid.apple.com') {
-                throw new Exception('Invalid token issuer');
+            $keys = $this->getPublicKeys();
+            if (! isset($keys[$header->kid])) {
+                // Refresh once for Apple's key rotation.
+                Cache::forget('apple_sign_in_jwks');
+                $keys = $this->getPublicKeys();
+            }
+            // decode verifies the signature, algorithm, expiry and not-before claims.
+            $payload = (array) JWT::decode($idToken, $keys);
+            $audiences = array_filter(array_merge([
+                'com.softikseason.softik',
+                'com.season.app.seasonApp',
+                config('services.apple.client_id'),
+                config('services.apple.bundle_id'),
+            ], explode(',', (string) config('services.apple.client_ids', ''))));
+            $audiences = array_map('trim', $audiences);
+
+            if (($payload['iss'] ?? null) !== 'https://appleid.apple.com'
+                || ! is_string($payload['aud'] ?? null)
+                || ! in_array($payload['aud'], $audiences, true)
+                || ! is_numeric($payload['exp'] ?? null)
+                || $payload['exp'] <= time()
+                || ! is_string($payload['sub'] ?? null)
+                || $payload['sub'] === '') {
+                throw new RuntimeException('Invalid Apple token claims');
             }
 
-            if (!$this->isValidAudience($payload['aud'] ?? '', $clientBundleId)) {
-                throw new Exception('Invalid token audience');
-            }
-
-            // Check token expiration
-            if (isset($payload['exp']) && $payload['exp'] < time()) {
-                throw new Exception('Token has expired');
-            }
-            
             return [
                 'id' => $payload['sub'],
                 'email' => $payload['email'] ?? null,
-                'email_verified' => $payload['email_verified'] ?? false,
+                'email_verified' => filter_var($payload['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ];
-        } catch (Exception $e) {
-            throw new Exception('Failed to verify Apple token: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Allowed `aud` values for Apple ID tokens.
-     *
-     * Native iOS apps send the Bundle ID as audience, not the Services ID used for web.
-     */
-    private function getAllowedAudiences(?string $clientBundleId = null): array
-    {
-        $configured = array_filter(array_map('trim', explode(',', (string) config('services.apple.client_ids', ''))));
-
-        $defaults = array_filter([
-            config('services.apple.client_id'),
-            config('services.apple.bundle_id'),
-            $clientBundleId,
-            'com.season.app.seasonApp',
-            'com.season.app.season_app',
-            'com.season.app.season_app.service',
-        ]);
-
-        if (!empty($configured)) {
-            return array_values(array_unique(array_merge($configured, $defaults)));
-        }
-
-        return array_values(array_unique($defaults));
-    }
-
-    private function isValidAudience(string $audience, ?string $clientBundleId = null): bool
-    {
-        if ($audience === '') {
-            return false;
-        }
-
-        if (in_array($audience, $this->getAllowedAudiences($clientBundleId), true)) {
-            return true;
-        }
-
-        // Native iOS tokens always use the app Bundle ID as `aud`.
-        return str_starts_with($audience, 'com.season.app.');
-    }
-
-    /**
-     * Verify Apple token signature using Apple's public keys
-     */
-    private function verifyAppleTokenSignature(string $idToken, array $payload): void
-    {
-        try {
-            // Get the key ID from the token header
-            $header = json_decode(base64_decode(strtr(explode('.', $idToken)[0], '-_', '+/')), true);
-            $kid = $header['kid'] ?? null;
-
-            if (!$kid) {
-                throw new Exception('Missing key ID in token header');
-            }
-
-            // Fetch Apple's public keys
-            $appleKeys = $this->getApplePublicKeys();
-            
-            if (!isset($appleKeys[$kid])) {
-                throw new Exception('Public key not found for the given key ID');
-            }
-
-            $publicKey = $appleKeys[$kid];
-            
-            // Create JWT configuration
-            $configuration = Configuration::forSymmetricSigner(
-                new Sha256(),
-                InMemory::plainText('')
-            );
-            
-            // Verify signature (simplified - full implementation would verify with RSA public key)
-            // Note: This is a simplified version. For production, you should use proper RSA signature verification
-            // Reference: https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api/verifying_a_user
-        } catch (Exception $e) {
-            // For now, we'll proceed with basic validation
-            // In production, you should implement full RSA signature verification
-            // Log the error for debugging
-            \Log::warning('Apple token signature verification: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            throw new RuntimeException('Failed to verify Apple token: '.$e->getMessage(), 0, $e);
         }
     }
 
-    /**
-     * Get Apple's public keys (cached for 1 hour)
-     */
-    private function getApplePublicKeys(): array
+    private function getPublicKeys(): array
     {
-        return Cache::remember('apple_public_keys', 3600, function () {
-            $response = Http::get('https://appleid.apple.com/auth/keys');
-            
-            if (!$response->successful()) {
-                throw new Exception('Failed to fetch Apple public keys');
-            }
+        $jwks = Cache::remember('apple_sign_in_jwks', 3600, function () {
+            $jwks = Http::timeout(10)->get('https://appleid.apple.com/auth/keys')->throw()->json();
+            // Validate before caching; accept only RSA signing keys.
+            $jwks['keys'] = array_values(array_filter($jwks['keys'] ?? [], fn ($key) => ($key['kty'] ?? null) === 'RSA'
+                && ($key['alg'] ?? null) === 'RS256'
+                && ($key['use'] ?? 'sig') === 'sig'
+            ));
+            JWK::parseKeySet($jwks);
 
-            $keysData = $response->json();
-            $keys = [];
-
-            foreach ($keysData['keys'] as $key) {
-                $keys[$key['kid']] = $this->convertJWKToPEM($key);
-            }
-
-            return $keys;
+            return $jwks;
         });
-    }
 
-    /**
-     * Convert JWK to PEM format
-     * This is a simplified version - full implementation should handle RSA key conversion
-     */
-    private function convertJWKToPEM(array $jwk): string
-    {
-        // This is a placeholder - you would need to implement proper JWK to PEM conversion
-        // For now, we'll return a placeholder
-        // Full implementation: https://tools.ietf.org/html/rfc7517
-        return '';
+        return JWK::parseKeySet($jwks);
     }
 }
-

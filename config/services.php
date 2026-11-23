@@ -35,9 +35,9 @@ return [
         ],
     ],
     'firebase' => [
-    'credentials' => env('FIREBASE_CREDENTIALS', 'firebase/season-9ede3-firebase-adminsdk-fbsvc-c1b9e2f2e7.json'),
-    'project_id' => env('FIREBASE_PROJECT_ID', 'season-9ede3'),
-],
+        'credentials' => env('FIREBASE_CREDENTIALS', 'firebase/season-9ede3-firebase-adminsdk-fbsvc-c1b9e2f2e7.json'),
+        'project_id' => env('FIREBASE_PROJECT_ID', 'season-9ede3'),
+    ],
 
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
@@ -52,17 +52,18 @@ return [
 
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_ids' => env('GOOGLE_CLIENT_IDS'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
     'apple' => [
-        'client_id' => env('APPLE_CLIENT_ID'),
+        'client_id' => env('APPLE_CLIENT_ID', 'com.softikseason.softik'),
         // Native iOS Sign in with Apple uses the app Bundle ID as token `aud`.
-        'bundle_id' => env('APPLE_BUNDLE_ID', 'com.season.app.seasonApp'),
+        'bundle_id' => env('APPLE_BUNDLE_ID', 'com.softikseason.softik'),
         // Optional comma-separated list override, e.g. "com.season.app.seasonApp,com.season.app.service"
         'client_ids' => env('APPLE_CLIENT_IDS'),
-        'team_id' => env('APPLE_TEAM_ID'),
+        'team_id' => env('APPLE_TEAM_ID', 'GKQ3F4H77H'),
         'key_id' => env('APPLE_KEY_ID'),
         'private_key' => env('APPLE_PRIVATE_KEY'),
         'redirect' => env('APPLE_REDIRECT_URI'),

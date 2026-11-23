@@ -19,6 +19,14 @@ class AppleLoginRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new \Illuminate\Http\Exceptions\HttpResponseException(response()->json([
+            'message' => 'The given data was invalid.',
+            'errors' => $validator->errors(),
+        ], 422));
+    }
+
     public function rules(): array
     {
         return [
@@ -26,6 +34,8 @@ class AppleLoginRequest extends FormRequest
             'authorization_code' => 'nullable|string',
             'fcm_token' => 'nullable|string',
             'bundle_id' => 'nullable|string',
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email',
         ];
     }
 }
