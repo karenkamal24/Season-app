@@ -11,6 +11,8 @@ class EmergencyNumber extends Model
 
     protected $fillable = [
         'country_id',
+        'country_code',
+        'unified_emergency',
         'fire',
         'police',
         'ambulance',

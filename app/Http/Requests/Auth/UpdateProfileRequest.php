@@ -8,6 +8,13 @@ use App\Helpers\LangHelper;
 
 class UpdateProfileRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('nationality'))) {
+            $this->merge(['nationality' => strtoupper(trim($this->input('nationality')))]);
+        }
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -17,6 +24,7 @@ class UpdateProfileRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|max:255',
+            'nationality' => ['nullable', 'string', 'size:3', 'regex:/^[A-Za-z]{3}$/'],
             'nickname' => 'nullable|string|max:255',
             'email' => [
                 'nullable',

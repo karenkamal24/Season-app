@@ -2,45 +2,44 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Country;
 use App\Models\EmergencyNumber;
+use Illuminate\Database\Seeder;
 
 class EmergencyNumbersSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $countries = [
-            // Arab Countries
-            ['name_ar' => 'مصر', 'name_en' => 'Egypt', 'code' => 'EGY', 'fire' => '180', 'police' => '122', 'ambulance' => '123', 'embassy' => '0227920000'],
-            ['name_ar' => 'السعودية', 'name_en' => 'Saudi Arabia', 'code' => 'SAU', 'fire' => '998', 'police' => '999', 'ambulance' => '997', 'embassy' => '0114644555'],
-            ['name_ar' => 'الإمارات', 'name_en' => 'UAE', 'code' => 'ARE', 'fire' => '997', 'police' => '999', 'ambulance' => '998', 'embassy' => '026171100'],
-            ['name_ar' => 'الكويت', 'name_en' => 'Kuwait', 'code' => 'KWT', 'fire' => '101', 'police' => '112', 'ambulance' => '112', 'embassy' => '0222340000'],
-            ['name_ar' => 'قطر', 'name_en' => 'Qatar', 'code' => 'QAT', 'fire' => '999', 'police' => '999', 'ambulance' => '999', 'embassy' => '044457000'],
-            ['name_ar' => 'البحرين', 'name_en' => 'Bahrain', 'code' => 'BHR', 'fire' => '999', 'police' => '999', 'ambulance' => '999', 'embassy' => '17585555'],
-           
+            'SAU' => ['المملكة العربية السعودية', 'Saudi Arabia', '999', '997', '998', '911'],
+            'ARE' => ['الإمارات العربية المتحدة', 'United Arab Emirates', '999', '998', '997', '999'],
+            'EGY' => ['مصر', 'Egypt', '122', '123', '180', '112'],
+            'KWT' => ['الكويت', 'Kuwait', '112', '112', '112', '112'],
+            'BHR' => ['البحرين', 'Bahrain', '999', '999', '999', '999'],
+            'OMN' => ['سلطنة عُمان', 'Oman', '9999', '9999', '9999', '9999'],
+            'QAT' => ['قطر', 'Qatar', '999', '999', '999', '999'],
         ];
 
-        foreach ($countries as $countryData) {
-            $country = Country::updateOrCreate(
-                ['code' => $countryData['code']],
-                [
-                    'name_ar' => $countryData['name_ar'],
-                    'name_en' => $countryData['name_en'],
-                ]
-            );
+        foreach ($countries as $code => [$nameAr, $nameEn, $police, $ambulance, $fire, $unified]) {
+            $legacyCode = ['SAU' => 'SAU ', 'ARE' => 'UAE'][$code] ?? null;
+            $country = Country::where('code', $code)->first()
+                ?? ($legacyCode ? Country::where('code', $legacyCode)->first() : null);
+
+            if ($country) {
+                $country->update(['code' => $code, 'name_ar' => $nameAr, 'name_en' => $nameEn]);
+            } else {
+                $country = Country::create(['code' => $code, 'name_ar' => $nameAr, 'name_en' => $nameEn]);
+            }
 
             EmergencyNumber::updateOrCreate(
                 ['country_id' => $country->id],
                 [
-                    'fire' => $countryData['fire'],
-                    'police' => $countryData['police'],
-                    'ambulance' => $countryData['ambulance'],
-                    'embassy' => $countryData['embassy'],
+                    'country_code' => $code,
+                    'police' => $police,
+                    'ambulance' => $ambulance,
+                    'fire' => $fire,
+                    'unified_emergency' => $unified,
+                    'embassy' => null,
                 ]
             );
         }

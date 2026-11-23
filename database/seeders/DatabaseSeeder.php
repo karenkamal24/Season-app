@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(CountriesSeeder::class);
         $this->call(AdminSeeder::class);
         $this->call(EmergencyNumbersSeeder::class);
+        $this->call(EmbassiesSeeder::class);
         $this->call(BagTypesSeeder::class);
         $this->call(ItemCategoriesSeeder::class);
         $this->call(ItemsSeeder::class);

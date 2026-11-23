@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Api\Emergency;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\EmergencyResource;
 use App\Services\EmergencyService;
-use App\Utils\ApiResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use App\Helpers\LangHelper;
+use Illuminate\Http\JsonResponse;
 
 class EmergencyController extends Controller
 {
@@ -16,30 +13,33 @@ class EmergencyController extends Controller
         protected EmergencyService $emergencyService
     ) {}
 
-    public function show(Request $request)
+    public function show(Request $request): JsonResponse
     {
-        $countryCode = $request->header('Accept-Country');
+        $countryCode = $request->query('country_code') ?: $request->header('Accept-Country');
 
-        if (!$countryCode) {
-            return ApiResponse::send(
-                Response::HTTP_BAD_REQUEST,
-                LangHelper::msg('emergency_missing_header')
-            );
+        if (!is_string($countryCode) || trim($countryCode) === '') {
+            return response()->json(['success' => false, 'message' => 'كود الدولة مطلوب.'], 400);
         }
+
+        $countryCode = strtoupper(trim($countryCode));
 
         $emergency = $this->emergencyService->getEmergencyByCountry($countryCode);
 
         if (!$emergency) {
-            return ApiResponse::send(
-                Response::HTTP_NOT_FOUND,
-                LangHelper::msg('emergency_not_found')
-            );
+            return response()->json(['success' => false, 'message' => 'الدولة غير مدعومة أو لا توجد لها أرقام طوارئ.'], 404);
         }
 
-        return ApiResponse::send(
-            Response::HTTP_OK,
-            LangHelper::msg('emergency_fetched'),
-            new EmergencyResource($emergency)
-        );
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'country_code' => $countryCode,
+                'country_name' => $emergency->country->name_ar,
+                'police' => $emergency->police,
+                'ambulance' => $emergency->ambulance,
+                'fire' => $emergency->fire,
+                'unified_emergency' => $emergency->unified_emergency,
+                'embassy' => $this->emergencyService->getEmbassyFor($request->user('sanctum')?->nationality, $countryCode),
+            ],
+        ]);
     }
 }
