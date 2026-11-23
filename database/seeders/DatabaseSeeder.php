@@ -25,5 +25,6 @@ class DatabaseSeeder extends Seeder
         $this->call(PackingTipsSeeder::class);
         $this->call(CategoriesSeeder::class);
         $this->call(GeographicalCategoriesSeeder::class);
+        $this->call(VendorServicesDemoSeeder::class);
     }
 }

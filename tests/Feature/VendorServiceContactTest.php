@@ -7,6 +7,7 @@ use App\Http\Middleware\UpdateUserLastActive;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\VendorService;
+use Database\Seeders\VendorServicesDemoSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -24,6 +25,7 @@ class VendorServiceContactTest extends TestCase
         parent::setUp();
         foreach ([
             '0001_01_01_000000_create_users_table.php',
+            '2025_10_19_173407_add_is_vendor_to_users_table.php',
             '2025_10_19_152359_create_settings_table.php',
             '2025_10_19_174123_create_service_types_table.php',
             '2025_10_19_180451_create_vendor_services_table.php',
@@ -144,5 +146,41 @@ class VendorServiceContactTest extends TestCase
         $this->assertStringContainsString('suspicious pattern', $report);
         $this->assertStringContainsString((string) $service->id, $report);
         $this->assertEquals($before, DB::table('vendor_services')->where('id', $service->id)->first());
+    }
+
+    public function test_directory_seeder_replaces_old_services_with_public_contact_data(): void
+    {
+        VendorService::create([
+            'user_id' => $this->user->id,
+            'service_type_id' => $this->type->id,
+            'name' => 'Old service',
+            'status' => 'approved',
+        ]);
+
+        $this->seed(VendorServicesDemoSeeder::class);
+
+        $totalServices = DB::table('vendor_services')->count();
+        $this->assertSame(0, DB::table('vendor_services')->where('name', 'Old service')->count());
+        $this->assertSame(10, $totalServices);
+        $this->assertSame(10, DB::table('vendor_services')->where('status', 'approved')->count());
+        $this->assertSame(10, DB::table('vendor_services')->whereNotNull('phone')->count());
+        $this->assertSame(10, DB::table('vendor_services')->whereNotNull('whatsapp')->count());
+        $this->assertSame(10, DB::table('vendor_services')->whereNotNull('latitude')->whereNotNull('longitude')->count());
+
+        $services = VendorService::all();
+        foreach ($services as $service) {
+            $this->assertMatchesRegularExpression('/^\+[1-9]\d{7,14}$/', $service->phone);
+            $this->assertNotEmpty($service->address);
+            $this->assertStringContainsString('https://', $service->description);
+            $this->withHeader('Accept-Country', $service->country->code)
+                ->getJson('/api/vendor-services/'.$service->id)
+                ->assertOk()
+                ->assertJsonPath('data.phone', $service->phone)
+                ->assertJsonPath('data.address', $service->address);
+            $this->withHeader('Accept-Country', $service->country->code)
+                ->getJson('/api/vendor-services')
+                ->assertOk()
+                ->assertJsonFragment(['name' => $service->name]);
+        }
     }
 }
