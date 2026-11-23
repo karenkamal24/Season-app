@@ -11,11 +11,14 @@ use App\Http\Resources\SmartBagItemResource;
 use App\Models\Bag;
 use App\Models\BagItem;
 use App\Services\GeminiAIService;
+use App\Jobs\SendAiFailureAlert;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
 use App\Helpers\LangHelper;
 
 class BagController extends Controller
@@ -350,24 +353,32 @@ class BagController extends Controller
      */
     public function getAICategories(Request $request): JsonResponse
     {
+        $language = $request->query('language');
+        if (!$language) {
+            $language = strtolower(explode('-', trim($request->header('Accept-Language', 'ar')))[0]);
+        }
+        if (!in_array($language, ['ar', 'en'], true)) {
+            $language = 'ar';
+        }
+
         try {
-            // Get language from query parameter (if provided), otherwise from Accept-Language header
-            // Use same method as ItemCategoryController
-            $language = $request->query('language');
-
-            if (!$language) {
-                // Get from Accept-Language header (same as ItemCategoryController)
-                $headerLang = $request->header('Accept-Language', 'ar');
-                $language = strtolower(explode('-', trim($headerLang))[0]);
+            $source = 'cache';
+            $cacheKey = 'smart_bag_ai_categories_' . $language;
+            if (!Cache::has($cacheKey) && Cache::has('smart_bag_ai_cooldown')) {
+                return $this->fallbackResponse($language);
             }
 
-            // Validate language, default to 'ar' if not supported
-            if (!in_array($language, ['ar', 'en'])) {
-                $language = 'ar';
-            }
+            $categories = Cache::remember($cacheKey, now()->addDay(), function () use ($language, &$source) {
+                $categories = $this->geminiService->generatePackingCategoriesFresh($language);
+                $source = 'ai';
+                return $categories;
+            });
 
-            // Get AI-generated categories
-            $categories = $this->geminiService->generatePackingCategories($language);
+            if (!is_array($categories) || !array_is_list($categories) || $categories === [] ||
+                count(array_filter($categories, fn ($category) => is_array($category) && isset($category['name']) && is_string($category['name']) && trim($category['name']) !== '')) !== count($categories)) {
+                Cache::forget($cacheKey);
+                throw new \UnexpectedValueException('Invalid cached categories');
+            }
 
             return response()->json([
                 'success' => true,
@@ -375,13 +386,51 @@ class BagController extends Controller
                 'data' => [
                     'categories' => $categories,
                     'language' => $language,
+                    'source' => $source,
                 ],
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => (LangHelper::msg('categories_retrieval_failed') ?? 'Failed to retrieve categories') . ': ' . $e->getMessage(),
-            ], 500);
+        } catch (Throwable $e) {
+            try {
+                Cache::put('smart_bag_ai_cooldown', true, 60);
+            } catch (Throwable) {
+                // Keep the fallback available if cache storage is unavailable.
+            }
+            $this->reportAiFailure($e, $language);
+
+            return $this->fallbackResponse($language);
+        }
+    }
+
+    private function fallbackResponse(string $language): JsonResponse
+    {
+        $categories = array_map(function (array $category) use ($language): array {
+            $category['name'] = $language === 'ar' ? $category['name_ar'] : $category['name'];
+            return $category;
+        }, config('smart_bag_ai.fallback_categories'));
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'categories' => $categories,
+                'language' => $language,
+                'source' => 'fallback',
+            ],
+        ]);
+    }
+
+    private function reportAiFailure(Throwable $e, string $language): void
+    {
+        try {
+            $message = GeminiAIService::redact($e->getMessage());
+            Log::error('AI Service Failed: ' . $message, [
+                'exception' => $e::class,
+                'language' => $language,
+            ]);
+            if (config('smart_bag_ai.alert_webhook_url') && Cache::add('smart_bag_ai_alert_throttle', true, 600)) {
+                SendAiFailureAlert::dispatch($message, $e::class, $language)->afterResponse();
+            }
+        } catch (Throwable) {
+            // Alert infrastructure must not change the API fallback.
         }
     }
 
@@ -438,11 +487,17 @@ class BagController extends Controller
                     'language' => $language,
                 ],
             ]);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
+            $this->reportAiFailure($e, $language ?? 'ar');
             return response()->json([
-                'success' => false,
-                'message' => (LangHelper::msg('ai_items_suggestion_failed') ?? 'Failed to suggest AI items') . ': ' . $e->getMessage(),
-            ], 500);
+                'success' => true,
+                'data' => [
+                    'category' => $categoryName ?? null,
+                    'items' => [],
+                    'language' => $language ?? 'ar',
+                    'source' => 'fallback',
+                ],
+            ]);
         }
     }
 

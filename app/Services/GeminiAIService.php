@@ -21,6 +21,13 @@ class GeminiAIService
         $this->apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent";
     }
 
+    public static function redact(string $message): string
+    {
+        $message = preg_replace('/\bkey=[^&\s"\x27]+/i', 'key=REDACTED', $message);
+
+        return preg_replace('/AIza[A-Za-z0-9_-]+/', 'REDACTED', $message);
+    }
+
     /**
      * Generate content using Gemini AI
      *
@@ -29,18 +36,20 @@ class GeminiAIService
      * @return array
      * @throws Exception
      */
-    public function generateContent(string $prompt, array $config = []): array
+    public function generateContent(string $prompt, array $config = [], ?int $timeoutSeconds = null): array
     {
         $startTime = microtime(true);
 
-        try {
-            $response = Http::timeout(60)
-                ->retry(3, 2000, function ($exception, $request) {
+            $request = Http::timeout($timeoutSeconds ?? 60);
+            if ($timeoutSeconds !== null) {
+                $request = $request->connectTimeout($timeoutSeconds);
+            } else {
+                $request = $request->retry(3, 2000, function ($exception, $request) {
                     // retry بس لو connection error أو server error (5xx)
                     // مش لو API key غلط أو prompt مشكلة (4xx)
                     if ($exception instanceof ConnectionException) {
                         Log::warning('Gemini connection error, retrying...', [
-                            'message' => $exception->getMessage(),
+                            'message' => $this->redact($exception->getMessage()),
                         ]);
                         return true;
                     }
@@ -62,8 +71,10 @@ class GeminiAIService
                     }
 
                     return false;
-                })
-                ->post($this->apiUrl . '?key=' . $this->apiKey, [
+                });
+            }
+
+            $response = $request->withHeaders(['x-goog-api-key' => $this->apiKey])->post($this->apiUrl, [
                     'contents' => [
                         [
                             'parts' => [
@@ -99,17 +110,12 @@ class GeminiAIService
                 ]);
 
             if (!$response->successful()) {
-                Log::error('Gemini API Error', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
-                throw new Exception('Gemini API request failed: ' . $response->body());
+                throw new Exception('Gemini API request failed (' . $response->status() . '): ' . $this->redact($response->body()));
             }
 
             $data = $response->json();
 
             if (empty($data['candidates'])) {
-                Log::error('Gemini API returned no candidates', ['data' => $data]);
                 throw new Exception('Gemini API returned no candidates');
             }
 
@@ -132,13 +138,6 @@ class GeminiAIService
                 'safety_ratings' => $candidate['safetyRatings'] ?? [],
             ];
 
-        } catch (Exception $e) {
-            Log::error('Gemini AI Service Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw $e;
-        }
     }
 
     /**
@@ -164,10 +163,6 @@ class GeminiAIService
         $decoded = json_decode($jsonText, true);
 
         if ($decoded === null) {
-            Log::error('Failed to parse JSON from Gemini response', [
-                'error' => json_last_error_msg(),
-                'text_preview' => substr($text, 0, 500),
-            ]);
             throw new Exception('Failed to parse JSON from AI response: ' . json_last_error_msg());
         }
 
@@ -283,7 +278,7 @@ class GeminiAIService
             } catch (\Exception $e) {
 
                 Log::warning("Analyze attempt {$attempt} failed", [
-                    'error' => $e->getMessage(),
+                    'error' => $this->redact($e->getMessage()),
                 ]);
 
                 if ($attempt >= $maxAttempts) {
@@ -354,24 +349,32 @@ PROMPT;
             return $cached;
         }
 
-        $prompt = $this->buildCategoriesPrompt($language);
-
-        $response = $this->generateContent($prompt, [
-            'maxOutputTokens' => 1024,
-            'temperature' => 0.3,
-        ]);
-
-        $categories = $this->extractJson($response['text']);
-
-        if (!is_array($categories)) {
-            throw new Exception('Invalid response format from AI');
-        }
-
-        if (isset($categories['categories'])) {
-            $categories = $categories['categories'];
-        }
+        $categories = $this->generatePackingCategoriesFresh($language, null);
 
         Cache::put($cacheKey, $categories, 60 * 60 * 24 * 7);
+
+        return $categories;
+    }
+
+    public function generatePackingCategoriesFresh(string $language = 'ar', ?int $timeoutSeconds = 4): array
+    {
+        $response = $this->generateContent($this->buildCategoriesPrompt($language), [
+            'maxOutputTokens' => 1024,
+            'temperature' => 0.3,
+        ], $timeoutSeconds);
+
+        $categories = $this->extractJson($response['text']);
+        $categories = $categories['categories'] ?? $categories;
+
+        if (!is_array($categories) || !array_is_list($categories) || $categories === []) {
+            throw new Exception('Invalid categories response from AI');
+        }
+
+        foreach ($categories as $category) {
+            if (!is_array($category) || !isset($category['name']) || !is_string($category['name']) || trim($category['name']) === '') {
+                throw new Exception('Invalid category in AI response');
+            }
+        }
 
         return $categories;
     }
@@ -397,7 +400,7 @@ PROMPT;
         $response = $this->generateContent($prompt, [
             'maxOutputTokens' => 2048,
             'temperature' => 0.4,
-        ]);
+        ], 8);
 
         $items = $this->extractJson($response['text']);
 
